@@ -50,6 +50,10 @@ function injectAppVersion(): Plugin {
 }
 
 export default defineConfig({
+  // Base path for asset URLs. Defaults to '/' (root). When deploying to a
+  // GitHub Pages project site (e.g. https://<user>.github.io/<repo>/), set
+  // VITE_BASE_PATH to '/<repo>/' at build time so assets resolve correctly.
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [
     react(),
     injectAppVersion(),

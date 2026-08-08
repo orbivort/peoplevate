@@ -56,6 +56,9 @@ jobs:
           # GitHub Pages can run the app without a backend. The flag is baked in
           # at build time by Vite.
           VITE_USE_MOCK: 'true'
+          # GitHub Pages project sites are hosted under a subpath
+          # (https://<owner>.github.io/<repo>/), so assets must be rooted there.
+          VITE_BASE_PATH: '/peoplevate/'
           # Set to match the CI policy. This workflow only builds the static
           # frontend (no backend process), so EMAIL_MODE is inert here, but
           # keeping it consistent avoids surprises if the build ever gains
@@ -87,5 +90,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
-        #   git ls-remote https://github.com/actions/deploy-pages.git v4
-        uses: actions/deploy-pages@v4
+        #   git ls-remote https://github.com/actions/deploy-pages.git v5
+        uses: actions/deploy-pages@v5
