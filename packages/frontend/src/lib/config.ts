@@ -17,6 +17,14 @@
 export const config = {
   useMock: import.meta.env.VITE_USE_MOCK === 'true',
   apiBase: import.meta.env.VITE_API_BASE ?? '',
+  /**
+   * Base path the app is served under. Used as the React Router `basename` so
+   * routes work correctly when the SPA is hosted under a subpath (e.g.
+   * GitHub Pages project sites at `https://<owner>.github.io/<repo>/`).
+   * Derived from the same `VITE_BASE_PATH` env var that Vite uses for asset
+   * URLs so routing and asset resolution always stay in sync.
+   */
+  basePath: (import.meta.env.VITE_BASE_PATH || '/').replace(/\/$/, '') || '/',
 } as const;
 
 /** True when the app is talking to the real backend (mock mode disabled). */
