@@ -1,0 +1,32 @@
+{
+  "name": "@peoplevate/eslint-config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared ESLint flat config for the peoplevate monorepo",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbivort/peoplevate.git",
+    "directory": "packages/config/eslint"
+  },
+  "files": [
+    "index.js"
+  ],
+  "exports": {
+    ".": "./index.js"
+  },
+  "peerDependencies": {
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "typescript-eslint": "catalog:"
+  },
+  "engines": {
+    "node": "^24.18.1"
+  },
+  "scripts": {
+    "clean": "rimraf dist build out coverage",
+    "clean:all": "rimraf --verbose dist build out coverage node_modules"
+  }
+}

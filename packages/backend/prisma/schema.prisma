@@ -1,0 +1,1187 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────────────
+// Authentication & Users
+// ──────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  HR_MANAGER
+  MANAGER
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING_SETUP
+  DEACTIVATED
+}
+
+model User {
+  id                   String       @id @default(uuid())
+  email                String       @unique
+  password_hash        String?
+  role                 UserRole     @default(EMPLOYEE)
+  status               UserStatus   @default(PENDING_SETUP)
+  failed_login_count   Int          @default(0)
+  locked_until         DateTime?
+  setup_token          String?
+  setup_token_expires  DateTime?
+  reset_token          String?
+  reset_token_expires  DateTime?
+  created_at           DateTime     @default(now())
+  updated_at           DateTime     @updatedAt
+  deleted_at           DateTime?
+
+  employee             Employee?    @relation("UserEmployee")
+  refresh_tokens       RefreshToken[]
+  assigned_onboarding  OnboardingTask[] @relation("OnboardingAssignee")
+  clearance_items      ClearanceItem[] @relation("ClearanceResponsible")
+  legal_holds          LegalHold[]
+  dsar_as_subject      DataSubjectAccessRequest[] @relation("DsarSubject")
+  dsar_verified_by     DataSubjectAccessRequest[] @relation("DsarVerifier")
+  dsar_assigned_to     DataSubjectAccessRequest[] @relation("DsarAssignee")
+  breaches_created     DataBreach[] @relation("BreachCreator")
+  breach_notifications DataBreachNotification[] @relation("BreachNotificationCreator")
+  consent_records      ConsentRecord[] @relation("ConsentSubject")
+  anomalies_reviewed   AnomalyAlert[] @relation("AnomalyReviewer")
+
+  @@index([email])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  token_hash  String   @unique
+  family_id   String
+  revoked     Boolean  @default(false)
+  expires_at  DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([family_id])
+}
+
+// ──────────────────────────────────────────────
+// Organization Structure
+// ──────────────────────────────────────────────
+
+model Department {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  parent_id   String?
+  parent      Department?  @relation("DepartmentHierarchy", fields: [parent_id], references: [id])
+  children    Department[] @relation("DepartmentHierarchy")
+  positions   Position[]
+  employees   Employee[]
+  requisitions JobRequisition[]
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  deleted_at  DateTime?
+
+  @@index([parent_id])
+
+  @@unique([name, parent_id])
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+}
+
+enum EmploymentStatus {
+  NEW_HIRE
+  PROBATION
+  ACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Position {
+  id           String         @id @default(uuid())
+  name         String
+  grade        String?
+  description  String?
+  department_id String
+  department   Department     @relation(fields: [department_id], references: [id])
+  employees    Employee[]
+  requisitions JobRequisition[]
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  deleted_at   DateTime?
+
+  @@index([department_id])
+  @@unique([name, department_id])
+}
+
+// ──────────────────────────────────────────────
+// Employee Master Data
+// ──────────────────────────────────────────────
+
+model Employee {
+  id                             String           @id @default(uuid())
+  employee_no                    String           @unique
+  first_name                     String
+  last_name                      String
+  date_of_birth                  DateTime?
+  gender                         Gender?
+  national_id_encrypted          String?
+  email                          String
+  phone                          String?
+  address                        String?
+  emergency_contact_name         String?
+  emergency_contact_relationship String?
+  emergency_contact_phone        String?
+  department_id                  String
+  department                     Department       @relation(fields: [department_id], references: [id])
+  position_id                    String
+  position                       Position         @relation(fields: [position_id], references: [id])
+  manager_id                     String?
+  manager                        Employee?        @relation("EmployeeManager", fields: [manager_id], references: [id])
+  direct_reports                 Employee[]       @relation("EmployeeManager")
+  hire_date                      DateTime
+  employment_type                EmploymentType   @default(FULL_TIME)
+  salary_encrypted               String?
+  status                         EmploymentStatus @default(NEW_HIRE)
+  deactivation_date              DateTime?
+  avatar_url                     String?
+  created_at                     DateTime         @default(now())
+  updated_at                     DateTime         @updatedAt
+  deleted_at                     DateTime?
+
+  user_id                        String?          @unique
+  user                           User?            @relation("UserEmployee", fields: [user_id], references: [id])
+  documents                      Document[]
+  employment_changes             EmploymentChange[]
+  candidate                      Candidate?
+  attendance_records             AttendanceRecord[]
+  leave_entitlements             LeaveEntitlement[]
+  leave_requests                 LeaveRequest[]
+  leave_balances                 LeaveBalance[]
+  leave_policy_assignments       LeavePolicyAssignment[]
+  performance_reviews            PerformanceReview[]
+  onboarding_tasks               OnboardingTask[]
+  offboarding_records            OffboardingRecord[]
+
+  @@index([department_id])
+  @@index([position_id])
+  @@index([manager_id])
+  @@index([status])
+  @@index([email])
+}
+
+// ──────────────────────────────────────────────
+// Employment Changes
+// ──────────────────────────────────────────────
+
+enum ChangeType {
+  PROMOTION
+  TRANSFER
+  MANAGER_CHANGE
+  SALARY_ADJUSTMENT
+  STATUS_CHANGE
+}
+
+enum ChangeStatus {
+  APPLIED
+  PENDING
+}
+
+model EmploymentChange {
+  id           String        @id @default(uuid())
+  employee_id  String
+  employee     Employee      @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  change_type  ChangeType
+  old_value    Json?
+  new_value    Json?
+  effective_date DateTime
+  status       ChangeStatus  @default(APPLIED)
+  reason       String?
+  recorded_by  String
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+
+  @@index([employee_id])
+  @@index([status])
+  @@index([effective_date])
+}
+
+// ──────────────────────────────────────────────
+// Document Management
+// ──────────────────────────────────────────────
+
+enum DocumentType {
+  CONTRACT
+  NATIONAL_ID
+  PASSPORT
+  WORK_PERMIT
+  CERTIFICATION
+  MEDICAL_CERTIFICATE
+  OTHER
+}
+
+model Document {
+  id               String       @id @default(uuid())
+  employee_id      String
+  employee         Employee     @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  type             DocumentType
+  original_filename String
+  stored_filename  String
+  file_path        String
+  mime_type        String
+  file_size        Int
+  uploaded_by      String
+  expiry_date      DateTime?
+  encryption_key_version_id String?
+  encryption_iv    Bytes?
+  encryption_tag   Bytes?
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  deleted_at       DateTime?
+
+  expiry_alerts    ExpiryAlert[]
+
+  @@index([employee_id])
+  @@index([type])
+  @@index([expiry_date])
+}
+
+// ──────────────────────────────────────────────
+// Document Expiry Alerts
+// ──────────────────────────────────────────────
+
+enum AlertSeverity {
+  EXPIRED
+  SOON
+}
+
+model ExpiryAlert {
+  id               String        @id @default(uuid())
+  document_id      String
+  document         Document      @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  employee_id      String
+  employee_name    String
+  document_type    DocumentType
+  expiry_date      DateTime
+  days_until_expiry Int
+  severity         AlertSeverity
+  acknowledged     Boolean       @default(false)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+
+  @@index([document_id])
+  @@index([acknowledged])
+  @@index([severity])
+}
+
+// ──────────────────────────────────────────────
+// Audit Logging
+// ──────────────────────────────────────────────
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  READ
+  VIEW
+  DOWNLOAD
+  EXPORT
+  CONSENT
+  PURGE
+  DSAR
+}
+
+enum AuditEntity {
+  EMPLOYEES
+  DEPARTMENTS
+  POSITIONS
+  USERS
+  AUTH
+  DOCUMENTS
+  JOB_REQUISITIONS
+  JOB_POSTINGS
+  CANDIDATES
+  INTERVIEWS
+  OFFER_LETTERS
+  ONBOARDING_TASKS
+  ATTENDANCE_RECORDS
+  LEAVE_TYPES
+  LEAVE_ENTITLEMENTS
+  LEAVE_REQUESTS
+  LEAVE_APPROVALS
+  LEAVE_BALANCES
+  EVALUATION_CYCLES
+  PERFORMANCE_REVIEWS
+  OFFBOARDING_RECORDS
+  CLEARANCE_ITEMS
+  EXIT_INTERVIEWS
+  SETTLEMENTS
+  DATA_SUBJECT_RIGHTS
+  BREACH
+  CONSENT
+  RETENTION
+  KEYS
+  ANOMALIES
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  actor_id    String?
+  actor_name  String?
+  action      AuditAction
+  entity      AuditEntity
+  entity_id   String?
+  old_value   Json?
+  new_value   Json?
+  timestamp   DateTime    @default(now())
+
+  @@index([actor_id])
+  @@index([entity])
+  @@index([action])
+  @@index([timestamp])
+}
+
+// ──────────────────────────────────────────────
+// Phase 2: Recruitment & Onboarding
+// ──────────────────────────────────────────────
+
+enum RequisitionStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PUBLISHED
+  CLOSED
+}
+
+enum CandidateStage {
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+}
+
+enum CandidateSource {
+  REFERRAL
+  JOB_BOARD
+  DIRECT
+  INTERNAL
+}
+
+enum OfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum OnboardingTaskType {
+  DOCUMENT_SUBMISSION
+  EQUIPMENT_ASSIGNMENT
+  ORIENTATION_SESSION
+  SYSTEM_ACCESS_SETUP
+}
+
+enum OnboardingTaskStatus {
+  PENDING
+  COMPLETE
+  OVERDUE
+}
+
+model JobRequisition {
+  id              String            @id @default(uuid())
+  title           String
+  department_id   String
+  department      Department        @relation(fields: [department_id], references: [id])
+  position_id     String
+  position        Position          @relation(fields: [position_id], references: [id])
+  headcount       Int
+  employment_type EmploymentType
+  status          RequisitionStatus @default(DRAFT)
+  closing_date    DateTime?
+  created_by      String
+  published_at    DateTime?
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+  deleted_at      DateTime?
+
+  candidates      Candidate[]
+  postings        JobPosting[]
+
+  @@index([department_id])
+  @@index([status])
+}
+
+model JobPosting {
+  id             String           @id @default(uuid())
+  requisition_id String
+  requisition    JobRequisition   @relation(fields: [requisition_id], references: [id], onDelete: Cascade)
+  posting_date   DateTime         @default(now())
+  closing_date   DateTime?
+  status         RequisitionStatus @default(PUBLISHED)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  deleted_at     DateTime?
+
+  @@index([requisition_id])
+}
+
+model Candidate {
+  id             String         @id @default(uuid())
+  name           String
+  email          String
+  phone          String?
+  resume_path    String?
+  source         CandidateSource @default(DIRECT)
+  requisition_id String
+  requisition    JobRequisition @relation(fields: [requisition_id], references: [id])
+  stage          CandidateStage @default(APPLIED)
+  consent_recorded Boolean       @default(false)
+  applied_at     DateTime       @default(now())
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  deleted_at     DateTime?
+
+  interviews     Interview[]
+  offer_letters  OfferLetter[]
+  employee_id    String?       @unique
+  employee       Employee?      @relation(fields: [employee_id], references: [id])
+
+  @@index([requisition_id])
+  @@index([email])
+  @@index([stage])
+}
+
+model Interview {
+  id             String          @id @default(uuid())
+  candidate_id   String
+  candidate      Candidate       @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  scheduled_at   DateTime
+  duration_min   Int             @default(30)
+  interviewer_ids String[]
+  location       String?
+  notes          String?
+  status         InterviewStatus @default(SCHEDULED)
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  deleted_at     DateTime?
+
+  @@index([candidate_id])
+  @@index([scheduled_at])
+}
+
+model OfferLetter {
+  id             String       @id @default(uuid())
+  candidate_id   String
+  candidate      Candidate    @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  position       String
+  salary         Int
+  start_date     DateTime
+  terms          String?
+  status         OfferStatus  @default(DRAFT)
+  sent_at        DateTime?
+  accepted_at    DateTime?
+  created_by     String
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  deleted_at     DateTime?
+
+  @@index([candidate_id])
+  @@index([status])
+}
+
+model OnboardingTask {
+  id          String             @id @default(uuid())
+  employee_id String
+  employee    Employee           @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  type        OnboardingTaskType
+  assignee_id String?
+  assignee    User?              @relation("OnboardingAssignee", fields: [assignee_id], references: [id])
+  due_date    DateTime?
+  status      OnboardingTaskStatus @default(PENDING)
+  completed_at DateTime?
+  created_at  DateTime           @default(now())
+  updated_at  DateTime           @updatedAt
+  deleted_at  DateTime?
+
+  @@index([employee_id])
+  @@index([assignee_id])
+  @@index([status])
+}
+
+// ──────────────────────────────────────────────
+// Phase 2: Attendance & Leave
+// ──────────────────────────────────────────────
+
+enum AttendanceType {
+  IN
+  OUT
+}
+
+enum LeaveRequestStatus {
+  PENDING_MANAGER_APPROVAL
+  PENDING_HR_APPROVAL
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ApprovalAction {
+  APPROVE
+  REJECT
+  REQUEST_INFO
+}
+
+model AttendanceRecord {
+  id          String         @id @default(uuid())
+  employee_id String
+  employee    Employee       @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  timestamp   DateTime       @default(now())
+  type        AttendanceType
+  ip_address  String?
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+  deleted_at  DateTime?
+
+  @@index([employee_id])
+  @@index([timestamp])
+}
+
+model LeaveType {
+  id                  String   @id @default(uuid())
+  name                String
+  accrual_rate        Float    @default(0)
+  carry_forward_policy String  @default("none")
+  max_consecutive_days Int?
+  approval_levels     Int      @default(1)
+  auto_approve_sick_days Int  @default(0)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  deleted_at          DateTime?
+
+  entitlements        LeaveEntitlement[]
+  requests            LeaveRequest[]
+  balances            LeaveBalance[]
+  policyGroupEntitlements LeavePolicyGroupEntitlement[]
+
+  @@unique([name, deleted_at])
+}
+
+model LeaveEntitlement {
+  id               String    @id @default(uuid())
+  employee_id      String
+  employee         Employee  @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  leave_type_id    String
+  leave_type       LeaveType @relation(fields: [leave_type_id], references: [id])
+  annual_entitlement Float
+  year             Int
+  source           String    @default("POLICY") // POLICY | OVERRIDE | MIGRATED
+  policy_group_id  String?
+  policy_group     LeavePolicyGroup? @relation(fields: [policy_group_id], references: [id])
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted_at       DateTime?
+
+  @@unique([employee_id, leave_type_id, year])
+  @@index([employee_id])
+  @@index([policy_group_id])
+}
+
+model LeaveRequest {
+  id                String             @id @default(uuid())
+  employee_id       String
+  employee          Employee           @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  leave_type_id     String
+  leave_type        LeaveType          @relation(fields: [leave_type_id], references: [id])
+  start_date        DateTime
+  end_date          DateTime
+  days              Int
+  reason            String?
+  attachment_path   String?
+  status            LeaveRequestStatus @default(PENDING_MANAGER_APPROVAL)
+  submitted_by      String
+  submitted_at      DateTime           @default(now())
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  deleted_at        DateTime?
+
+  approvals         LeaveApproval[]
+
+  @@index([employee_id])
+  @@index([status])
+  @@index([leave_type_id])
+}
+
+model LeaveApproval {
+  id               String         @id @default(uuid())
+  leave_request_id String
+  leave_request    LeaveRequest   @relation(fields: [leave_request_id], references: [id], onDelete: Cascade)
+  approver_id      String
+  level            Int
+  action           ApprovalAction
+  comment          String?
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+
+  @@index([leave_request_id])
+}
+
+model LeaveBalance {
+  id               String    @id @default(uuid())
+  employee_id      String
+  employee         Employee  @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  leave_type_id    String
+  leave_type       LeaveType @relation(fields: [leave_type_id], references: [id])
+  year             Int
+  accrued_days     Float     @default(0)
+  used_days        Float     @default(0)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted_at       DateTime?
+
+  @@unique([employee_id, leave_type_id, year])
+  @@index([employee_id])
+}
+
+// Global leave entitlement rule per role, per leave type, per year.
+// HR applies these templates to every active employee of a role, which then
+// materialises per-employee `LeaveEntitlement` rows.
+// ──────────────────────────────────────────────
+// Leave Policy Group (replaces role-based templates)
+// A named policy with eligibility criteria based on real employee
+// attributes (employment type, grade, department, tenure).
+// ──────────────────────────────────────────────
+
+model LeavePolicyGroup {
+  id                 String           @id @default(uuid())
+  name               String
+  description        String?
+  year               Int
+
+  // Eligibility criteria — null/empty means "applies to all values".
+  employment_type    EmploymentType?
+  grades             String[]         @default([])
+  department_id      String?
+
+  proration_enabled  Boolean          @default(true)
+
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+  deleted_at         DateTime?
+
+  entitlements       LeavePolicyGroupEntitlement[]
+  employee_assignments LeavePolicyAssignment[]
+  leave_entitlements   LeaveEntitlement[]
+
+  @@unique([name, year])
+  @@index([year])
+  @@index([employment_type])
+  @@index([department_id])
+}
+
+model LeavePolicyGroupEntitlement {
+  id                String           @id @default(uuid())
+  policy_group_id   String
+  policy_group      LeavePolicyGroup @relation(fields: [policy_group_id], references: [id], onDelete: Cascade)
+  leave_type_id     String
+  leave_type        LeaveType        @relation(fields: [leave_type_id], references: [id])
+  annual_days       Float
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  deleted_at        DateTime?
+
+  @@unique([policy_group_id, leave_type_id])
+  @@index([policy_group_id])
+}
+
+model LeavePolicyAssignment {
+  id                String           @id @default(uuid())
+  employee_id       String
+  employee          Employee         @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  policy_group_id   String
+  policy_group      LeavePolicyGroup @relation(fields: [policy_group_id], references: [id])
+  year              Int
+  assigned_by       String
+  assigned_at       DateTime         @default(now())
+  is_manual         Boolean          @default(true)
+
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  deleted_at        DateTime?
+
+  @@unique([employee_id, year])
+  @@index([employee_id])
+  @@index([policy_group_id])
+}
+
+// Company / statutory holidays used by the attendance summary to mark days as
+// "Holiday" instead of "Absent".
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime
+  year        Int
+  type        String   @default("STATUTORY") // STATUTORY | COMPANY | FLOATING
+  recurring   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  @@unique([name, date, deleted_at])
+  @@index([year])
+  @@index([date])
+}
+
+// ──────────────────────────────────────────────
+// Phase 2: Performance Management
+// ──────────────────────────────────────────────
+
+enum EvaluationType {
+  PROBATION
+  MID_YEAR
+  END_YEAR
+}
+
+enum CycleStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum ReviewStatus {
+  NOT_STARTED
+  SELF_EVALUATION
+  MANAGER_EVALUATION
+  HR_REVIEW
+  COMPLETED
+}
+
+model EvaluationCycle {
+  id           String          @id @default(uuid())
+  type         EvaluationType
+  period_start DateTime
+  period_end   DateTime
+  self_eval_start  DateTime
+  self_eval_end    DateTime
+  manager_eval_start DateTime
+  manager_eval_end   DateTime
+  hr_review_start    DateTime
+  hr_review_end      DateTime
+  status       CycleStatus     @default(DRAFT)
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  deleted_at   DateTime?
+
+  reviews      PerformanceReview[]
+
+  @@index([status])
+}
+
+model PerformanceReview {
+  id                     String       @id @default(uuid())
+  cycle_id               String
+  cycle                  EvaluationCycle @relation(fields: [cycle_id], references: [id], onDelete: Cascade)
+  employee_id            String
+  employee               Employee     @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  status                 ReviewStatus @default(NOT_STARTED)
+  self_eval_submitted_at DateTime?
+  self_eval              Json?
+  manager_eval_submitted_at DateTime?
+  manager_eval          Json?
+  overall_rating        Int?
+  hr_comments           String?
+  hr_finalized_at       DateTime?
+  rebuttal              String?
+  created_at            DateTime     @default(now())
+  updated_at            DateTime     @updatedAt
+  deleted_at            DateTime?
+
+  @@unique([cycle_id, employee_id])
+  @@index([employee_id])
+  @@index([cycle_id])
+}
+
+// ──────────────────────────────────────────────
+// Phase 2: Offboarding & Separation
+// ──────────────────────────────────────────────
+
+enum SeparationType {
+  RESIGNATION
+  DISMISSAL
+  END_OF_CONTRACT
+}
+
+enum OffboardingStatus {
+  INITIATED
+  CLEARANCE_IN_PROGRESS
+  EXIT_INTERVIEW
+  SETTLEMENT
+  CLOSED
+}
+
+enum ClearanceItemStatus {
+  PENDING
+  COMPLETE
+  WAIVED
+}
+
+enum ClearanceCategory {
+  ASSET_RETURN
+  ACCESS_REVOCATION
+  KNOWLEDGE_TRANSFER
+  FINAL_SETTLEMENT
+}
+
+model OffboardingRecord {
+  id               String            @id @default(uuid())
+  employee_id      String
+  employee         Employee          @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  separation_type  SeparationType
+  reason           String?
+  last_working_day DateTime
+  status           OffboardingStatus @default(INITIATED)
+  initiated_by     String
+  initiated_at     DateTime          @default(now())
+  deactivation_date DateTime
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  deleted_at       DateTime?
+
+  clearance_items  ClearanceItem[]
+  exit_interviews  ExitInterview[]
+  settlements      Settlement[]
+
+  @@unique([employee_id])
+  @@index([status])
+}
+
+model ClearanceItem {
+  id                 String              @id @default(uuid())
+  offboarding_id     String
+  offboarding        OffboardingRecord   @relation(fields: [offboarding_id], references: [id], onDelete: Cascade)
+  category           ClearanceCategory
+  description        String
+  responsible_party_id String?
+  responsible_party  User?               @relation("ClearanceResponsible", fields: [responsible_party_id], references: [id])
+  status             ClearanceItemStatus @default(PENDING)
+  completed_at       DateTime?
+  sign_off_by        String?
+  waived_reason      String?
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+  deleted_at         DateTime?
+
+  @@index([offboarding_id])
+  @@index([status])
+}
+
+model ExitInterview {
+  id             String       @id @default(uuid())
+  offboarding_id String
+  offboarding    OffboardingRecord @relation(fields: [offboarding_id], references: [id], onDelete: Cascade)
+  conducted_by   String?
+  conducted_at   DateTime?
+  declined       Boolean      @default(false)
+  responses      Json?
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+
+  @@index([offboarding_id])
+}
+
+model Settlement {
+  id                  String    @id @default(uuid())
+  offboarding_id      String
+  offboarding         OffboardingRecord @relation(fields: [offboarding_id], references: [id], onDelete: Cascade)
+  last_working_day    DateTime
+  leave_encashment_days Float    @default(0)
+  leave_encashment_amount Int    @default(0)
+  pending_dues        Json?
+  total_amount        Int       @default(0)
+  outstanding_flagged Boolean   @default(false)
+  generated_at        DateTime  @default(now())
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@index([offboarding_id])
+}
+
+// ──────────────────────────────────────────────
+// GDPR Compliance: Data Retention
+// ──────────────────────────────────────────────
+
+enum RetentionDataCategory {
+  TERMINATED_EMPLOYEE_RECORDS
+  CANDIDATE_RESUMES
+  CONTRACTS
+  MEDICAL_RECORDS
+  SALARY_RECORDS
+  ATTENDANCE_RECORDS
+  LEAVE_RECORDS
+  AUDIT_LOGS
+}
+
+enum RetentionAction {
+  HARD_DELETE
+  ANONYMIZE
+}
+
+model RetentionPolicy {
+  id              String               @id @default(uuid())
+  data_category   RetentionDataCategory @unique
+  retention_years Int
+  action          RetentionAction
+  description     String?
+  is_default      Boolean              @default(false)
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+}
+
+model LegalHold {
+  id          String   @id @default(uuid())
+  entity_type String
+  entity_id   String
+  reason      String
+  created_by_id String?
+  created_by  User?    @relation(fields: [created_by_id], references: [id], onDelete: SetNull)
+  created_at  DateTime @default(now())
+  released_at DateTime?
+
+  @@index([entity_type, entity_id])
+}
+
+// ──────────────────────────────────────────────
+// GDPR Compliance: Data Subject Rights & DSAR
+// ──────────────────────────────────────────────
+
+enum DsarType {
+  ACCESS
+  ERASURE
+  PORTABILITY
+  RECTIFICATION
+}
+
+enum DsarStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+model DataSubjectAccessRequest {
+  id                       String     @id @default(uuid())
+  request_type             DsarType
+  status                   DsarStatus @default(PENDING_VERIFICATION)
+  data_subject_user_id     String?
+  data_subject_user        User?      @relation("DsarSubject", fields: [data_subject_user_id], references: [id], onDelete: SetNull)
+  data_subject_email       String
+  identity_verified_by_id  String?
+  identity_verified_by     User?      @relation("DsarVerifier", fields: [identity_verified_by_id], references: [id], onDelete: SetNull)
+  identity_verified_at     DateTime?
+  verified_at              DateTime?
+  completed_at             DateTime?
+  sla_deadline             DateTime?
+  assigned_to_id           String?
+  assigned_to              User?      @relation("DsarAssignee", fields: [assigned_to_id], references: [id], onDelete: SetNull)
+  rejection_reason         String?
+  description              String?
+  created_at               DateTime   @default(now())
+  updated_at               DateTime   @updatedAt
+
+  @@index([status])
+  @@index([data_subject_user_id])
+  @@index([sla_deadline])
+}
+
+// ──────────────────────────────────────────────
+// GDPR Compliance: Breach Notification
+// ──────────────────────────────────────────────
+
+enum BreachSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum BreachContainmentStatus {
+  OPEN
+  CONTAINED
+  RESOLVED
+  CLOSED
+}
+
+enum BreachNotificationType {
+  SUPERVISORY_AUTHORITY
+  DATA_SUBJECT
+}
+
+model DataBreach {
+  id                          String                 @id @default(uuid())
+  title                       String
+  description                 String
+  detection_at                DateTime
+  severity                    BreachSeverity
+  is_high_risk                Boolean                @default(false)
+  data_categories_affected    String[]
+  affected_subjects_count     Int                    @default(0)
+  containment_status          BreachContainmentStatus @default(OPEN)
+  root_cause                  String?
+  resolution                  String?
+  sa_notification_deadline    DateTime
+  sa_notified_at              DateTime?
+  sa_notification_method      String?
+  sa_notification_reference   String?
+  subject_notification_plan   String?
+  subject_notified_at         DateTime?
+  created_by_id               String?
+  created_by                  User?                  @relation("BreachCreator", fields: [created_by_id], references: [id], onDelete: SetNull)
+  created_at                  DateTime               @default(now())
+  updated_at                  DateTime               @updatedAt
+
+  notifications               DataBreachNotification[]
+
+  @@index([containment_status])
+  @@index([sa_notified_at])
+}
+
+model DataBreachNotification {
+  id              String                 @id @default(uuid())
+  breach_id       String
+  breach          DataBreach             @relation(fields: [breach_id], references: [id], onDelete: Cascade)
+  notification_type BreachNotificationType
+  method          String?
+  reference       String?
+  sent_at         DateTime               @default(now())
+  created_by_id   String?
+  created_by      User?                  @relation("BreachNotificationCreator", fields: [created_by_id], references: [id], onDelete: SetNull)
+  created_at      DateTime               @default(now())
+
+  @@index([breach_id])
+}
+
+// ──────────────────────────────────────────────
+// GDPR Compliance: Consent Management
+// ──────────────────────────────────────────────
+
+enum ConsentMechanism {
+  CHECKBOX
+  SIGNATURE
+  EXPLICIT
+}
+
+enum ConsentStatus {
+  GIVEN
+  WITHDRAWN
+}
+
+model ConsentRecord {
+  id                       String          @id @default(uuid())
+  data_subject_user_id     String?
+  data_subject_user        User?           @relation("ConsentSubject", fields: [data_subject_user_id], references: [id], onDelete: SetNull)
+  data_subject_email       String
+  processing_purpose       String
+  consent_text             String
+  notice_version           String
+  mechanism                ConsentMechanism
+  ip_address_truncated     String?
+  status                   ConsentStatus   @default(GIVEN)
+  withdraws_consent_id     String?
+  withdraws_consent        ConsentRecord?  @relation("ConsentWithdrawal", fields: [withdraws_consent_id], references: [id], onDelete: SetNull)
+  withdrawn_by             ConsentRecord[] @relation("ConsentWithdrawal")
+  lawful_basis_override    String?
+  recorded_at              DateTime        @default(now())
+  created_at               DateTime        @default(now())
+  updated_at               DateTime        @updatedAt
+
+  @@index([data_subject_user_id])
+  @@index([status])
+  @@index([processing_purpose])
+}
+
+// ──────────────────────────────────────────────
+// GDPR Compliance: Key Management
+// ──────────────────────────────────────────────
+
+enum KeyPurpose {
+  DATA_ENCRYPTION
+  TOKEN_SIGNING
+}
+
+enum KeyStatus {
+  ACTIVE
+  RETIRED
+}
+
+model EncryptionKeyVersion {
+  id           String     @id @default(uuid())
+  key_id       String     @unique
+  purpose      KeyPurpose
+  algorithm    String     @default("AES-256-GCM")
+  status       KeyStatus  @default(ACTIVE)
+  created_at   DateTime   @default(now())
+  activated_at DateTime   @default(now())
+  retired_at   DateTime?
+
+  @@index([purpose, status])
+}
+
+// ──────────────────────────────────────────────
+// GDPR Compliance: Anomaly Detection
+// ──────────────────────────────────────────────
+
+enum AnomalyAlertType {
+  FAILED_LOGIN_SPIKE
+  BULK_DOWNLOAD_SPIKE
+}
+
+enum AnomalyAlertStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
+model AnomalyAlert {
+  id               String            @id @default(uuid())
+  alert_type       AnomalyAlertType
+  entity_type      String
+  entity_id        String?
+  severity         BreachSeverity    @default(MEDIUM)
+  details          Json?
+  status           AnomalyAlertStatus @default(OPEN)
+  reviewed_by_id   String?
+  reviewed_by      User?             @relation("AnomalyReviewer", fields: [reviewed_by_id], references: [id], onDelete: SetNull)
+  reviewed_at      DateTime?
+  dismissal_reason String?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+
+  @@index([status])
+  @@index([alert_type])
+}

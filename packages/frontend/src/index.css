@@ -1,0 +1,232 @@
+@import 'tailwindcss';
+
+/* Self-hosted fonts — loaded from bundled assets instead of Google Fonts.
+   Variable fonts carry the full weight range used by the @theme tokens. */
+@font-face {
+  font-family: Fraunces;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./assets/fonts/fraunces-latin-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Geist;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./assets/fonts/geist-latin-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./assets/fonts/geist-mono-latin-var.woff2') format('woff2');
+}
+
+@theme {
+  /* Typography — editorial pairing: Fraunces (display serif) + Geist (body grotesque) */
+  --font-display: 'Fraunces', georgia, 'Times New Roman', serif;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Surfaces — warm paper neutrals on a deep ink base */
+  --color-ink-50: #f6f5f2;
+  --color-ink-100: #e9e7e0;
+  --color-ink-200: #d4d0c4;
+  --color-ink-300: #b3ad9c;
+  --color-ink-400: #8f8775;
+  --color-ink-500: #6f6859;
+  --color-ink-600: #574f43;
+  --color-ink-700: #433d35;
+  --color-ink-800: #2c2823;
+  --color-ink-900: #1a1714;
+  --color-ink-950: #100e0c;
+
+  /* Accent — single sharp emerald-teal */
+  --color-accent-50: #ecfdf6;
+  --color-accent-100: #d1faec;
+  --color-accent-200: #a7f3d9;
+  --color-accent-300: #6ee7bb;
+  --color-accent-400: #34d39d;
+  --color-accent-500: #10b681;
+  --color-accent-600: #059066;
+  --color-accent-700: #047253;
+  --color-accent-800: #075a43;
+  --color-accent-900: #074938;
+
+  /* Semantic */
+  --color-danger-500: #e5484d;
+  --color-danger-600: #d23036;
+  --color-warning-500: #f5a623;
+  --color-warning-600: #d4881a;
+  --color-info-500: #3b82f6;
+  --color-success-500: #10b681;
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+
+  /* Shadows — soft, layered */
+  --shadow-xs: 0 1px 2px 0 rgb(16 14 12 / 4%);
+  --shadow-sm: 0 1px 3px 0 rgb(16 14 12 / 6%), 0 1px 2px -1px rgb(16 14 12 / 5%);
+  --shadow-md: 0 4px 12px -2px rgb(16 14 12 / 8%), 0 2px 6px -2px rgb(16 14 12 / 5%);
+  --shadow-lg: 0 12px 32px -8px rgb(16 14 12 / 12%), 0 4px 12px -4px rgb(16 14 12 / 6%);
+  --shadow-xl: 0 24px 64px -16px rgb(16 14 12 / 16%);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-ink-200);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizelegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-ink-50);
+    color: var(--color-ink-900);
+    font-feature-settings: 'ss01', 'cv01', 'cv03';
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--color-accent-200);
+    color: var(--color-ink-950);
+  }
+
+  /* Scrollbar — refined */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink-200);
+    border-radius: 999px;
+    border: 2px solid var(--color-ink-50);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-300);
+  }
+
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Display headings — serif with optical sizing */
+  .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+
+  /* Grain texture overlay for atmospheric depth */
+  .grain {
+    position: relative;
+  }
+
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Subtle dotted background pattern */
+  .bg-dots {
+    background-image: radial-gradient(var(--color-ink-200) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  /* Entrance animations */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.5s var(--ease-out-expo) both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s var(--ease-out-expo) both;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s var(--ease-out-expo) both;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.4s var(--ease-out-expo) both;
+  }
+}

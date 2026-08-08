@@ -1,0 +1,76 @@
+# Monorepo root .dockerignore — keeps the Docker build context small and prevents
+# secrets / local data from leaking into images.
+
+# VCS
+.git
+.gitignore
+.svn
+.svnignore
+
+# IDE / editor
+.vscode
+.idea
+*.suo
+*.sw?
+
+# Dependencies
+node_modules
+.pnpm-store
+packages/*/node_modules
+
+# Build outputs
+dist
+build
+coverage
+*.tsbuildinfo
+packages/*/dist
+packages/*/build
+packages/*/coverage
+
+# Environment / secrets (never copy into an image)
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Tooling / local config (not required to build or run the image)
+.nvmrc
+.prettierrc
+.prettierignore
+packages/*/eslint.config.js
+packages/*/.stylelintrc.json
+packages/*/.stylelintignore
+packages/*/vitest.config.ts
+packages/*/vitest.integration.config.ts
+packages/*/tsconfig.test.json
+
+# Runtime / user data
+uploads
+storage
+logs
+temp
+tmp
+.vscode
+.codebuddy
+
+# Docs & meta that are irrelevant to the build
+docs
+openspec
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+README.md
+SECURITY.md
+LICENSE
+AGENTS.md
+
+# CI
+.github
+
+# Docker itself (avoid recursive context).
+# NOTE: nginx.conf must NOT be excluded — the frontend Dockerfile COPYs it in.
+Dockerfile
+docker-compose.yml
+packages/*/Dockerfile
+packages/*/.dockerignore
+.dockerignore

@@ -1,0 +1,155 @@
+# Peoplevate — Docker Compose deployment.
+#
+# Single-node self-hosted deployment of the Employee Lifecycle Management
+# System. Services:
+#   db       — PostgreSQL 18 (primary data store)
+#   backend  — Express 5 + Prisma 7 REST API (Node 24)
+#   frontend — Nginx serving the React SPA + reverse proxy for /api
+#
+# Usage:
+#   docker compose up -d --build
+#   docker compose logs -f
+#   docker compose down            # keep volumes
+#   docker compose down -v         # destroy volumes (data loss!)
+#
+# Environment variables are read from .env in the monorepo root. Copy
+# .env.docker.example -> .env and replace all secrets before first start.
+
+name: peoplevate
+
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: peoplevate-db
+    restart: unless-stopped
+    environment:
+      # Only used to initialise the fresh container on first boot. Runtime
+      # credentials come from DATABASE_URL in the backend service.
+      POSTGRES_DB: ${POSTGRES_DB:-peoplevate}
+      POSTGRES_USER: ${POSTGRES_USER:-peoplevate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-peoplevate}
+    volumes:
+      # Persistent database files. Survives container recreation / upgrades.
+      # PostgreSQL 18+ images require a single mount at /var/lib/postgresql;
+      # data is stored in a major-version subdirectory underneath it.
+      - db-data:/var/lib/postgresql
+    ports:
+      # Host port is optional. Expose only if you need host access to the DB.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-peoplevate} -d ${POSTGRES_DB:-peoplevate}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - peoplevate-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: peoplevate-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # Frontend origin served by Nginx. Override if you use a custom domain.
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      # Resolve the DB via the Compose network hostname, not localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-peoplevate}:${POSTGRES_PASSWORD:-peoplevate}@db:5432/${POSTGRES_DB:-peoplevate}?schema=public
+
+      # Secrets (>=32 chars) — MUST be set in .env, never in this file.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (>=32 chars)}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?FIELD_ENCRYPTION_KEY is required (>=32 chars)}
+
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+
+      # Email delivery strategy. `real` uses SMTP below; `mock` writes to an
+      # in-process mailbox (no outbound email) — useful for dev/test stacks.
+      EMAIL_MODE: ${EMAIL_MODE:-real}
+
+      # SMTP (email for password reset / notifications). Set SMTP_USER/PASS if
+      # your provider requires auth.
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@peoplevate.local}
+
+      # File uploads (documents). The path is inside the backend container and
+      # is backed by the `uploads` volume declared below.
+      UPLOAD_DIR: /workspace/packages/backend/uploads
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-25}
+
+      # Logs (email.log etc.). Backed by the `logs` volume below so email-send
+      # activity survives container restarts. Override the path via .env if you
+      # mount a host directory instead.
+      LOG_DIR: /workspace/packages/backend/logs
+
+      # GDPR / retention.
+      TERMINATED_RECORD_RETENTION_YEARS: ${TERMINATED_RECORD_RETENTION_YEARS:-7}
+
+      # Pass through all remaining optional settings from .env unchanged.
+      # (Argon2, rate limits, cron expressions, probation, anomaly thresholds,
+      #  etc. are auto-forwarded here; add any you customise.)
+    volumes:
+      # Persistent uploaded documents (contracts, IDs, passports, ...).
+      - uploads:/workspace/packages/backend/uploads
+      # Persistent log files (email.log and any future file-based logs).
+      - logs:/workspace/packages/backend/logs
+    # No host port by default: the frontend Nginx proxies /api internally.
+    # Expose only if you want the API reachable directly (e.g. for monitoring).
+    expose:
+      - "4000"
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health | grep -q '\"status\":\"ok\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - peoplevate-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    container_name: peoplevate-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      # The public entrypoint for the whole application.
+      - "${APP_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - peoplevate-net
+
+volumes:
+  db-data:
+    # Named volume for PostgreSQL data. Persistent and automatically managed.
+    name: peoplevate-db-data
+  uploads:
+    # Named volume for uploaded documents.
+    name: peoplevate-uploads
+  logs:
+    # Named volume for persistent log files (email.log and future file logs).
+    name: peoplevate-logs
+
+networks:
+  peoplevate-net:
+    driver: bridge

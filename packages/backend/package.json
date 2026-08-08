@@ -1,0 +1,91 @@
+{
+  "name": "@peoplevate/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Peoplevate backend — Express 5 + Prisma 7 REST API for the Employee Lifecycle Management System.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbivort/peoplevate.git",
+    "directory": "packages/backend"
+  },
+  "keywords": [
+    "express",
+    "prisma",
+    "api",
+    "hr",
+    "employee-lifecycle"
+  ],
+  "engines": {
+    "node": "^24.18.1"
+  },
+  "imports": {
+    "#prisma": "./src/generated/prisma/client.ts"
+  },
+  "scripts": {
+    "dev": "node --watch --import tsx src/index.ts",
+    "dev:test": "cross-env NODE_ENV=test node --watch --import tsx src/index.ts",
+    "build": "tsc",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix src/",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:test": "cross-env NODE_ENV=test prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:test": "cross-env NODE_ENV=test tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "clean:all": "rimraf --verbose dist tsconfig.tsbuildinfo node_modules coverage uploads"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "argon2": "^0.45.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.4",
+    "pg": "^8.22.0",
+    "uuid": "^14.0.1",
+    "winston": "^3.19.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@peoplevate/eslint-config": "workspace:*",
+    "@peoplevate/vitest-config": "workspace:*",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
+    "@types/node": "catalog:",
+    "@types/nodemailer": "^8.0.1",
+    "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "catalog:",
+    "cross-env": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "prisma": "^7.9.1",
+    "supertest": "^7.2.2",
+    "tsx": "^4.23.7",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}

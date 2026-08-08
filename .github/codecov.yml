@@ -1,0 +1,53 @@
+# Codecov configuration.
+# Coverage is enforced (and fails the build) by Vitest's thresholds in each
+# package's vitest.config.ts. This file configures how Codecov reports and gates
+# coverage on pull requests.
+#
+# NOTE: The target values below are starting floors that match the current
+# whole-tree baseline. Raise them alongside the Vitest thresholds as test
+# coverage grows — do not let them fall behind.
+
+coverage:
+  # Mirror the `coverage.exclude` patterns from each package's vitest.config.ts.
+  # Vitest already strips these before writing lcov.info, but this is defense-
+  # in-depth so Codecov's view can never drift from the intended scope, even if
+  # a package's `coverage.include` is widened later. Keep these in lockstep with
+  # packages/frontend/vitest.config.ts and packages/backend/vitest.config.ts.
+  ignore:
+    # Shared: test files and test setup directories in both packages.
+    - "**/*.{test,spec}.{ts,tsx}"
+    - "**/test/**"
+    # Backend (packages/backend/vitest.config.ts): entry point and generated code.
+    - "packages/backend/src/index.ts"
+    - "packages/backend/src/generated/**"
+    # Frontend (packages/frontend/vitest.config.ts): entry points and type-only files.
+    - "packages/frontend/src/main.tsx"
+    - "packages/frontend/src/router.tsx"
+    - "packages/frontend/src/vite-env.d.ts"
+    - "packages/frontend/src/types/**"
+  status:
+    project:
+      frontend:
+        target: 80%
+        threshold: 80%
+        flags:
+          - frontend
+      backend:
+        target: 80%
+        threshold: 80%
+        flags:
+          - backend
+    patch:
+      default:
+        # Keep the patch floor at/under the current frontend baseline so PRs are
+        # not blocked while coverage matures; raise in lockstep with the Vitest
+        # thresholds in packages/*/vitest.config.ts.
+        target: 80%
+
+flag_management:
+  default_rules:
+    carryforward: true
+
+comment:
+  layout: 'reach, diff, flags, files'
+  behavior: default

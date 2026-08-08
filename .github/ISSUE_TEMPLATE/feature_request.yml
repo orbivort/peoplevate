@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest a new feature or enhancement for the application.
+title: '[Feature]: '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature. Please describe the problem you are solving so we can evaluate the value and fit.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this feature solve? Who is it for?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: A clear description of the feature and how it should behave.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative solutions or workarounds you considered.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What would "done" look like? Concrete, testable criteria are helpful.
+      placeholder: |
+        - [ ] Users can ...
+        - [ ] System handles ...
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the application is involved?
+      multiple: true
+      options:
+        - Frontend
+        - Backend / API
+        - Database / Data
+        - Authentication / Access control
+        - Other

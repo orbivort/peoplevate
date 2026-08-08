@@ -1,0 +1,12 @@
+# Backend package .dockerignore.
+# Note: build context is the monorepo root, so the root .dockerignore already
+# handles most exclusions. This file prevents accidental local artifacts in
+# this package from being copied by explicit COPY instructions.
+node_modules
+dist
+uploads
+coverage
+.env
+.env.*
+!.env.example
+*.log

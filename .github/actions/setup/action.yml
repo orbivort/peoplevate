@@ -1,0 +1,46 @@
+# Reusable setup action shared by all CI jobs.
+#
+# Performs the standard pnpm + Node.js + dependency-install bootstrap that
+# every job needs, plus the Prisma client generation required for typechecking
+# (src/generated/ is gitignored).
+name: Setup pnpm project
+description: Check out, install dependencies with pnpm, and generate the Prisma client.
+
+inputs:
+  node-version:
+    description: Node.js version to use.
+    default: '24'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      # Pin to the commit SHA for supply-chain hardening. Resolve via:
+      #   git ls-remote https://github.com/actions/checkout.git v5
+      uses: actions/checkout@v5
+
+    - name: Setup pnpm
+      # Pin to the commit SHA for supply-chain hardening. Resolve via:
+      #   git ls-remote https://github.com/pnpm/action-setup.git v5
+      uses: pnpm/action-setup@v5
+      with:
+        version: 11.19.0
+
+    - name: Setup Node.js
+      # Pin to the commit SHA for supply-chain hardening. Resolve via:
+      #   git ls-remote https://github.com/actions/setup-node.git v5
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Generate Prisma client
+      shell: bash
+      # src/generated/ is gitignored; typechecking imports it, so regenerate.
+      run: pnpm --filter @peoplevate/backend db:generate

@@ -1,0 +1,235 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal privileges: read-only access to repository contents is all we need.
+permissions:
+  contents: read
+
+jobs:
+  # Validate code quality: typecheck, lint, formatting, and production build.
+  # Split into a frontend/backend matrix to run in parallel and fail fast per package.
+  validate:
+    name: Validate (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: frontend
+            filter: '@peoplevate/frontend'
+            testTypecheckScript: typecheck:test
+          - package: backend
+            filter: '@peoplevate/backend'
+            testTypecheckScript: test:typecheck
+
+    steps:
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Typecheck (app)
+        run: pnpm --filter ${{ matrix.filter }} typecheck
+
+      - name: Typecheck (tests)
+        # Script name differs between packages (frontend: typecheck:test,
+        # backend: test:typecheck).
+        run: pnpm --filter ${{ matrix.filter }} ${{ matrix.testTypecheckScript }}
+
+      - name: Lint
+        run: pnpm --filter ${{ matrix.filter }} lint
+
+      - name: Lint CSS (frontend only)
+        if: matrix.package == 'frontend'
+        run: pnpm --filter ${{ matrix.filter }} lint:css
+
+      - name: Build
+        run: pnpm --filter ${{ matrix.filter }} build
+
+  # Root-level checks that apply across the whole monorepo (formatting and
+  # shared config) run once, not per package.
+  format:
+    name: Format check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Check formatting
+        run: pnpm format:check
+
+  # Run unit tests with coverage for each package and report to Codecov.
+  test:
+    name: Test (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [validate, format]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: frontend
+            filter: '@peoplevate/frontend'
+            flag: frontend
+            coverage: packages/frontend/coverage
+          - package: backend
+            filter: '@peoplevate/backend'
+            flag: backend
+            coverage: packages/backend/coverage
+
+    env:
+      # Backend tests only need a resolvable DATABASE_URL for Prisma's CLI
+      # (generate); no live database is required to run the unit tests.
+      DATABASE_URL: postgresql://peoplevate:peoplevate@localhost:5432/peoplevate_ci?schema=public
+      NODE_ENV: test
+      # Never attempt real SMTP delivery during CI; route emails to the in-process
+      # mock mailbox (no network dependency).
+      EMAIL_MODE: mock
+
+    steps:
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Run ${{ matrix.package }} tests with coverage
+        run: pnpm --filter ${{ matrix.filter }} test:coverage
+
+      - name: Upload ${{ matrix.package }} coverage to Codecov
+        # Run on success or failure so coverage is still reported, but not on
+        # cancelled runs.
+        if: '!cancelled()'
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/codecov/codecov-action.git v5
+        uses: codecov/codecov-action@v5
+        with:
+          files: ${{ matrix.coverage }}/lcov.info
+          flags: ${{ matrix.flag }}
+          fail_ci_if_error: true
+          # Public repo: no token required. Switch to OIDC (use_oidc: true) for
+          # private repos instead of a long-lived secret.
+
+      - name: Upload coverage artifacts (diagnostics)
+        if: '!cancelled()'
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/upload-artifact.git v5
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-${{ matrix.package }}
+          path: ${{ matrix.coverage }}
+          if-no-files-found: error
+
+  # Backend integration tests exercise the real HTTP + service + database stack
+  # against the local `peoplevate_test` Postgres database. A PostgreSQL service
+  # provides that database on the runner (no Docker daemon needed by the app).
+  # Run them separately so unit-test coverage is not affected and failures
+  # surface independently.
+  integration:
+    name: Backend integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [validate, format]
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: peoplevate_test
+          POSTGRES_USER: peoplevate
+          POSTGRES_PASSWORD: peoplevate
+        ports:
+          - 5432:5432
+        # Basic readiness check so migrations don't race the server boot.
+        options: >-
+          --health-cmd "pg_isready -U peoplevate -d peoplevate_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      # Point the integration suite at the service database. Injected into the
+      # test process; global-setup/setup prefer INTEGRATION_DATABASE_URL.
+      INTEGRATION_DATABASE_URL: postgresql://peoplevate:peoplevate@localhost:5432/peoplevate_test?schema=public
+      # Integration tests exercise the real HTTP stack where emails are sent;
+      # route them to the mock mailbox so the suite never depends on SMTP.
+      EMAIL_MODE: mock
+
+    steps:
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Run backend integration tests
+        run: pnpm --filter @peoplevate/backend run test:integration
+
+  # End-to-end tests drive a real browser against a real frontend + real backend
+  # + seeded Postgres database, closing the seam that unit and integration tests
+  # cannot (routing/RBAC gating, token refresh, the Vite /api proxy, and stateful
+  # cross-role workflows). The root `test:e2e` script resets the database, applies
+  # migrations + seed, boots both servers, and tears them down. A PostgreSQL
+  # service provides the dedicated `peoplevate_e2e` database.
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [validate, format]
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: peoplevate_e2e
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: peoplevate
+        ports:
+          - 5432:5432
+        # Readiness check so the e2e script's DB reset doesn't race server boot.
+        # The `postgres` superuser has CREATEDB, which the script needs to drop
+        # and recreate the database for a clean slate.
+        options: >-
+          --health-cmd "pg_isready -U postgres -d peoplevate_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Point the e2e script at the dedicated service database instead of the
+      # local-dev default (which targets a different DB and a local password).
+      E2E_DB_URL: postgresql://postgres:peoplevate@localhost:5432/peoplevate_e2e
+      # The backend dev server binds these ports on the runner by default; keep
+      # them explicit so the e2e script's health checks and the Vite proxy agree.
+      E2E_BASE_URL: http://localhost:5175
+      E2E_API_URL: http://localhost:4002
+      # Defense-in-depth: the backend spawn already sets EMAIL_MODE=mock in
+      # run-e2e.mjs; keep the job-level value explicit so E2E never touches SMTP.
+      EMAIL_MODE: mock
+
+    steps:
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @peoplevate/e2e install:browsers
+
+      - name: Run E2E suite
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report (on failure)
+        # Keep the report + traces available for diagnosis even when tests fail,
+        # but skip cancelled runs.
+        if: '!cancelled()'
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/upload-artifact.git v5
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: |
+            packages/e2e/playwright-report
+            packages/e2e/test-results
+          if-no-files-found: ignore

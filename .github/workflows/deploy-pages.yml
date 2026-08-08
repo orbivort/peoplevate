@@ -1,0 +1,91 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Grant GITHUB_TOKEN the permissions needed to deploy to Pages. `id-token: write`
+# is required for the official `actions/deploy-pages` action (OIDC-based), and
+# `contents: write` lets `actions/deploy-pages` commit the built site to the
+# `gh-pages` branch. `pages: write` is required to provision the Pages
+# deployment API.
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Only ever deploy the most recent push; cancel any in-flight run for the
+# previous commit so the Pages environment is not left in a partial state.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build frontend (mock mode)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/pnpm/action-setup.git v5
+        uses: pnpm/action-setup@v5
+        with:
+          version: 11.19.0
+
+      - name: Setup Node.js
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/setup-node.git v5
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        env:
+          # Serve the static site entirely from the in-memory MSW mock store so
+          # GitHub Pages can run the app without a backend. The flag is baked in
+          # at build time by Vite.
+          VITE_USE_MOCK: 'true'
+          # Set to match the CI policy. This workflow only builds the static
+          # frontend (no backend process), so EMAIL_MODE is inert here, but
+          # keeping it consistent avoids surprises if the build ever gains
+          # backend env validation.
+          EMAIL_MODE: mock
+        run: pnpm --filter @peoplevate/frontend build
+
+      - name: Upload Pages artifact
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/upload-pages-artifact.git v3
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/frontend/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    # The Pages environment is where the deployment is recorded and where the
+    # URL is exposed. Configure `github-pages` in the repository/environment
+    # settings, or use the site created automatically for this project.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/deploy-pages.git v4
+        uses: actions/deploy-pages@v4

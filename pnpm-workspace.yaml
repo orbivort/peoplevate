@@ -1,0 +1,46 @@
+packages:
+  - 'packages/*'
+  - 'packages/config/*'
+
+# Fail install/build when the local Node/pnpm version does not match the
+# `engines` field. In pnpm v11 this is configured here (not in .npmrc, where
+# pnpm-specific settings are ignored).
+engineStrict: true
+
+# Control which dependencies may run postinstall/lifecycle scripts.
+# In pnpm v11, `allowBuilds` is the ONLY supported build-setting key; the legacy
+# onlyBuiltDependencies / ignoredBuiltDependencies keys were removed and ignored.
+# Anything not listed defaults to DENIED, so every package that needs a build
+# script must be explicitly set to `true`.
+allowBuilds:
+  '@prisma/client': true # generates Prisma client / query engine
+  '@prisma/engines': true # downloads Prisma query engine binaries
+  argon2: true # native module, must compile to work
+  esbuild: true # installs platform binary (Vite/tsx dependency)
+  prisma: true # prisma CLI generate
+  msw: false # postinstall only preps its service worker; Vite serves it from public/
+
+# Force transitive dependency `ini` to a patched version to fix
+# GHSA-qqgx-2p2h-9c37 (Prototype Pollution in ini <1.3.6).
+# NOTE: In pnpm v11 these settings MUST be top-level keys (not nested under
+# `pnpm:`), otherwise they are silently ignored.
+overrides:
+  global-prefix>ini: 1.3.8
+  # Force `nanoid` (pulled by postcss via vite/vitest/stylelint) to a patched
+  # version to fix GHSA-2v37-7h3g-55p8 (infinite loop when size is zero).
+  nanoid: 3.3.18
+
+# Shared dependency versions across all packages
+catalog:
+  typescript: ^6.0.0
+  eslint: ^10.8.0
+  '@eslint/js': ^10.0.1
+  '@types/node': ^24.13.3
+  cross-env: ^10.1.0
+  vitest: ^4.1.10
+  '@vitest/coverage-v8': ^4.1.10
+  typescript-eslint: ^8.66.0
+  globals: ^17.9.0
+
+minimumReleaseAgeExclude:
+  - nanoid@3.3.18

@@ -1,0 +1,7 @@
+# Disable free-form blank issues so contributors use the structured templates.
+blank_issues_enabled: false
+
+contact_links:
+  - name: Questions & Discussion
+    url: https://github.com/peoplevate/peoplevate/discussions
+    about: Ask questions, discuss ideas, and share feedback with the maintainers.

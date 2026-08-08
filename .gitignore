@@ -1,0 +1,76 @@
+# ---- Dependencies -----------------------------------------------------------
+node_modules/
+.pnpm-store/
+
+# ---- Build outputs ----------------------------------------------------------
+dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+
+# ---- Test / coverage --------------------------------------------------------
+coverage/
+.coverage/
+*.lcov
+.nyc_output/
+*.ts.tmp
+
+# ---- Environment (keep .env.example tracked) --------------------------------
+# Local / personal env files. Never ignore the .example templates.
+.env
+.env.*
+!.env.example
+!*.env.example
+!.env.production.example
+!*.env.production.example
+!.env.docker.example
+!*.env.docker.example
+
+# ---- Runtime / user data ----------------------------------------------------
+uploads/
+storage/
+tmp/
+temp/
+logs/
+
+# ---- Logs -------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---- Caches / tooling -------------------------------------------------------
+.eslintcache
+.stylelintcache
+*.cache
+.eslintcache
+tsconfig.tsbuildinfo
+
+# ---- IDE / OS ---------------------------------------------------------------
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ---- local workspace---------------------------------------------------------
+.svn
+AGENTS.md
+.codebuddy/
+openspec/
+
+# ---- Misc -------------------------------------------------------------------
+*.tgz
+*.tar.gz
+*.zip
+npm-debug.log*
+*.orig
+*.rej

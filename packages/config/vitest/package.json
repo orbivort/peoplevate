@@ -1,0 +1,33 @@
+{
+  "name": "@peoplevate/vitest-config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared Vitest base config for the peoplevate monorepo",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbivort/peoplevate.git",
+    "directory": "packages/config/vitest"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "peerDependencies": {
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": "^24.18.1"
+  },
+  "scripts": {
+    "clean": "rimraf dist build out coverage",
+    "clean:all": "rimraf --verbose dist build out coverage node_modules"
+  }
+}

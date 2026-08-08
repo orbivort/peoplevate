@@ -1,0 +1,9 @@
+# Frontend package .dockerignore.
+# Build context is the monorepo root (see root .dockerignore).
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+*.log
