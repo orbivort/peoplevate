@@ -15,10 +15,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repository
-      # Pin to the commit SHA for supply-chain hardening. Resolve via:
-      #   git ls-remote https://github.com/actions/checkout.git v5
-      uses: actions/checkout@v5
+    # NOTE: This composite action intentionally does NOT run actions/checkout.
+    # Local composite actions are referenced from a checked-out repository; a
+    # nested checkout here would wipe the workspace and trigger GitHub's
+    # "Can't find 'action.yml'" error. Each calling job must run
+    # `actions/checkout@v5` as its first step instead.
 
     - name: Setup pnpm
       # Pin to the commit SHA for supply-chain hardening. Resolve via:

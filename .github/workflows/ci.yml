@@ -32,6 +32,13 @@ jobs:
             testTypecheckScript: test:typecheck
 
     steps:
+      - name: Checkout code
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/checkout.git v5
+        # Must run before using the local composite action (the action no
+        # longer checks out internally to avoid a recursive checkout loop).
+        uses: actions/checkout@v5
+
       - name: Setup project
         uses: ./.github/actions/setup
 
@@ -60,6 +67,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Checkout code
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/checkout.git v5
+        uses: actions/checkout@v5
+
       - name: Setup project
         uses: ./.github/actions/setup
 
@@ -95,6 +107,11 @@ jobs:
       EMAIL_MODE: mock
 
     steps:
+      - name: Checkout code
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/checkout.git v5
+        uses: actions/checkout@v5
+
       - name: Setup project
         uses: ./.github/actions/setup
 
@@ -162,6 +179,11 @@ jobs:
       EMAIL_MODE: mock
 
     steps:
+      - name: Checkout code
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/checkout.git v5
+        uses: actions/checkout@v5
+
       - name: Setup project
         uses: ./.github/actions/setup
 
@@ -211,6 +233,11 @@ jobs:
       EMAIL_MODE: mock
 
     steps:
+      - name: Checkout code
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/checkout.git v5
+        uses: actions/checkout@v5
+
       - name: Setup project
         uses: ./.github/actions/setup
 
