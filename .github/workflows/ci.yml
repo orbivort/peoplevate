@@ -123,9 +123,10 @@ jobs:
         # cancelled runs.
         if: '!cancelled()'
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
-        #   git ls-remote https://github.com/codecov/codecov-action.git v5
-        uses: codecov/codecov-action@v5
+        #   git ls-remote https://github.com/codecov/codecov-action.git v6
+        uses: codecov/codecov-action@v6
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ matrix.coverage }}/lcov.info
           flags: ${{ matrix.flag }}
           fail_ci_if_error: true
@@ -135,8 +136,8 @@ jobs:
       - name: Upload coverage artifacts (diagnostics)
         if: '!cancelled()'
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
-        #   git ls-remote https://github.com/actions/upload-artifact.git v5
-        uses: actions/upload-artifact@v5
+        #   git ls-remote https://github.com/actions/upload-artifact.git v6
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.package }}
           path: ${{ matrix.coverage }}
