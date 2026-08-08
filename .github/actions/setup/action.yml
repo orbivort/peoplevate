@@ -44,4 +44,8 @@ runs:
     - name: Generate Prisma client
       shell: bash
       # src/generated/ is gitignored; typechecking imports it, so regenerate.
+      # prisma.config.ts resolves DATABASE_URL via env() and .env is gitignored,
+      # so provide a resolvable URL here (no live database is needed to generate).
+      env:
+        DATABASE_URL: postgresql://peoplevate:peoplevate@localhost:5432/peoplevate_ci?schema=public
       run: pnpm --filter @peoplevate/backend db:generate
