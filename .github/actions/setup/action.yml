@@ -9,7 +9,7 @@ description: Check out, install dependencies with pnpm, and generate the Prisma 
 inputs:
   node-version:
     description: Node.js version to use.
-    default: '24'
+    default: '24.18.1'
     required: false
 
 runs:
