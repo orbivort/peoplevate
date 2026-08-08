@@ -232,6 +232,13 @@ jobs:
       # Defense-in-depth: the backend spawn already sets EMAIL_MODE=mock in
       # run-e2e.mjs; keep the job-level value explicit so E2E never touches SMTP.
       EMAIL_MODE: mock
+      # The E2E DB seed (packages/backend/prisma/seed.ts) validates process.env
+      # via src/config/env.ts, which requires these two secrets. They are not
+      # committed in packages/backend/.env, so inject the same test-only values
+      # the integration suite uses. run-e2e.mjs forwards them to the seed and
+      # the spawned backend via process.env.
+      JWT_SECRET: e2e-secret-that-is-at-least-32-characters-long!
+      FIELD_ENCRYPTION_KEY: e2e-fedcba9876543210fedcba9876543210fedcba9876543210
 
     steps:
       - name: Checkout code
