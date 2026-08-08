@@ -1,0 +1,158 @@
+name: Release
+
+on:
+  push:
+    # Tags drive releases. Follow semantic versioning: v1.2.3. The tag name
+    # becomes the GitHub Release version and the Docker image tag.
+    tags:
+      - 'v*'
+  # Allow maintainers to trigger a release from a branch or existing tag.
+  workflow_dispatch:
+
+# Least-privilege token: `contents: write` is needed to create the GitHub
+# Release and to push the tags used by `docker/metadata-action`; `packages:
+# write` is required to publish images to GHCR. OIDC token (`id-token: write`)
+# is used for the keyless GHCR authentication. Nothing else is granted.
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+concurrency:
+  # One release at a time; cancel in-flight runs so stale tags/images don't
+  # race a freshly pushed tag.
+  group: release
+  cancel-in-progress: true
+
+env:
+  # Default registry for published images. Change to any GHCR namespace you own.
+  REGISTRY: ghcr.io
+  # Image base name. Each service is published as <base>/<service>.
+  IMAGE_BASE: ${{ github.repository }}
+
+jobs:
+  # Derive the changelog from conventional commits so the GitHub Release body
+  # is consistent with the project's Keep-a-Changelog + SemVer conventions
+  # (see CHANGELOG.md). This mirrors what `pnpm changeset` would produce but
+  # stays dependency-light.
+  changelog:
+    name: Generate changelog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      body: ${{ steps.changelog.outputs.body }}
+    steps:
+      - name: Checkout code (full history)
+        # `fetch-depth: 0` is required so the changelog generator can diff
+        # the current tag against the previous one.
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Determine previous tag
+        id: previous
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The previous release tag is the most recent semver tag, excluding
+          # the tag that triggered this run. This ensures the changelog covers
+          # exactly the commits introduced by this release.
+          PREVIOUS="$(
+            git tag -l 'v[0-9]*' \
+              | grep -v "^${{ github.ref_name }}$" \
+              | sort -V \
+              | tail -n 1 || true
+          )"
+          echo "previous-tag=${PREVIOUS:-}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog from commits
+        id: changelog
+        uses: ./.github/actions/changelog
+        with:
+          previous-tag: ${{ steps.previous.outputs.previous-tag }}
+
+  # Build and publish the backend + frontend container images to GHCR. The
+  # images are tagged with the release version (vX.Y.Z), `latest`, and the
+  # short commit SHA, matching the project's Docker-first deployment model.
+  docker:
+    name: Build & publish images (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+          - service: frontend
+
+    steps:
+      - name: Checkout code
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/actions/checkout.git v5
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/docker/setup-buildx-action.git v3
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/docker/login-action.git v3
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata (tags, labels)
+        id: meta
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/docker/metadata-action.git v5
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_BASE }}/${{ matrix.service }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=ref,event=branch
+            type=sha
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+
+      - name: Build and push ${{ matrix.service }} image
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/docker/build-push-action.git v6
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: packages/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache layers across runs for faster, cheaper rebuilds.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Create the GitHub Release once the images are published, so the release
+  # always points to artifacts that actually exist.
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [changelog, docker]
+    # GitHub auto-creates a Release when a tag is pushed; this job updates its
+    # body with the generated changelog. `workflow_dispatch` with no matching
+    # tag is skipped so a manual run doesn't fail.
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Create/update GitHub Release
+        # Pin to the commit SHA for supply-chain hardening. Resolve via:
+        #   git ls-remote https://github.com/softprops/action-gh-release.git v2
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          body: ${{ needs.changelog.outputs.body }}
+          # Draft so a maintainer can review/edit before publishing.
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}

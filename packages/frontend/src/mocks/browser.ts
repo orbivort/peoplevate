@@ -22,9 +22,7 @@ export const worker = setupWorker(...handlers);
  */
 function mockWorkerUrl(): string {
   const { basePath } = config;
-  return basePath === '/'
-    ? '/mockServiceWorker.js'
-    : `${basePath}/mockServiceWorker.js`;
+  return basePath === '/' ? '/mockServiceWorker.js' : `${basePath}/mockServiceWorker.js`;
 }
 
 /** Starts the worker and waits until it is ready. */

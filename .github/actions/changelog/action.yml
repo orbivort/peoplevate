@@ -1,0 +1,119 @@
+# Reusable changelog action shared by the release workflow.
+#
+# Generates a GitHub Release body from the conventional commits introduced
+# since the previous tag (or the repository root if there is no previous tag).
+# Groups commits by type (Features, Bug Fixes, etc.) matching the project's
+# Conventional Commits convention (see CONTRIBUTING.md).
+#
+# The calling job MUST run `actions/checkout@v5` with `fetch-depth: 0` first so
+# the full history is available for the tag diff (mirrors the setup composite
+# action which also leaves checkout to the caller).
+name: Generate changelog
+description: Build a GitHub Release body from conventional commits since the previous tag.
+
+inputs:
+  previous-tag:
+    description: >
+      Optional tag to diff against. When empty (no previous release), the log
+      starts from the repository root.
+    required: false
+    default: ''
+
+outputs:
+  body:
+    description: Markdown body for the GitHub Release.
+    value: ${{ steps.generate.outputs.body }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate release notes
+      id: generate
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Resolve the range to diff: <previous>..HEAD, or the full history when
+        # there is no previous tag (first release).
+        PREV=""
+        if [[ -n "${{ inputs.previous-tag }}" ]] \
+          && git rev-parse -q --verify "refs/tags/${{ inputs.previous-tag }}" >/dev/null; then
+          RANGE="${{ inputs.previous-tag }}..HEAD"
+          # Trim the leading "v" (e.g. v1.2.3 -> 1.2.3) for the header.
+          PREV="${{ inputs.previous-tag }}"
+          PREV="${PREV#v}"
+        else
+          RANGE="HEAD"
+        fi
+
+        VERSION="${{ github.ref_name }}"
+        VERSION="${VERSION#v}"
+
+        # Fetch the commit log, strip scope + body, and normalize whitespace so
+        # multi-line messages collapse into a single bullet each.
+        mapfile -t commits < <(git log --format='%s' "$RANGE")
+
+        # Group by conventional-commit type. Unknown/non-conventional messages
+        # fall into "Other".
+        declare -A groups=(
+          [feat]="### Features"
+          [fix]="### Bug Fixes"
+          [docs]="### Documentation"
+          [refactor]="### Refactoring"
+          [perf]="### Performance"
+          [test]="### Tests"
+          [build]="### Build"
+          [ci]="### Continuous Integration"
+          [chore]="### Chores"
+        )
+
+        declare -A buckets
+        for line in "${commits[@]}"; do
+          # Extract the type prefix (the leading alphabetic token before ':',
+          # with an optional '(scope)' stripped). Avoids regex so we don't trip
+          # over parens inside a `[[ =~ ]]` conditional.
+          word="${line%%:*}"      # everything before the first ':'
+          type="${word%%(*}"      # strip an optional '(scope)' suffix
+          # Lowercase the type for the bucket key.
+          type_lc="${type,,}"
+          if [[ -n "${groups[$type_lc]:-}" ]]; then
+            key="$type_lc"
+          else
+            key="other"
+          fi
+          buckets["$key"]+=$'\n'"- $line"
+        done
+
+        {
+          echo "# Release $VERSION"
+          echo
+          echo "## Summary"
+          echo
+          echo "Automated release of **Peoplevate $VERSION**. See the"
+          echo "[CHANGELOG](./CHANGELOG.md) for the full, hand-maintained notes."
+          echo
+          if [[ -n "$PREV" ]]; then
+            echo "Changes since **v$PREV**:"
+          else
+            echo "Initial release."
+          fi
+          echo
+          # Emit each populated group in a stable order.
+          for key in feat fix docs refactor perf test build ci chore other; do
+            if [[ -n "${buckets[$key]:-}" ]]; then
+              echo "${groups[$key]:-### Other Changes}"
+              echo "${buckets[$key]}"
+              echo
+            fi
+          done
+        } > notes.md
+
+        # Load the notes into the output using the heredoc method, which
+        # preserves embedded newlines (unlike the deprecated ::set-output).
+        # Use an unlikely delimiter to avoid colliding with release body text.
+        body="$(cat notes.md)"
+        {
+          echo "body<<GH_RELEASE_BODY_EOF"
+          echo "$body"
+          echo "GH_RELEASE_BODY_EOF"
+        } >> "$GITHUB_OUTPUT"
