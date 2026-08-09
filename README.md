@@ -6,16 +6,16 @@
 
 Recruitment & onboarding · Attendance & leave · Performance · Offboarding · Documents · RBAC · Audit logging
 
-[![CI](https://img.shields.io/github/actions/workflow/status/peoplevate/peoplevate/ci.yml?branch=main&label=CI&logo=github&style=flat-square)](https://github.com/orbivort/peoplevate/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/peoplevate/peoplevate?style=flat-square)](./LICENSE)
-[![Release](https://img.shields.io/github/v/release/peoplevate/peoplevate?include_prereleases&sort=semver&style=flat-square)](https://github.com/orbivort/peoplevate/releases)
-[![Open Issues](https://img.shields.io/github/issues/peoplevate/peoplevate?style=flat-square)](https://github.com/orbivort/peoplevate/issues)
+[![License](https://img.shields.io/github/license/orbivort/peoplevate?style=flat-square)](./LICENSE)
+
+[![CI](https://img.shields.io/github/actions/workflow/status/orbivort/peoplevate/ci.yml?branch=main&label=CI&logo=github&style=flat-square)](https://github.com/orbivort/peoplevate/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/github/orbivort/peoplevate/graph/badge.svg?token=9EBHXY249G)](https://codecov.io/github/orbivort/peoplevate)
+[![Release](https://img.shields.io/github/v/release/orbivort/peoplevate?include_prereleases&sort=semver&style=flat-square)](https://github.com/orbivort/peoplevate/releases)
+[![Open Issues](https://img.shields.io/github/issues/orbivort/peoplevate?style=flat-square)](https://github.com/orbivort/peoplevate/issues)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white&style=flat-square)](./package.json)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=flat-square)](./packages/frontend/package.json)
 [![Node.js](https://img.shields.io/badge/Node.js-%5E24-339933?logo=nodedotjs&logoColor=white&style=flat-square)](./package.json)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white&style=flat-square)](./docs/v1.0-deployment-readiness-assessment.md)
-[![pnpm](https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white&style=flat-square)](./package.json)
+[![Docker](https://img.shields.io/badge/Docker-%5E24-2496ED?logo=docker&logoColor=white&style=flat-square)](./package.json)
 
 </div>
 
