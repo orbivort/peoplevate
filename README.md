@@ -21,6 +21,14 @@ Recruitment & onboarding · Attendance & leave · Performance · Offboarding · 
 
 ---
 
+## 🚀 Live Demo
+
+> **[Try the live demo →](https://orbivort.github.io/peoplevate/)**
+>
+> Explore Peoplevate in action. No installation required — click the link above to open the hosted demo in your browser.
+
+---
+
 ## About
 
 Peoplevate is a self-hosted Employee Lifecycle Management System that walks an employee through their entire journey at a company — from a job requisition and offer, through onboarding, day-to-day attendance, leave, and performance reviews, to a structured offboarding and settlement.
