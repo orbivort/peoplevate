@@ -66,6 +66,44 @@ jobs:
           EMAIL_MODE: mock
         run: pnpm --filter @peoplevate/frontend build
 
+      - name: Inject Cloudflare Web Analytics
+        if: vars.CF_ANALYTICS_TOKEN != ''
+        shell: node {0}
+        env:
+          CF_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
+        run: |
+          const fs = require('fs');
+          const path = './packages/frontend/dist/index.html';
+          const html = fs.readFileSync(path, 'utf8');
+          const snippet = `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${process.env.CF_TOKEN}"}'></script>`;
+          if (html.includes(snippet)) {
+            console.log('Cloudflare Analytics already injected, skipping');
+          } else {
+            const updated = html.replace('</head>', snippet + '</head>');
+            if (updated === html) {
+              console.error('ERROR: </head> not found in index.html');
+              process.exit(1);
+            }
+            fs.writeFileSync(path, updated);
+            console.log('Cloudflare Analytics injected successfully');
+          }
+
+      - name: Add security headers
+        run: |
+          cd packages/frontend/dist
+          cat > _headers << 'EOF'
+          /*
+            X-Frame-Options: DENY
+            X-XSS-Protection: 1; mode=block
+            X-Content-Type-Options: nosniff
+            Referrer-Policy: strict-origin-when-cross-origin
+            Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+          /assets/*
+            Cache-Control: public, max-age=31536000, immutable
+          *.html
+            Cache-Control: no-cache
+          EOF
+
       - name: Upload Pages artifact
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/upload-pages-artifact.git v3
