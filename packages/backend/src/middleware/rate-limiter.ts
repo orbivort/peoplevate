@@ -11,7 +11,8 @@ import { env } from '../config/env.js';
  */
 export const apiRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: env.E2E_MODE || env.NODE_ENV === 'test' ? Number.MAX_SAFE_INTEGER : env.API_RATE_LIMIT_PER_MIN,
+  max:
+    env.E2E_MODE || env.NODE_ENV === 'test' ? Number.MAX_SAFE_INTEGER : env.API_RATE_LIMIT_PER_MIN,
   message: { error: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
