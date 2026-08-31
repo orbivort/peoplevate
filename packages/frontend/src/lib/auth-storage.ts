@@ -1,39 +1,29 @@
 /**
- * Persistence helpers for the real-backend auth session.
+ * In-memory session store for the real-backend auth session.
  *
- * In real mode (VITE_USE_MOCK=false) the app stores the JWT access token,
- * the refresh token and the signed-in user in localStorage so the session
- * survives page reloads.
+ * The access token and the signed-in user are kept only in module-scoped
+ * memory — never persisted to `localStorage` — so they are unreachable by
+ * XSS payloads through storage APIs (CodeQL alert #12). The session does not
+ * survive a page reload; instead it is silently restored via the httpOnly
+ * refresh-token cookie (see `tryRefresh` in `api-client.ts`).
  */
 
-const ACCESS_TOKEN_KEY = 'elms-access-token';
-const REFRESH_TOKEN_KEY = 'elms-refresh-token';
-const USER_KEY = 'elms-api-user';
+let accessToken: string | null = null;
+let storedUser: unknown = null;
 
 export const authStorage = {
   getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    return accessToken;
   },
-  getRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  getSessionUser<T>(): T | null {
+    return (storedUser as T | null) ?? null;
   },
-  getStoredUser<T>(): T | null {
-    const raw = localStorage.getItem(USER_KEY);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return null;
-    }
-  },
-  setSession(accessToken: string, refreshToken: string, user: unknown): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  setSession(newAccessToken: string, user: unknown): void {
+    accessToken = newAccessToken;
+    storedUser = user;
   },
   clear(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    accessToken = null;
+    storedUser = null;
   },
 };

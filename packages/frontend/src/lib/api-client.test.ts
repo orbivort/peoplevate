@@ -3,32 +3,25 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 const authStorage = vi.hoisted(() => {
   const state = {
     accessToken: 'acc' as string | null,
-    refreshToken: 'ref' as string | null,
+    storedUser: null as unknown,
   };
   return {
     state,
     getAccessToken: vi.fn(() => state.accessToken),
-    getRefreshToken: vi.fn(() => state.refreshToken),
+    getSessionUser: vi.fn(() => state.storedUser),
     clear: vi.fn(() => {
       state.accessToken = null;
-      state.refreshToken = null;
+      state.storedUser = null;
     }),
-    setSession: vi.fn((accessToken: string, refreshToken: string) => {
+    setSession: vi.fn((accessToken: string, user: unknown) => {
       state.accessToken = accessToken;
-      state.refreshToken = refreshToken;
+      state.storedUser = user;
     }),
-    getStoredUser: vi.fn(),
   };
 });
 
 vi.mock('@/lib/auth-storage', () => ({
   authStorage,
-  getTokens: vi.fn(),
-  setTokens: vi.fn(),
-  clearTokens: vi.fn(),
-  getAccessToken: vi.fn(),
-  getRefreshToken: vi.fn(),
-  setAccessToken: vi.fn(),
 }));
 
 import { api } from './api-client';
@@ -38,7 +31,7 @@ describe('api-client', () => {
 
   beforeEach(() => {
     authStorage.state.accessToken = 'acc';
-    authStorage.state.refreshToken = 'ref';
+    authStorage.state.storedUser = null;
     fetchMock = vi.fn();
     Object.defineProperty(globalThis, 'fetch', {
       value: fetchMock,
@@ -69,6 +62,13 @@ describe('api-client', () => {
     expect(url).toBe('/api/x');
     expect(opts.method).toBe('GET');
     expect(opts.headers.get('Authorization')).toBe('Bearer acc');
+  });
+
+  it('sends cookies with every request so the refresh-token cookie flows', async () => {
+    fetchMock.mockResolvedValue(await okJson({}));
+    await api.get('/api/x');
+    const [, opts] = fetchMock.mock.calls[0];
+    expect(opts.credentials).toBe('include');
   });
 
   it('omits auth header when auth:false', async () => {
@@ -102,13 +102,9 @@ describe('api-client', () => {
     await expect(api.get('/api/err')).rejects.toThrow('bad');
   });
 
-  it('retries on 401 once after a successful refresh', async () => {
+  it('retries on 401 once after a successful cookie-based refresh', async () => {
     const fail = await okJson({ error: 'unauthorized' }, 401);
-    const refreshOk = await okJson({
-      accessToken: 'new-access',
-      refreshToken: 'new-refresh',
-      user: null,
-    });
+    const refreshOk = await okJson({ accessToken: 'new-access', user: { id: 'u1' } });
     const success = await okJson({ ok: true });
     // Call order: main (401) -> refresh (200) -> retry main (success).
     fetchMock
@@ -117,13 +113,21 @@ describe('api-client', () => {
       .mockResolvedValueOnce(success);
     const result = await api.get('/api/sec');
     expect(fetchMock).toHaveBeenCalledTimes(3);
+
+    // The refresh call is a bodyless POST that relies on the httpOnly cookie.
+    const [refreshUrl, refreshOpts] = fetchMock.mock.calls[1];
+    expect(String(refreshUrl)).toContain('/api/auth/refresh');
+    expect(refreshOpts.method).toBe('POST');
+    expect(refreshOpts.body).toBeUndefined();
+    expect(refreshOpts.credentials).toBe('include');
+
     expect(fetchMock.mock.calls[2][1].headers.get('Authorization')).toBe('Bearer new-access');
     expect(result).toEqual({ ok: true });
+    expect(authStorage.setSession).toHaveBeenCalledWith('new-access', { id: 'u1' });
   });
 
-  it('throws when refresh fails (no refresh token)', async () => {
+  it('throws when the refresh fails (invalid/expired cookie)', async () => {
     authStorage.state.accessToken = null;
-    authStorage.state.refreshToken = null;
     fetchMock.mockResolvedValue(await okJson({ error: 'unauthorized' }, 401));
     await expect(api.get('/api/sec')).rejects.toThrow('unauthorized');
   });
@@ -140,9 +144,8 @@ describe('api-client', () => {
     await expect(api.get('/api/boom')).rejects.toThrow('Request failed');
   });
 
-  it('clears tokens when refresh returns 401', async () => {
+  it('clears the in-memory session when refresh returns 401', async () => {
     authStorage.state.accessToken = 'a';
-    authStorage.state.refreshToken = 'r';
     fetchMock.mockImplementation(async (url: string) => {
       if (String(url).includes('/auth/refresh')) {
         return okJson({ error: 'invalid' }, 401);
@@ -150,5 +153,6 @@ describe('api-client', () => {
       return okJson({ error: 'unauthorized' }, 401);
     });
     await expect(api.get('/api/sec')).rejects.toThrow();
+    expect(authStorage.clear).toHaveBeenCalled();
   });
 });

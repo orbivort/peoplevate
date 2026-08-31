@@ -5,7 +5,8 @@ const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000';
 
 interface LoginResult {
   accessToken: string;
-  refreshToken: string;
+  // The refresh token is delivered via httpOnly cookie and is not part of the
+  // JSON response body.
   user: { id: string; email: string; role: string };
 }
 

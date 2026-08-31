@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import cookieParser from 'cookie-parser';
 import type { NextFunction, Request, Response } from 'express';
 
 // Mock the auth service before importing the routes so the service's Prisma
@@ -66,6 +67,8 @@ const mockedChangePassword = vi.mocked(authService.changePassword);
 function buildApp() {
   const app = express();
   app.use(express.json());
+  // Cookie parsing is required so the refresh-token cookie reaches the routes.
+  app.use(cookieParser());
   // Set a mock authenticated user on the request for routes that use getAuthUser
   app.use((req, _res, next) => {
     (req as { user?: unknown }).user = {
@@ -107,15 +110,31 @@ describe('authRoutes', () => {
   });
 
   describe('POST /api/auth/login', () => {
-    it('returns the auth result for valid credentials', async () => {
+    it('returns the access token and user, and sets the refresh token cookie', async () => {
       const res = await request(app)
         .post('/api/auth/login')
         .send({ email: 'john@example.com', password: 'secret' });
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(authResult);
+      // The refresh token must never appear in the JSON body (XSS mitigation).
+      expect(res.body).toEqual({ accessToken: 'access-token', user: authResult.user });
+      expect(res.body.refreshToken).toBeUndefined();
       // The login route forwards the client IP for failed-login anomaly detection.
       expect(mockedLogin).toHaveBeenCalledWith('john@example.com', 'secret', expect.any(String));
+    });
+
+    it('delivers the refresh token via an httpOnly SameSite cookie scoped to /api/auth', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'john@example.com', password: 'secret' });
+
+      const cookieHeader = res.headers['set-cookie'];
+      expect(cookieHeader).toBeDefined();
+      const cookie = String(cookieHeader[0]);
+      expect(cookie).toContain('refresh_token=refresh-token');
+      expect(cookie.toLowerCase()).toContain('httponly');
+      expect(cookie).toContain('SameSite=Strict');
+      expect(cookie).toContain('Path=/api/auth');
     });
 
     it('rejects a request with an invalid email', async () => {
@@ -150,21 +169,32 @@ describe('authRoutes', () => {
   });
 
   describe('POST /api/auth/refresh', () => {
-    it('returns a new token pair for a valid refresh token', async () => {
+    it('returns a new access token for a valid refresh-token cookie', async () => {
       const res = await request(app)
         .post('/api/auth/refresh')
-        .send({ refreshToken: 'some-refresh-token' });
+        .set('Cookie', 'refresh_token=some-refresh-token');
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(authResult);
+      expect(res.body).toEqual({ accessToken: 'access-token', user: authResult.user });
+      expect(res.body.refreshToken).toBeUndefined();
       expect(mockedRefresh).toHaveBeenCalledWith('some-refresh-token');
     });
 
-    it('returns 400 when the refresh token is missing', async () => {
-      const res = await request(app).post('/api/auth/refresh').send({});
+    it('rotates the refresh token via a new Set-Cookie header', async () => {
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Cookie', 'refresh_token=some-refresh-token');
 
-      expect(res.status).toBe(400);
-      expect(res.body).toEqual({ error: 'Refresh token required' });
+      const cookieHeader = res.headers['set-cookie'];
+      expect(cookieHeader).toBeDefined();
+      expect(String(cookieHeader[0])).toContain('refresh_token=refresh-token');
+    });
+
+    it('returns 401 when the refresh-token cookie is missing', async () => {
+      const res = await request(app).post('/api/auth/refresh');
+
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: 'Refresh token missing' });
       expect(mockedRefresh).not.toHaveBeenCalled();
     });
 
@@ -175,25 +205,28 @@ describe('authRoutes', () => {
 
       const res = await request(app)
         .post('/api/auth/refresh')
-        .send({ refreshToken: 'expired-token' });
+        .set('Cookie', 'refresh_token=expired-token');
 
       expect(res.status).toBe(401);
     });
   });
 
   describe('POST /api/auth/logout', () => {
-    it('revokes the refresh token and returns a confirmation', async () => {
+    it('revokes the refresh token from the cookie and clears the cookie', async () => {
       const res = await request(app)
         .post('/api/auth/logout')
-        .send({ refreshToken: 'token-to-revoke' });
+        .set('Cookie', 'refresh_token=token-to-revoke');
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ message: 'Logged out' });
       expect(mockedLogout).toHaveBeenCalledWith('token-to-revoke');
+      // The cookie is cleared (empty value + expired).
+      const cookie = String(res.headers['set-cookie'][0]);
+      expect(cookie).toContain('refresh_token=;');
     });
 
-    it('still succeeds when no refresh token is provided', async () => {
-      const res = await request(app).post('/api/auth/logout').send({});
+    it('still succeeds when no refresh-token cookie is provided', async () => {
+      const res = await request(app).post('/api/auth/logout');
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ message: 'Logged out' });
@@ -203,7 +236,7 @@ describe('authRoutes', () => {
     it('forwards service errors to the error handler', async () => {
       mockedLogout.mockRejectedValue(Object.assign(new Error('Boom'), { status: 500 }));
 
-      const res = await request(app).post('/api/auth/logout').send({ refreshToken: 'token' });
+      const res = await request(app).post('/api/auth/logout').set('Cookie', 'refresh_token=token');
 
       expect(res.status).toBe(500);
     });

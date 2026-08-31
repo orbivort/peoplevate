@@ -37,15 +37,18 @@ export function registerSessionExpiredHandler(handler: (() => void) | null): voi
  * - Prefixes every URL with `config.apiBase` (same-origin '' in dev; the Vite
  *   dev proxy rewrites '/api' to the backend).
  * - Attaches `Authorization: Bearer <accessToken>` when an access token exists.
+ * - Sends cookies with every request (`credentials: 'include'`) so the
+ *   httpOnly refresh-token cookie set by the backend accompanies auth calls.
  * - JSON-encodes/decodes payloads and normalizes errors into {@link ApiError}.
  */
 /**
  * Perform a single request with automatic access-token refresh.
  *
- * On a 401 response, we try to refresh the access token once (using the stored
- * refresh token) and then retry the original request with the new token. If the
- * refresh fails (the refresh token is invalid/expired), we invoke the session
- * expired handler so the auth layer can sign the user out and redirect to login.
+ * On a 401 response, we try to refresh the access token once (using the
+ * httpOnly refresh-token cookie — no token material is stored client-side)
+ * and then retry the original request with the new token. If the refresh
+ * fails (the refresh token is invalid/expired), we invoke the session expired
+ * handler so the auth layer can sign the user out and redirect to login.
  *
  * The refresh call itself (`auth: false`) is excluded from this logic to avoid
  * infinite recursion.
@@ -72,6 +75,7 @@ async function requestWithRetry<T>(path: string, options: RequestOptions = {}): 
 
     return fetch(`${config.apiBase}${path}`, {
       ...rest,
+      credentials: 'include',
       headers: requestHeaders,
       body: requestBody ?? null,
     });
@@ -112,26 +116,20 @@ async function requestWithRetry<T>(path: string, options: RequestOptions = {}): 
   return data as T;
 }
 
-/** Attempt to refresh the access token using the stored refresh token. */
+/** Attempt to refresh the access token using the httpOnly refresh-token cookie. */
 async function tryRefresh(): Promise<boolean> {
-  const refreshToken = authStorage.getRefreshToken();
-  if (!refreshToken) return false;
   try {
+    // No body: the backend reads the refresh token from its httpOnly cookie.
     const res = await fetch(`${config.apiBase}/api/auth/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      credentials: 'include',
     });
     if (!res.ok) {
       authStorage.clear();
       return false;
     }
-    const data = (await res.json()) as { accessToken: string; refreshToken: string; user: unknown };
-    authStorage.setSession(
-      data.accessToken,
-      data.refreshToken,
-      data.user ?? authStorage.getStoredUser(),
-    );
+    const data = (await res.json()) as { accessToken: string; user?: unknown };
+    authStorage.setSession(data.accessToken, data.user ?? authStorage.getSessionUser());
     return true;
   } catch {
     return false;

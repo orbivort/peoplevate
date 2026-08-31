@@ -58,7 +58,6 @@ export const handlers = [
     return json({
       user: safeUser,
       accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
     });
   }),
 

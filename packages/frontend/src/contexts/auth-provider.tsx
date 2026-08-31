@@ -78,21 +78,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restore = async () => {
       try {
         if (isRealBackend()) {
-          // Real mode: restore from persisted tokens / user
-          const storedUser = authStorage.getStoredUser<User>();
+          // Real mode: tokens live in memory only and do not survive reloads.
+          // If a session is already in memory, restore it; otherwise silently
+          // refresh via the httpOnly refresh-token cookie.
           const token = authStorage.getAccessToken();
-          if (storedUser && token) {
-            const employee = await fetchOwnEmployee(storedUser);
+          if (token) {
+            const storedUser = authStorage.getSessionUser<User>();
+            if (storedUser) {
+              const employee = await fetchOwnEmployee(storedUser);
+              setState({
+                user: storedUser,
+                employee,
+                isAuthenticated: true,
+                isLoading: false,
+                mode: 'api',
+              });
+              return;
+            }
+          }
+          try {
+            const result = await authRepo.refresh();
+            const user = toUser(result.user);
+            authStorage.setSession(result.accessToken, user);
+            const employee = await fetchOwnEmployee(user);
             setState({
-              user: storedUser,
+              user,
               employee,
               isAuthenticated: true,
               isLoading: false,
               mode: 'api',
             });
-            return;
+          } catch {
+            // No valid refresh cookie — stay signed out.
+            setState((s) => ({ ...s, isLoading: false, mode: 'api' }));
           }
-          setState((s) => ({ ...s, isLoading: false, mode: 'api' }));
           return;
         }
 
@@ -123,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const result = await authRepo.login(email, password);
         const user = toUser(result.user);
-        authStorage.setSession(result.accessToken, result.refreshToken, user);
+        authStorage.setSession(result.accessToken, user);
         const employee = await fetchOwnEmployee(user);
         setState({ user, employee, isAuthenticated: true, isLoading: false, mode: 'api' });
         return { success: true };
@@ -161,14 +180,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     if (isRealBackend()) {
-      const refreshToken = authStorage.getRefreshToken();
       authStorage.clear();
-      if (refreshToken) {
-        try {
-          await authRepo.logout(refreshToken);
-        } catch {
-          // ignore — local logout still proceeds
-        }
+      // The backend revokes the refresh token from its httpOnly cookie — no
+      // token material is sent in the request body.
+      try {
+        await authRepo.logout();
+      } catch {
+        // ignore — local logout still proceeds
       }
     } else {
       localStorage.removeItem(STORAGE_KEY);
