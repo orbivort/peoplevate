@@ -25,6 +25,7 @@ import { anomalyRoutes } from './routes/anomaly-routes.js';
 import { consentRoutes } from './routes/consent-routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found-handler.js';
+import { apiRateLimiter } from './middleware/rate-limiter.js';
 
 /**
  * Builds the Express application with all middleware and routes wired up.
@@ -48,6 +49,10 @@ export function createApp(): express.Express {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
+
+  // Baseline rate limiting for the whole API surface; /health stays unlimited
+  // so container orchestrators and load balancers can probe freely.
+  app.use('/api', apiRateLimiter);
 
   app.use('/api/auth', authRoutes);
   app.use('/api/users', userRoutes);

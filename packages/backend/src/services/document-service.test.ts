@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import path from 'path';
 import { DocumentType } from '#prisma';
 
 const hoisted = vi.hoisted(() => ({
@@ -57,6 +58,7 @@ import { prisma } from '../config/prisma.js';
 import {
   deleteDocument,
   downloadDocument,
+  isInsideUploadDir,
   listDocuments,
   uploadDocument,
 } from './document-service.js';
@@ -95,8 +97,8 @@ describe('document-service', () => {
       originalName: 'passport.pdf',
       mimeType: 'application/pdf',
       size: 1024,
-      filePath: '/tmp/uploads/uuid-1234.pdf',
-      storedFilename: 'uuid-1234.pdf',
+      filePath: '/tmp/uploads/3f2504e0-4f89-41d3-9a0c-0305e82c3301.pdf',
+      storedFilename: '3f2504e0-4f89-41d3-9a0c-0305e82c3301.pdf',
     };
 
     it('rejects disallowed file extensions', async () => {
@@ -165,8 +167,8 @@ describe('document-service', () => {
           employee_id: 'emp-1',
           type: DocumentType.PASSPORT,
           original_filename: 'passport.pdf',
-          stored_filename: 'uuid-1234.pdf',
-          file_path: '/tmp/uploads/uuid-1234.pdf',
+          stored_filename: '3f2504e0-4f89-41d3-9a0c-0305e82c3301.pdf',
+          file_path: path.resolve('/tmp/uploads/3f2504e0-4f89-41d3-9a0c-0305e82c3301.pdf'),
           mime_type: 'application/pdf',
           file_size: 1024,
           uploaded_by: 'user-1',
@@ -176,6 +178,32 @@ describe('document-service', () => {
           encryption_tag: Buffer.from('tag'),
         },
       });
+    });
+    it('rejects storage filenames that do not match the server-generated pattern', async () => {
+      await expectHttpError(
+        uploadDocument({
+          employeeId: 'emp-1',
+          type: DocumentType.PASSPORT,
+          file: { ...validFile, storedFilename: '../escape.pdf' },
+          uploadedBy: 'user-1',
+        }),
+        400,
+        'Invalid storage filename',
+      );
+      expect(mocked.documentCreate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isInsideUploadDir', () => {
+    it('accepts paths inside the upload directory', () => {
+      expect(isInsideUploadDir('/tmp/uploads/uuid.pdf')).toBe(true);
+    });
+
+    it('rejects paths escaping the upload directory', () => {
+      expect(isInsideUploadDir('/tmp/uploads/../secrets/db.env')).toBe(false);
+      expect(isInsideUploadDir('/etc/passwd')).toBe(false);
+      // Prefix-lookalike directory must not pass the containment check.
+      expect(isInsideUploadDir('/tmp/uploads-evil/uuid.pdf')).toBe(false);
     });
   });
 
