@@ -84,6 +84,9 @@ export async function uploadDocument(params: {
   const safeFilePath = resolveUploadPath(params.file.storedFilename);
 
   // Encrypt the file at rest with AES-256-GCM
+  // codeql[js/path-injection] safeFilePath is resolved by resolveUploadPath,
+  // which strictly whitelists the server-generated UUID+extension filename
+  // against STORAGE_FILENAME_PATTERN before joining it to the fixed UPLOAD_DIR.
   const plaintext = await fs.readFile(safeFilePath);
   const keyVersion = await getActiveKeyVersion('DATA_ENCRYPTION');
   if (!keyVersion) {
@@ -96,6 +99,8 @@ export async function uploadDocument(params: {
   );
 
   // Overwrite the plaintext file with the ciphertext
+  // codeql[js/path-injection] Same safeFilePath as above: strictly whitelisted
+  // server-generated filename resolved inside the fixed UPLOAD_DIR.
   await fs.writeFile(safeFilePath, ciphertext);
 
   const doc = await prisma.document.create({

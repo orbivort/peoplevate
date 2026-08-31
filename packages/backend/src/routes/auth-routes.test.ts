@@ -68,6 +68,9 @@ function buildApp() {
   const app = express();
   app.use(express.json());
   // Cookie parsing is required so the refresh-token cookie reaches the routes.
+  // codeql[js/missing-token-validation] Test-only supertest harness (no real
+  // server or users); production CSRF risk is mitigated because the refresh
+  // cookie is SameSite=strict/httpOnly, so cross-site requests never carry it.
   app.use(cookieParser());
   // Set a mock authenticated user on the request for routes that use getAuthUser
   app.use((req, _res, next) => {
