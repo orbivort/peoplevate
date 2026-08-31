@@ -29,6 +29,13 @@ overrides:
   # Force `nanoid` (pulled by postcss via vite/vitest/stylelint) to a patched
   # version to fix GHSA-2v37-7h3g-55p8 (infinite loop when size is zero).
   nanoid: 3.3.18
+  # Force `deepmerge-ts` (pulled by prisma CLI via @prisma/config) to a patched
+  # version to fix GHSA-ggr8-5vv4-36mx / CVE-2026-40345 (stack exhaustion when
+  # merging recursive object graphs). Prisma has not yet released a version that
+  # depends on deepmerge-ts >= 8.0.0; the override is safe because @prisma/config
+  # only merges plain object/array config files (no Maps, no deepmergeInto, no
+  # deepmergeCustom with a MetaDataUpdater).
+  deepmerge-ts: 8.0.2
 
 # Shared dependency versions across all packages
 catalog:

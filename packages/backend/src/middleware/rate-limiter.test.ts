@@ -24,8 +24,8 @@ vi.mock('express-rate-limit', () => ({
 }));
 
 // Import the module under test. `env` (config) is loaded by the test setup via
-// `.env.test`. The two rate-limit middleware are constructed at import time.
-import { loginRateLimiter, passwordChangeRateLimiter } from './rate-limiter.js';
+// `.env.test`. The three rate-limit middleware are constructed at import time.
+import { apiRateLimiter, loginRateLimiter, passwordChangeRateLimiter } from './rate-limiter.js';
 
 type RateLimitOptions = {
   windowMs: number;
@@ -36,9 +36,10 @@ type RateLimitOptions = {
   legacyHeaders: boolean;
 };
 
-// The two limiter constructions recorded at import time.
-const loginOptions = rateLimitMock.mock.calls[0][0] as RateLimitOptions;
-const passwordOptions = rateLimitMock.mock.calls[1][0] as RateLimitOptions;
+// The three limiter constructions recorded at import time.
+const apiOptions = rateLimitMock.mock.calls[0][0] as RateLimitOptions;
+const loginOptions = rateLimitMock.mock.calls[1][0] as RateLimitOptions;
+const passwordOptions = rateLimitMock.mock.calls[2][0] as RateLimitOptions;
 
 /** Build a minimal Express Request with optional user/IP. */
 function buildReq(overrides: Partial<Request> = {}): Request {
@@ -46,10 +47,35 @@ function buildReq(overrides: Partial<Request> = {}): Request {
 }
 
 describe('rate-limiter module', () => {
+  describe('apiRateLimiter', () => {
+    it('is constructed as an express-rate-limit middleware', () => {
+      expect(apiRateLimiter).toBeDefined();
+      expect(rateLimitMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('uses a 1-minute window with an env-driven per-IP max', () => {
+      expect(apiOptions.windowMs).toBe(60 * 1000);
+      // API_RATE_LIMIT_PER_MIN default is 300.
+      expect(apiOptions.max).toBeGreaterThan(0);
+      expect(Number.isInteger(apiOptions.max)).toBe(true);
+    });
+
+    it('returns the configured too-many-requests message', () => {
+      expect(apiOptions.message).toEqual({
+        error: 'Too many requests. Please try again later.',
+      });
+    });
+
+    it('enables standard headers and disables legacy headers', () => {
+      expect(apiOptions.standardHeaders).toBe(true);
+      expect(apiOptions.legacyHeaders).toBe(false);
+    });
+  });
+
   describe('loginRateLimiter', () => {
     it('is constructed as an express-rate-limit middleware', () => {
       expect(loginRateLimiter).toBeDefined();
-      expect(rateLimitMock).toHaveBeenCalledTimes(2);
+      expect(rateLimitMock).toHaveBeenCalledTimes(3);
     });
 
     it('uses a 1-minute window', () => {
@@ -78,7 +104,7 @@ describe('rate-limiter module', () => {
   describe('passwordChangeRateLimiter', () => {
     it('is constructed as an express-rate-limit middleware', () => {
       expect(passwordChangeRateLimiter).toBeDefined();
-      expect(rateLimitMock).toHaveBeenCalledTimes(2);
+      expect(rateLimitMock).toHaveBeenCalledTimes(3);
     });
 
     it('uses a 15-minute window with a per-user max of 5', () => {

@@ -46,6 +46,8 @@ vi.mock('../services/document-service.js', () => ({
   uploadDocument: vi.fn(),
   downloadDocument: vi.fn(),
   deleteDocument: vi.fn(),
+  isInsideUploadDir: vi.fn(() => true),
+  resolveUploadPath: vi.fn(() => `${testUploadDir}/mock-uuid.pdf`),
 }));
 
 vi.mock('../services/breach-service.js', () => ({

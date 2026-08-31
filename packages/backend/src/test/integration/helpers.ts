@@ -60,7 +60,9 @@ export async function createUser(overrides?: {
 
 /**
  * Logs a user in through the real `/api/auth/login` route and returns the full
- * auth result (access token + refresh token + user).
+ * auth result. The refresh token is read from the httpOnly `Set-Cookie` header
+ * (it is never present in the JSON body), so tests can replay it as a Cookie
+ * header on subsequent refresh/logout calls.
  */
 export async function loginForTokens(
   app: Express,
@@ -68,10 +70,20 @@ export async function loginForTokens(
   password: string,
 ): Promise<{ accessToken: string; refreshToken: string; user: { id: string; role: string } }> {
   const res = await request(app).post('/api/auth/login').send({ email, password }).expect(200);
-  return res.body as {
+  const setCookie = res.headers['set-cookie'];
+  const cookie = Array.isArray(setCookie) ? String(setCookie[0]) : String(setCookie ?? '');
+  const match = /refresh_token=([^;]+)/.exec(cookie);
+  if (!match) {
+    throw new Error('Login response did not set the refresh_token cookie');
+  }
+  const body = res.body as {
     accessToken: string;
-    refreshToken: string;
     user: { id: string; role: string };
+  };
+  return {
+    accessToken: body.accessToken,
+    refreshToken: match[1],
+    user: body.user,
   };
 }
 

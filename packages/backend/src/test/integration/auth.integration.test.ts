@@ -37,7 +37,9 @@ describe('auth integration', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.accessToken).toBeTypeOf('string');
-      expect(res.body.refreshToken).toBeTypeOf('string');
+      // The refresh token is delivered via httpOnly cookie, never the JSON body.
+      expect(res.body.refreshToken).toBeUndefined();
+      expect(res.headers['set-cookie']).toBeDefined();
       expect(res.body.user).toMatchObject({
         email: 'john@example.com',
         role: 'EMPLOYEE',
@@ -102,11 +104,14 @@ describe('auth integration', () => {
       await createUser({ email: 'refresh@example.com', password: 'Password123!' });
       const { refreshToken } = await loginForTokens(app, 'refresh@example.com', 'Password123!');
 
-      const res = await request(app).post('/api/auth/refresh').send({ refreshToken });
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Cookie', `refresh_token=${refreshToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.accessToken).toBeTypeOf('string');
-      expect(res.body.refreshToken).toBeTypeOf('string');
+      // A rotated refresh token is set as a new cookie.
+      expect(res.headers['set-cookie']).toBeDefined();
 
       // The old token hash is marked revoked.
       const revoked = await prisma.refreshToken.findFirst({
@@ -118,7 +123,7 @@ describe('auth integration', () => {
     it('rejects an invalid refresh token', async () => {
       const res = await request(app)
         .post('/api/auth/refresh')
-        .send({ refreshToken: 'not-a-valid-jwt' });
+        .set('Cookie', 'refresh_token=not-a-valid-jwt');
 
       expect(res.status).toBe(401);
     });
@@ -128,16 +133,18 @@ describe('auth integration', () => {
       const { refreshToken } = await loginForTokens(app, 'revoked@example.com', 'Password123!');
 
       // Use it once to rotate and revoke the original.
-      await request(app).post('/api/auth/refresh').send({ refreshToken });
+      await request(app).post('/api/auth/refresh').set('Cookie', `refresh_token=${refreshToken}`);
 
       // Reusing the same (now-revoked) token must fail.
-      const res = await request(app).post('/api/auth/refresh').send({ refreshToken });
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Cookie', `refresh_token=${refreshToken}`);
       expect(res.status).toBe(401);
     });
 
     it('rejects when the refresh token is missing', async () => {
-      const res = await request(app).post('/api/auth/refresh').send({});
-      expect(res.status).toBe(400);
+      const res = await request(app).post('/api/auth/refresh');
+      expect(res.status).toBe(401);
     });
   });
 
@@ -146,7 +153,9 @@ describe('auth integration', () => {
       await createUser({ email: 'logout@example.com', password: 'Password123!' });
       const { refreshToken } = await loginForTokens(app, 'logout@example.com', 'Password123!');
 
-      const res = await request(app).post('/api/auth/logout').send({ refreshToken });
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', `refresh_token=${refreshToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ message: 'Logged out' });
@@ -158,7 +167,7 @@ describe('auth integration', () => {
     });
 
     it('still succeeds when no refresh token is provided', async () => {
-      const res = await request(app).post('/api/auth/logout').send({});
+      const res = await request(app).post('/api/auth/logout');
       expect(res.status).toBe(200);
     });
   });
@@ -195,14 +204,20 @@ describe('auth integration', () => {
         .post('/api/auth/login')
         .send({ email: 'newhire@example.com', password: 'NewPassword123!' });
       expect(loginRes.status).toBe(200);
-      const refreshToken = loginRes.body.refreshToken as string;
+      const refreshToken = /refresh_token=([^;]+)/.exec(
+        String(loginRes.headers['set-cookie'][0]),
+      )?.[1] as string;
 
-      // Refresh using the issued refresh token.
-      const refreshRes = await request(app).post('/api/auth/refresh').send({ refreshToken });
+      // Refresh using the issued refresh-token cookie.
+      const refreshRes = await request(app)
+        .post('/api/auth/refresh')
+        .set('Cookie', `refresh_token=${refreshToken}`);
       expect(refreshRes.status).toBe(200);
 
-      // Logout.
-      const logoutRes = await request(app).post('/api/auth/logout').send({ refreshToken });
+      // Logout (cookie sent automatically by the browser in production).
+      const logoutRes = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', `refresh_token=${refreshToken}`);
       expect(logoutRes.status).toBe(200);
     });
 

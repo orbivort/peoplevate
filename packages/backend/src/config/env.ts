@@ -31,6 +31,9 @@ const envSchema = z.object({
 
   LOGIN_RATE_LIMIT_PER_MIN: z.coerce.number().default(10),
 
+  // Baseline per-IP request budget for all /api routes (see apiRateLimiter).
+  API_RATE_LIMIT_PER_MIN: z.coerce.number().default(300),
+
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_FILE_SIZE_MB: z.coerce.number().default(25),
 

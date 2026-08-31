@@ -1,72 +1,55 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { authStorage } from '@/lib/auth-storage';
 
-describe('auth-storage', () => {
-  const store: Record<string, string> = {};
+describe('auth-storage (in-memory session)', () => {
+  // localStorage must never be touched by the session store: tokens kept in
+  // localStorage are readable by any XSS payload (CodeQL alert #12).
   const lsMock = {
-    getItem: vi.fn((k: string) => (k in store ? store[k] : null)),
-    setItem: vi.fn((k: string, v: string) => {
-      store[k] = v;
-    }),
-    removeItem: vi.fn((k: string) => {
-      delete store[k];
-    }),
+    getItem: vi.fn(() => null),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
   };
-  const originalLS = globalThis.localStorage;
 
   beforeEach(() => {
-    Object.keys(store).forEach((k) => delete store[k]);
+    authStorage.clear();
     vi.stubGlobal('localStorage', lsMock);
     lsMock.getItem.mockClear();
     lsMock.setItem.mockClear();
     lsMock.removeItem.mockClear();
   });
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    globalThis.localStorage = originalLS;
-  });
-
-  it('persists and reads a full session', async () => {
-    const { authStorage } = await import('@/lib/auth-storage');
-    authStorage.setSession('a', 'r', { email: 'e@x.com' });
+  it('stores a session in memory', () => {
+    authStorage.setSession('a', { email: 'e@x.com' });
     expect(authStorage.getAccessToken()).toBe('a');
-    expect(authStorage.getRefreshToken()).toBe('r');
-    expect(authStorage.getStoredUser<{ email: string }>()?.email).toBe('e@x.com');
+    expect(authStorage.getSessionUser<{ email: string }>()?.email).toBe('e@x.com');
   });
 
-  it('returns null when nothing stored', async () => {
-    const { authStorage } = await import('@/lib/auth-storage');
+  it('never persists anything to localStorage', () => {
+    authStorage.setSession('a', { email: 'e@x.com' });
+    authStorage.getAccessToken();
+    authStorage.getSessionUser();
+    authStorage.clear();
+    expect(lsMock.setItem).not.toHaveBeenCalled();
+    expect(lsMock.removeItem).not.toHaveBeenCalled();
+    expect(lsMock.getItem).not.toHaveBeenCalled();
+  });
+
+  it('returns null when nothing is stored', () => {
     expect(authStorage.getAccessToken()).toBeNull();
-    expect(authStorage.getRefreshToken()).toBeNull();
-    expect(authStorage.getStoredUser()).toBeNull();
+    expect(authStorage.getSessionUser()).toBeNull();
   });
 
-  it('returns null user on malformed JSON', async () => {
-    const { authStorage } = await import('@/lib/auth-storage');
-    lsMock.getItem.mockImplementation((k: string) => (k === 'elms-api-user' ? '{bad' : null));
-    expect(authStorage.getStoredUser()).toBeNull();
-  });
-
-  it('clears the session', async () => {
-    const { authStorage } = await import('@/lib/auth-storage');
-    authStorage.setSession('a', 'r', { email: 'e@x.com' });
+  it('clears the session', () => {
+    authStorage.setSession('a', { email: 'e@x.com' });
     authStorage.clear();
     expect(authStorage.getAccessToken()).toBeNull();
-    expect(authStorage.getRefreshToken()).toBeNull();
-    expect(authStorage.getStoredUser()).toBeNull();
+    expect(authStorage.getSessionUser()).toBeNull();
   });
 
-  it('propagates errors when getItem throws', async () => {
-    const brokenLS = {
-      getItem: () => {
-        throw new Error('SecurityError');
-      },
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-    };
-    vi.stubGlobal('localStorage', brokenLS);
-    const { authStorage } = await import('@/lib/auth-storage');
-    expect(() => authStorage.getAccessToken()).toThrow();
-    expect(() => authStorage.getStoredUser()).toThrow();
+  it('replaces a previous session on setSession', () => {
+    authStorage.setSession('old', { email: 'old@x.com' });
+    authStorage.setSession('new', { email: 'new@x.com' });
+    expect(authStorage.getAccessToken()).toBe('new');
+    expect(authStorage.getSessionUser<{ email: string }>()?.email).toBe('new@x.com');
   });
 });

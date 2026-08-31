@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import path from 'path';
 import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
 import { HttpError } from '../utils/http-error.js';
@@ -15,6 +16,41 @@ const ALLOWED_MIME_TYPES = [
 ];
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.docx'];
+
+/**
+ * Absolute upload directory. All physical document files must live here;
+ * fs operations are guarded against paths escaping it (path traversal).
+ */
+const UPLOAD_DIR = path.resolve(env.UPLOAD_DIR);
+
+/**
+ * Strict pattern for server-generated storage filenames: multer's diskStorage
+ * writes `crypto.randomUUID()` + a whitelisted extension, so anything else is
+ * not a legitimate stored file.
+ */
+const STORAGE_FILENAME_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|jpg|jpeg|png|docx)$/;
+
+/**
+ * Resolve a server-generated storage filename to an absolute path inside the
+ * upload directory. The filename is strictly validated first, so user input
+ * can never influence the resulting path (path-traversal defense).
+ */
+export function resolveUploadPath(storedFilename: string): string {
+  if (!STORAGE_FILENAME_PATTERN.test(storedFilename)) {
+    throw new HttpError(400, 'Invalid storage filename');
+  }
+  return path.join(UPLOAD_DIR, storedFilename);
+}
+
+/**
+ * Verify a file path (e.g. one previously persisted in the database) resolves
+ * inside the upload directory. Returns false for any path that escapes it.
+ */
+export function isInsideUploadDir(filePath: string): boolean {
+  const resolved = path.resolve(filePath);
+  return resolved === UPLOAD_DIR || resolved.startsWith(UPLOAD_DIR + path.sep);
+}
 
 export async function uploadDocument(params: {
   employeeId: string;
@@ -43,8 +79,15 @@ export async function uploadDocument(params: {
     throw new HttpError(400, `File too large. Max size: ${env.MAX_FILE_SIZE_MB}MB`);
   }
 
+  // Resolve the on-disk location from the server-generated storage filename
+  // (never trust the request-derived absolute path directly).
+  const safeFilePath = resolveUploadPath(params.file.storedFilename);
+
   // Encrypt the file at rest with AES-256-GCM
-  const plaintext = await fs.readFile(params.file.filePath);
+  // codeql[js/path-injection] safeFilePath is resolved by resolveUploadPath,
+  // which strictly whitelists the server-generated UUID+extension filename
+  // against STORAGE_FILENAME_PATTERN before joining it to the fixed UPLOAD_DIR.
+  const plaintext = await fs.readFile(safeFilePath);
   const keyVersion = await getActiveKeyVersion('DATA_ENCRYPTION');
   if (!keyVersion) {
     throw new HttpError(500, 'No active data-encryption key version found. Run key bootstrap.');
@@ -56,7 +99,9 @@ export async function uploadDocument(params: {
   );
 
   // Overwrite the plaintext file with the ciphertext
-  await fs.writeFile(params.file.filePath, ciphertext);
+  // codeql[js/path-injection] Same safeFilePath as above: strictly whitelisted
+  // server-generated filename resolved inside the fixed UPLOAD_DIR.
+  await fs.writeFile(safeFilePath, ciphertext);
 
   const doc = await prisma.document.create({
     data: {
@@ -64,7 +109,7 @@ export async function uploadDocument(params: {
       type: params.type,
       original_filename: params.file.originalName,
       stored_filename: params.file.storedFilename,
-      file_path: params.file.filePath,
+      file_path: safeFilePath,
       mime_type: params.file.mimeType,
       file_size: params.file.size,
       uploaded_by: params.uploadedBy,
@@ -121,6 +166,10 @@ export async function downloadDocument(
   if (!doc) {
     throw new HttpError(404, 'Document not found');
   }
+  // Defense in depth: the stored path must stay inside the upload directory.
+  if (!isInsideUploadDir(doc.file_path)) {
+    throw new HttpError(500, 'Stored file path is invalid');
+  }
 
   let buffer: Buffer;
   if (doc.encryption_key_version_id && doc.encryption_iv && doc.encryption_tag) {
@@ -175,6 +224,10 @@ export async function deleteDocument(docId: string): Promise<void> {
   if (!doc) {
     throw new HttpError(404, 'Document not found');
   }
+  // Defense in depth: never delete anything outside the upload directory.
+  if (!isInsideUploadDir(doc.file_path)) {
+    throw new HttpError(500, 'Stored file path is invalid');
+  }
 
   // Delete the physical file from disk
   await deletePhysicalFile(doc.file_path);
@@ -207,6 +260,12 @@ export async function deleteEmployeeFiles(employeeId: string): Promise<number> {
 
   let deletedCount = 0;
   for (const doc of docs) {
+    // Skip (and leave for review) any row whose stored path escapes the
+    // upload directory instead of deleting an arbitrary filesystem location.
+    if (!isInsideUploadDir(doc.file_path)) {
+      console.error(`[FILE CLEANUP] Skipping file outside upload dir: ${doc.file_path}`);
+      continue;
+    }
     const success = await deletePhysicalFile(doc.file_path);
     if (success) deletedCount++;
   }

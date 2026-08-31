@@ -1,6 +1,23 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { env } from '../config/env.js';
 
+/**
+ * Global API rate limiter applied to every /api route as a baseline defense
+ * against brute-force and resource-exhaustion abuse of authenticated business
+ * endpoints. Stricter per-endpoint limiters (login, password change) remain in
+ * place and run in addition to this baseline. Disabled in E2E mode (and tests)
+ * for the same reason as the login limiter: the suites issue many requests
+ * from a single host and would otherwise trip the per-IP budget.
+ */
+export const apiRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max:
+    env.E2E_MODE || env.NODE_ENV === 'test' ? Number.MAX_SAFE_INTEGER : env.API_RATE_LIMIT_PER_MIN,
+  message: { error: 'Too many requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export const loginRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   // In E2E mode the suite logs in as several seeded accounts from a single

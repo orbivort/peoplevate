@@ -21,10 +21,12 @@ type BackendRecord = Record<string, unknown>;
 
 /**
  * Auth
+ *
+ * The refresh token is delivered by the backend as an httpOnly cookie and is
+ * never part of the JSON response, so it does not appear in these contracts.
  */
 export interface LoginResponse {
   accessToken: string;
-  refreshToken: string;
   user: {
     id: string;
     email: string;
@@ -36,9 +38,14 @@ export interface LoginResponse {
 export const authRepo = {
   login: (email: string, password: string) =>
     api.post<LoginResponse>('/api/auth/login', { email, password }, { auth: false }),
-  logout: (refreshToken: string) => api.post('/api/auth/logout', { refreshToken }),
-  refresh: (refreshToken: string) =>
-    api.post<LoginResponse>('/api/auth/refresh', { refreshToken }, { auth: false }),
+  // The backend revokes the refresh token from its httpOnly cookie — no body.
+  logout: () => api.post<{ message: string }>('/api/auth/logout'),
+  // Silent refresh: the backend reads the refresh token from the httpOnly
+  // cookie. Returns a fresh access token + user for in-memory session restore.
+  refresh: () =>
+    api.post<{ accessToken: string; user: LoginResponse['user'] }>('/api/auth/refresh', undefined, {
+      auth: false,
+    }),
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post<{ message: string }>('/api/auth/change-password', { currentPassword, newPassword }),
 };
@@ -504,6 +511,7 @@ export const dataSubjectRightsRepo = {
 
     const res = await fetch(`${config.apiBase}${path}`, {
       method: 'GET',
+      credentials: 'include',
       headers,
     });
 

@@ -11,8 +11,7 @@ const { apiMock, apiRequestMock, authStorageMock, configMock, fetchMock } = vi.h
   apiRequestMock: vi.fn(),
   authStorageMock: {
     getAccessToken: vi.fn(),
-    getRefreshToken: vi.fn(),
-    getStoredUser: vi.fn(),
+    getSessionUser: vi.fn(),
     setSession: vi.fn(),
     clear: vi.fn(),
   },
@@ -290,22 +289,18 @@ describe('repositories (real backend wrappers)', () => {
     expect(res).toEqual({ logs: [{ id: 'l2' }], total: 0 });
   });
 
-  it('authRepo login/logout/refresh', async () => {
-    apiMock.post.mockResolvedValue({ accessToken: 'a', refreshToken: 'r', user: { id: 'u' } });
+  it('authRepo login/logout/refresh (cookie-based, no token in bodies)', async () => {
+    apiMock.post.mockResolvedValue({ accessToken: 'a', user: { id: 'u' } });
     await authRepo.login('a@b.com', 'pw');
     expect(apiMock.post).toHaveBeenCalledWith(
       '/api/auth/login',
       { email: 'a@b.com', password: 'pw' },
       { auth: false },
     );
-    await authRepo.refresh('r');
-    expect(apiMock.post).toHaveBeenCalledWith(
-      '/api/auth/refresh',
-      { refreshToken: 'r' },
-      { auth: false },
-    );
-    await authRepo.logout('r');
-    expect(apiMock.post).toHaveBeenCalledWith('/api/auth/logout', { refreshToken: 'r' });
+    await authRepo.refresh();
+    expect(apiMock.post).toHaveBeenCalledWith('/api/auth/refresh', undefined, { auth: false });
+    await authRepo.logout();
+    expect(apiMock.post).toHaveBeenCalledWith('/api/auth/logout');
   });
 
   it('alertRepo.list with and without acknowledged filter', async () => {

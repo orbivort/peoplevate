@@ -60,7 +60,8 @@ const upload = multer({
  * multer has already streamed the file, preventing orphan files.
  */
 async function cleanupUpload(filePath?: string): Promise<void> {
-  if (filePath) {
+  // Only remove files inside the upload directory (path-traversal defense).
+  if (filePath && docService.isInsideUploadDir(filePath)) {
     try {
       await fsp.unlink(filePath);
     } catch {
