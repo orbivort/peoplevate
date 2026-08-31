@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -385,6 +385,17 @@ describe('EmployeeProfilePage', () => {
 });
 
 describe('document list and expiry states', () => {
+  // Pin the clock so expiry fixtures stay deterministic regardless of when CI runs.
+  // Only Date is faked; real timers keep findByText/userEvent working normally.
+  beforeAll(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-08-07T12:00:00.000Z'));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   const makeDoc = (overrides: Record<string, unknown> = {}) => ({
     id: 'doc-1',
     employeeId: 'e1',
@@ -415,8 +426,9 @@ describe('document list and expiry states', () => {
   });
 
   it('flags a document expiring within 30 days', async () => {
-    // Real "now" is 2026-08-07; a date 13 days out is within the 30-day window.
-    profileState.documents = [makeDoc({ expiryDate: '2026-08-20T00:00:00.000Z' })];
+    // The clock is pinned to 2026-08-07; a date 13 days out is within the 30-day window.
+    const inThirteenDays = new Date(Date.now() + 13 * 86400000).toISOString();
+    profileState.documents = [makeDoc({ expiryDate: inThirteenDays })];
     const user = userEvent.setup();
     render(<EmployeeProfilePage />);
     await user.click(screen.getByRole('tab', { name: /documents/i }));
