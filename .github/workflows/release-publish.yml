@@ -1,0 +1,84 @@
+name: Publish Release
+
+# Second phase of the release process: runs when a release pull request
+# (head branch `release/v*`, opened by the Prepare Release workflow) is
+# merged. It verifies the release metadata, tags `main` with `vX.Y.Z`, and
+# dispatches the Release workflow for the tag (Docker images + GitHub
+# Release). For the full flow see the "Release Process" section in
+# CONTRIBUTING.md.
+on:
+  pull_request:
+    types: [closed]
+
+# `contents: write` creates and pushes the annotated tag; `actions: write` is
+# required to dispatch the Release workflow via the API. Nothing else is
+# granted.
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  # Share the group with Release so a publish never races a tag-triggered run.
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag merged release PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >-
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/v')
+    steps:
+      - name: Derive version from the release branch
+        id: version
+        shell: bash
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          TAG="${BRANCH#release/}" # release/v1.2.3 -> v1.2.3
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+].+)?$ ]]; then
+            echo "::error::Unexpected release branch '$BRANCH'. Expected 'release/vX.Y.Z'."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "Publishing $TAG"
+
+      - name: Checkout merged result (full history)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Verify release metadata
+        # Fails the publish if package.json or CHANGELOG.md drifted from the
+        # reviewed release PR (e.g. main moved ahead between PR creation and
+        # merge).
+        run: node .github/scripts/verify-release.mjs "${{ steps.version.outputs.version }}"
+
+      - name: Create and push the release tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists."
+            exit 1
+          fi
+          # Annotated tag pointing at the merge commit that carries the
+          # reviewed version bump and changelog entry.
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Dispatch the Release workflow for the tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          # Pushing a tag with GITHUB_TOKEN does NOT trigger `on: push: tags`
+          # workflows (GitHub suppresses events created by the default token
+          # to prevent recursive runs). Dispatch Release explicitly, pinned to
+          # the tag ref, so the existing pipeline is reused unchanged.
+          gh workflow run release.yml --ref "$TAG"

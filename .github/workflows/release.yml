@@ -2,8 +2,11 @@ name: Release
 
 on:
   push:
-    # Tags drive releases. Follow semantic versioning: v1.2.3. The tag name
-    # becomes the GitHub Release version and the Docker image tag.
+    # Tags drive releases. Normally the tag is created by the Publish Release
+    # workflow after a release PR is merged (see release-publish.yml), but a
+    # manually pushed tag still works as a fallback path. Follow semantic
+    # versioning: v1.2.3. The tag name becomes the GitHub Release version and
+    # the Docker image tag.
     tags:
       - 'v*'
   # Allow maintainers to trigger a release from a branch or existing tag.
@@ -31,10 +34,11 @@ env:
   IMAGE_BASE: ${{ github.repository }}
 
 jobs:
-  # Derive the changelog from conventional commits so the GitHub Release body
-  # is consistent with the project's Keep-a-Changelog + SemVer conventions
-  # (see CHANGELOG.md). This mirrors what `pnpm changeset` would produce but
-  # stays dependency-light.
+  # Produce the GitHub Release body. The action prefers the version's section
+  # in CHANGELOG.md (written by the Prepare Release workflow and reviewed in
+  # the release PR) and falls back to generating notes from conventional
+  # commits for manually pushed tags, so the body is consistent with the
+  # project's Keep-a-Changelog + SemVer conventions (see CHANGELOG.md).
   changelog:
     name: Generate changelog
     runs-on: ubuntu-latest
@@ -153,6 +157,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           body: ${{ needs.changelog.outputs.body }}
-          # Draft so a maintainer can review/edit before publishing.
+          # Published immediately: the review gate already happened at the
+          # release PR (see release-publish.yml / release-prepare.yml).
           draft: false
           prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}

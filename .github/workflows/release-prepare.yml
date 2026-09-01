@@ -1,0 +1,138 @@
+name: Prepare Release
+
+# First phase of the release process: computes the next version, bumps the
+# package.json version fields, writes the CHANGELOG.md section from
+# conventional commits, and opens a release pull request for review.
+#
+# Nothing is tagged or published here - the Publish Release workflow tags
+# `main` only after the release PR is reviewed and merged. For the full flow
+# see the "Release Process" section in CONTRIBUTING.md.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: >-
+          Version bump to apply. "auto" derives it from conventional commits
+          (breaking -> major, feat -> minor, fix/perf -> patch, else patch).
+        type: choice
+        default: auto
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+      version:
+        description: 'Explicit version to release (e.g. "1.2.3"). Overrides "bump" when set.'
+        required: false
+        default: ''
+
+# `contents: write` pushes the release branch; `pull-requests: write` opens
+# the release PR. Nothing else is granted.
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  # Serialize preparation so two maintainers can't open competing release PRs.
+  group: release-prepare
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Bump version & open release PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code (full history)
+        # Full history is required to diff the current version against the
+        # previous tag when deriving the bump and the changelog section.
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine next version
+        id: version
+        shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXPLICIT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$EXPLICIT_VERSION" ]]; then
+            if ! [[ "$EXPLICIT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+].+)?$ ]]; then
+              echo "::error::Invalid version '$EXPLICIT_VERSION'. Expected semver such as 1.2.3."
+              exit 1
+            fi
+            NEXT="$EXPLICIT_VERSION"
+          else
+            # Prints only the version on stdout; aborts on empty history.
+            NEXT="$(node .github/scripts/next-version.mjs --bump "$BUMP")"
+          fi
+          TAG="v$NEXT"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists. Delete it or pick another version."
+            exit 1
+          fi
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Next release: $TAG"
+
+      - name: Bump package.json versions
+        # Root + all workspace packages, kept in lockstep with the git tag.
+        run: node .github/scripts/bump-version.mjs "${{ steps.version.outputs.version }}"
+
+      - name: Update CHANGELOG.md
+        # Prepends a Keep-a-Changelog section generated from conventional
+        # commits since the previous tag.
+        run: node .github/scripts/update-changelog.mjs "${{ steps.version.outputs.version }}"
+
+      - name: Commit and push release branch
+        env:
+          BRANCH: release/${{ steps.version.outputs.tag }}
+        run: |
+          git checkout -b "$BRANCH"
+          # Stage only the files the release tooling touches; any local runner
+          # artifacts must never leak into the release PR.
+          git add package.json packages/*/package.json CHANGELOG.md
+          git commit -m "chore(release): ${{ steps.version.outputs.tag }}"
+          git push origin "$BRANCH"
+
+      - name: Open release pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Embed the exact changelog section in the PR body so reviewers see
+          # what the GitHub Release will contain.
+          node .github/scripts/extract-changelog.mjs "$VERSION" > changelog-section.md
+          {
+            echo "Automated release PR for **$TAG**, prepared by the Prepare Release workflow."
+            echo
+            echo "Merging this PR triggers the Publish Release workflow, which tags \`main\`"
+            echo "with \`$TAG\` and runs the Release workflow (Docker images + GitHub Release)."
+            echo
+            echo "## Changelog"
+            echo
+            cat changelog-section.md
+            echo
+            echo "## Review checklist"
+            echo
+            echo "- [ ] Version bump is correct (\`package.json\`, \`packages/*/package.json\`)"
+            echo "- [ ] CHANGELOG.md section accurately describes the changes"
+            echo "- [ ] \`pnpm ci\` passes on this branch"
+          } > pr-body.md
+          # No --label here: a missing label would fail the whole call.
+          # Release PRs are recognized by their `release/v*` head branch.
+          gh pr create \
+            --base main \
+            --head "release/$TAG" \
+            --title "chore(release): $TAG" \
+            --body-file pr-body.md
+          rm -f changelog-section.md pr-body.md

@@ -10,6 +10,7 @@ Thanks for taking the time to contribute! Please read this document before openi
 - [Project Conventions](#project-conventions)
 - [Testing](#testing)
 - [Commit Conventions](#commit-conventions)
+- [Release Process](#release-process)
 
 ## Code of Conduct
 
@@ -97,6 +98,59 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `perf: ...` — performance improvements
 
 Example: `feat(attendance): add clock-in/clock-out validation`
+
+Commit messages drive releases: the release tooling derives the next SemVer
+bump and the changelog from them. Mark breaking changes with `!` after the
+type (e.g. `feat(api)!:`) or a `BREAKING CHANGE:` footer in the commit body.
+
+## Release Process
+
+Releases are automated across three GitHub Actions workflows; maintainers
+review a release pull request before anything is tagged or published.
+
+### Phase 1 — Prepare (`Prepare Release` workflow)
+
+Run **Prepare Release** (`release-prepare.yml`) via _Actions → Prepare Release
+→ Run workflow_. Inputs:
+
+- **bump** — `auto` (default) derives the bump from conventional commits since
+  the last tag: breaking → `major`, `feat` → `minor`, `fix`/`perf` → `patch`.
+  You can also force `major`, `minor`, or `patch`.
+- **version** — an explicit version (e.g. `1.2.3`) that overrides **bump**.
+
+The workflow:
+
+1. Computes the next version and fails early if the tag already exists.
+2. Bumps the `version` field in `package.json` and every
+   `packages/*/package.json`.
+3. Prepends a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) section
+   generated from the conventional commits to `CHANGELOG.md`.
+4. Pushes a `release/vX.Y.Z` branch and opens a **release pull request**
+   titled `chore(release): vX.Y.Z` containing the changelog section.
+
+### Phase 2 — Review
+
+Review the release PR like any other: check the version bump and the
+changelog section, and make sure `pnpm ci` passes. Note that CI may not run
+automatically on the PR because the branch is pushed with the default
+`GITHUB_TOKEN` (GitHub suppresses workflow runs it triggers itself); run the
+checks locally or approve workflows from the Actions tab if prompted.
+
+### Phase 3 — Publish (`Publish Release` + `Release` workflows)
+
+Merging the release PR triggers **Publish Release** (`release-publish.yml`),
+which verifies `package.json` and `CHANGELOG.md` match the release version,
+tags `main` with an annotated `vX.Y.Z` tag, and dispatches the existing
+**Release** (`release.yml`) workflow for the tag. That workflow then builds
+and publishes the backend/frontend Docker images to GHCR and creates the
+GitHub Release with the reviewed changelog section as its body.
+
+### Manual fallback
+
+Manually pushing a tag (`git tag vX.Y.Z && git push origin vX.Y.Z`) still
+triggers the Release workflow. In that case the GitHub Release notes are
+generated from conventional commits instead of the changelog file, so prefer
+the release-PR flow whenever possible.
 
 ## Questions
 
