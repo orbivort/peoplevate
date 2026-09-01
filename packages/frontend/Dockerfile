@@ -10,8 +10,8 @@
 # Build context must be the monorepo root so pnpm can resolve the workspace.
 
 # ----------------------------------------------------------------- deps ------
-FROM node:24.18.1-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@11.19.0 --activate
+FROM node:24.19.0-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 WORKDIR /workspace

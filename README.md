@@ -81,7 +81,7 @@ docs/        engineering & compliance documentation
 
 - **Docker Engine 24+** with Docker Compose v2 — recommended for self-hosting (see below)
 - **Node.js** `^24` (local development)
-- **pnpm** `^11` (local development; the repo pins `pnpm@11.19.0` via `packageManager`)
+- **pnpm** `^11` (local development; the repo pins `pnpm@11.21.0` via `packageManager`)
 - **PostgreSQL** (>= 18 recommended) — only required for a non-Docker manual setup
 
 ## Quick Start (Docker — recommended)

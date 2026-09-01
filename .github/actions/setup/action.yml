@@ -9,7 +9,7 @@ description: Check out, install dependencies with pnpm, and generate the Prisma 
 inputs:
   node-version:
     description: Node.js version to use.
-    default: '24.18.1'
+    default: '24.19.0'
     required: false
 
 runs:
@@ -26,7 +26,7 @@ runs:
       #   git ls-remote https://github.com/pnpm/action-setup.git v5
       uses: pnpm/action-setup@v5
       with:
-        version: 11.19.0
+        version: 11.21.0
 
     - name: Setup Node.js
       # Pin to the commit SHA for supply-chain hardening. Resolve via:

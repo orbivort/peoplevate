@@ -18,7 +18,7 @@
     "employee-lifecycle"
   ],
   "engines": {
-    "node": "^24.18.1"
+    "node": "^24.19.0"
   },
   "imports": {
     "#prisma": "./src/generated/prisma/client.ts"
