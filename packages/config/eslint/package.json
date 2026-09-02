@@ -1,6 +1,5 @@
 {
   "name": "@peoplevate/eslint-config",
-  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Shared ESLint flat config for the peoplevate monorepo",

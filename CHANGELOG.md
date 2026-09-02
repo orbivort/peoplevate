@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-09-01
+
+### Security
+
+- Fixed a **high**-severity transitive dependency vulnerability: `deepmerge-ts` stack
+  exhaustion when merging recursive object graphs
+  ([GHSA-ggr8-5vv4-36mx](https://github.com/advisories/GHSA-ggr8-5vv4-36mx) /
+  [CVE-2026-40345](https://nvd.nist.gov/vuln/detail/CVE-2026-40345))
+- Add missing API rate limiting and harden document file paths
+- Enhance store refresh token in httpOnly cookie
+
 ## [1.0.0] - 2026-08-08
 
 ### Summary

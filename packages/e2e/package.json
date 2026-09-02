@@ -1,6 +1,5 @@
 {
   "name": "@peoplevate/e2e",
-  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Peoplevate end-to-end tests — Playwright driven through a real browser against a real backend + seeded database.",

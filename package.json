@@ -1,6 +1,6 @@
 {
   "name": "peoplevate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Peoplevate — an open-source Employee Lifecycle Management System covering recruitment, onboarding, attendance & leave, performance, offboarding, RBAC, and audit logging.",
   "license": "Apache-2.0",

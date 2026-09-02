@@ -83,7 +83,7 @@ jobs:
           echo "Next release: $TAG"
 
       - name: Bump package.json versions
-        # Root + all workspace packages, kept in lockstep with the git tag.
+        # Root + backend + frontend release manifests, kept in lockstep with the git tag.
         run: node .github/scripts/bump-version.mjs "${{ steps.version.outputs.version }}"
 
       - name: Update CHANGELOG.md
@@ -98,7 +98,7 @@ jobs:
           git checkout -b "$BRANCH"
           # Stage only the files the release tooling touches; any local runner
           # artifacts must never leak into the release PR.
-          git add package.json packages/*/package.json CHANGELOG.md
+          git add package.json packages/backend/package.json packages/frontend/package.json CHANGELOG.md
           git commit -m "chore(release): ${{ steps.version.outputs.tag }}"
           git push origin "$BRANCH"
 
@@ -124,7 +124,7 @@ jobs:
             echo
             echo "## Review checklist"
             echo
-            echo "- [ ] Version bump is correct (\`package.json\`, \`packages/*/package.json\`)"
+            echo "- [ ] Version bump is correct (\`package.json\`, \`packages/backend/package.json\`, \`packages/frontend/package.json\`)"
             echo "- [ ] CHANGELOG.md section accurately describes the changes"
             echo "- [ ] \`pnpm ci\` passes on this branch"
           } > pr-body.md

@@ -1,6 +1,5 @@
 {
   "name": "@peoplevate/vitest-config",
-  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Shared Vitest base config for the peoplevate monorepo",
