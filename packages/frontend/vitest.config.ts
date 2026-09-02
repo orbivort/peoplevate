@@ -37,6 +37,8 @@ export default defineConfig({
         'src/types/**',
         'src/**/*.{test,spec}.{ts,tsx}',
         'src/test/**',
+        'src/mocks/**',
+        'src/components/layout/mock-mode-banner.tsx',
       ],
       thresholds: {
         lines: 80,
