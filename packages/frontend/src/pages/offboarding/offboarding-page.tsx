@@ -227,7 +227,7 @@ export function OffboardingPage() {
               ...ci,
               status: (isComplete ? 'Pending' : 'Complete') as ClearanceItem['status'],
               completedAt: isComplete ? null : new Date().toISOString(),
-              signOffBy: isComplete ? undefined : 'Grace Liu',
+              signOffBy: isComplete ? undefined : 'Emily Doe',
             } as ClearanceItem;
           });
           return { ...rec, clearanceItems: updatedItems };
@@ -790,7 +790,7 @@ function OffboardingDetail({
 
   // Exit interview state
   const [interviewOpen, setInterviewOpen] = useState(false);
-  const [interviewConductedBy, setInterviewConductedBy] = useState('Grace Liu');
+  const [interviewConductedBy, setInterviewConductedBy] = useState('Emily Doe');
   const [interviewDeclined, setInterviewDeclined] = useState(false);
   const [interviewQa, setInterviewQa] = useState<{ question: string; answer: string }[]>([
     { question: '', answer: '' },
@@ -1090,7 +1090,7 @@ function OffboardingDetail({
                     { question: '', answer: '' },
                   ]);
                   setInterviewDeclined(false);
-                  setInterviewConductedBy('Grace Liu');
+                  setInterviewConductedBy('Emily Doe');
                   setInterviewError(null);
                   setInterviewOpen(true);
                 }}

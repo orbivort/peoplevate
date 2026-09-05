@@ -760,7 +760,7 @@ export function CandidatesPage() {
                   id="cand-phone"
                   value={form.phone}
                   onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                  placeholder="+1 415 555 0000"
+                  placeholder="+1 123 555 0000"
                 />
               </div>
             </div>
@@ -771,7 +771,7 @@ export function CandidatesPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="jane@email.com"
+                placeholder="jane@example.com"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

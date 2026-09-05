@@ -307,7 +307,7 @@ describe('PerformancePage', () => {
         id: 'p1',
         firstName: 'Pat',
         lastName: 'Probie',
-        email: 'pat@x.com',
+        email: 'pat@example.com',
         probationEnd: '2026-02-01',
       },
     ]);

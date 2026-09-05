@@ -68,7 +68,7 @@ describe('audit-log-routes', () => {
         {
           id: 'log1',
           actor_id: 'u1',
-          actor_name: 'Grace Liu',
+          actor_name: 'Jing Zhao',
           action: 'UPDATE',
           entity: 'EMPLOYEES',
           entity_id: 'emp-1',

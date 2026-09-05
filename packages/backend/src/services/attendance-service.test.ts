@@ -785,7 +785,7 @@ describe('attendance-service', () => {
         id: 'lr1',
         status: LeaveRequestStatus.REJECTED,
         leave_type: { approval_levels: 1 },
-        employee: { email: 'e@x.com', first_name: 'J', last_name: 'D' },
+        employee: { email: 'e@example.com', first_name: 'J', last_name: 'D' },
       } as never);
 
       await expectHttpError(
@@ -803,7 +803,7 @@ describe('attendance-service', () => {
         leave_type_id: 'lt1',
         days: 3,
         leave_type: { approval_levels: 2, name: 'Annual' },
-        employee: { email: 'e@x.com', first_name: 'J', last_name: 'D' },
+        employee: { email: 'e@example.com', first_name: 'J', last_name: 'D' },
       } as never);
       mocked.leaveApprovalCreate.mockResolvedValue({} as never);
       mocked.leaveRequestUpdate.mockResolvedValue({} as never);
@@ -838,7 +838,7 @@ describe('attendance-service', () => {
         id: 'lr1',
         status: LeaveRequestStatus.PENDING_MANAGER_APPROVAL,
         leave_type: { name: 'Annual' },
-        employee: { email: 'e@x.com', first_name: 'J', last_name: 'D' },
+        employee: { email: 'e@example.com', first_name: 'J', last_name: 'D' },
       } as never);
       mocked.leaveRequestUpdate.mockResolvedValue({} as never);
 
@@ -849,7 +849,7 @@ describe('attendance-service', () => {
         data: { status: LeaveRequestStatus.REJECTED },
       });
       expect(mocked.sendLeaveStatusEmail).toHaveBeenCalledWith(
-        'e@x.com',
+        'e@example.com',
         'J D',
         'Rejected',
         'Annual',

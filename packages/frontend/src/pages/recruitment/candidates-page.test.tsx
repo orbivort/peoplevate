@@ -124,27 +124,27 @@ import { CandidatesPage } from './candidates-page';
 const candidates = [
   {
     id: 'c1',
-    name: 'Grace Liu',
-    email: 'grace@applicants.com',
+    name: 'Jing Zhao',
+    email: 'grace@example.com',
     requisitionId: 'r1',
     requisitionTitle: 'Senior Frontend Engineer',
     stage: 'Interview' as const,
     stageHistory: [{ stage: 'Interview', at: '2026-05-10T00:00:00.000Z' }],
     resumeUrl: null,
     appliedAt: '2026-05-01T00:00:00.000Z',
-    phone: '+1 415 555 0001',
+    phone: '+1 123 555 0001',
   },
   {
     id: 'c2',
-    name: 'David Kim',
-    email: 'david@applicants.com',
+    name: 'Derek Tan',
+    email: 'david@example.com',
     requisitionId: 'r1',
     requisitionTitle: 'Senior Frontend Engineer',
     stage: 'Offer' as const,
     stageHistory: [{ stage: 'Offer', at: '2026-05-12T00:00:00.000Z' }],
     resumeUrl: null,
     appliedAt: '2026-05-02T00:00:00.000Z',
-    phone: '+1 415 555 0002',
+    phone: '+1 123 555 0002',
   },
 ];
 
@@ -177,8 +177,8 @@ describe('CandidatesPage', () => {
 
   it('renders candidates grouped by pipeline stage', async () => {
     render(<CandidatesPage />);
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
-    expect(screen.getByText('David Kim')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
+    expect(screen.getByText('Derek Tan')).toBeInTheDocument();
   });
 
   it('opens the add-candidate dialog and validates required fields', async () => {
@@ -197,14 +197,14 @@ describe('CandidatesPage', () => {
     await user.click(await screen.findByRole('button', { name: /add candidate/i }));
     await screen.findByRole('dialog');
     fireEvent.change(screen.getByLabelText('Full name *'), { target: { value: 'New Person' } });
-    fireEvent.change(screen.getByLabelText('Email *'), { target: { value: 'new@applicants.com' } });
+    fireEvent.change(screen.getByLabelText('Email *'), { target: { value: 'new@example.com' } });
     fireEvent.change(screen.getByDisplayValue('Select requisition'), { target: { value: 'r1' } });
     await user.click(screen.getByRole('button', { name: /add candidate$/i }));
 
     await waitFor(() =>
       expect(createCandidateMock).toHaveBeenCalledWith({
         name: 'New Person',
-        email: 'new@applicants.com',
+        email: 'new@example.com',
         phone: undefined,
         source: expect.any(String),
         requisitionId: 'r1',
@@ -216,7 +216,7 @@ describe('CandidatesPage', () => {
   it('advances a candidate to the next stage from the pipeline', async () => {
     const user = userEvent.setup();
     render(<CandidatesPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     const graceAdvance = screen.getAllByTitle('Advance')[0];
     await user.click(graceAdvance);
     expect(
@@ -289,12 +289,12 @@ describe('CandidatesPage', () => {
     await user.click(await screen.findByRole('button', { name: /add candidate/i }));
     await screen.findByRole('dialog');
     fireEvent.change(screen.getByLabelText('Full name *'), { target: { value: 'New Person' } });
-    fireEvent.change(screen.getByLabelText('Email *'), { target: { value: 'new@x.com' } });
+    fireEvent.change(screen.getByLabelText('Email *'), { target: { value: 'new@example.com' } });
     fireEvent.change(screen.getByDisplayValue('Select requisition'), { target: { value: 'r1' } });
     await user.click(screen.getByRole('button', { name: /add candidate$/i }));
     await waitFor(() =>
       expect(createCandidateMock).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'New Person', email: 'new@x.com', requisitionId: 'r1' }),
+        expect.objectContaining({ name: 'New Person', email: 'new@example.com', requisitionId: 'r1' }),
       ),
     );
   });
@@ -304,7 +304,7 @@ describe('CandidatesPage', () => {
     listCandidatesMock.mockResolvedValueOnce(candidates);
     const user = userEvent.setup();
     render(<CandidatesPage />);
-    await screen.findByText(/grace liu/i);
+    await screen.findByText(/jing zhao/i);
     // The Applied column exposes a forward "Advance" control (icon button with title).
     const forwardButtons = screen.getAllByTitle('Advance');
     await user.click(forwardButtons[0]);
@@ -324,7 +324,7 @@ describe('CandidatesPage', () => {
     ]);
     const user = userEvent.setup();
     render(<CandidatesPage />);
-    await screen.findByText(/grace liu/i);
+    await screen.findByText(/jing zhao/i);
     const backButtons = screen.getAllByTitle('Move back');
     await user.click(backButtons[0]);
     await waitFor(() =>
@@ -337,7 +337,7 @@ describe('CandidatesPage', () => {
     listCandidatesMock.mockResolvedValueOnce(candidates);
     const user = userEvent.setup();
     render(<CandidatesPage />);
-    await screen.findByText(/grace liu/i);
+    await screen.findByText(/jing zhao/i);
     await user.click(screen.getAllByTitle('Reject')[0]);
     await screen.findByRole('dialog');
     await user.click(screen.getByRole('button', { name: /reject candidate/i }));
@@ -351,7 +351,7 @@ describe('CandidatesPage', () => {
     listCandidatesMock.mockResolvedValueOnce(candidates);
     const user = userEvent.setup();
     render(<CandidatesPage />);
-    await screen.findByText(/grace liu/i);
+    await screen.findByText(/jing zhao/i);
     await user.click(screen.getAllByTitle('Reject')[0]);
     await screen.findByRole('dialog');
     await user.click(screen.getByRole('button', { name: /reject candidate/i }));
@@ -363,7 +363,7 @@ describe('CandidatesPage', () => {
       { ...candidates[0], stage: 'Hired', employeeNo: 'EMP-999', employeeId: 'emp-999' },
     ]);
     render(<CandidatesPage />);
-    await screen.findByText(/grace liu/i);
+    await screen.findByText(/jing zhao/i);
     // The disabled "Converted" button has the exact accessible name "Converted".
     expect(screen.getByRole('button', { name: /^converted$/i })).toBeDisabled();
   });
@@ -373,7 +373,7 @@ describe('CandidatesPage', () => {
       employee: {
         id: 'u-mgr',
         role: 'Manager',
-        email: 'm@acme.com',
+        email: 'm@example.com',
         employeeId: 'e-mgr',
         departmentId: 'd-other',
         firstName: 'Mgr',
@@ -388,8 +388,8 @@ describe('CandidatesPage', () => {
     listCandidatesMock.mockResolvedValueOnce(candidates);
     render(<CandidatesPage />);
     // Candidates linked to other departments' requisitions are hidden for managers.
-    await waitFor(() => expect(screen.queryByText(/grace liu/i)).not.toBeInTheDocument());
-    expect(screen.queryByText('David Kim')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/jing zhao/i)).not.toBeInTheDocument());
+    expect(screen.queryByText('Derek Tan')).not.toBeInTheDocument();
   });
 
   it('shows an empty state when there are no candidates', async () => {

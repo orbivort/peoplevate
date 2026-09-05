@@ -104,7 +104,7 @@ function employeeRow(overrides: Record<string, unknown> = {}): Record<string, un
     last_name: 'Lee',
     date_of_birth: new Date('1990-01-01'),
     gender: Gender.FEMALE,
-    email: 'ann@test.com',
+    email: 'ann@example.com',
     phone: '123',
     address: 'Somewhere',
     department: { id: 'd1', name: 'Eng' },
@@ -463,7 +463,7 @@ describe('employee-service', () => {
           lastName: 'Name',
           dateOfBirth: dob,
           gender: Gender.MALE,
-          email: 'MiXeD@Test.COM',
+          email: 'MiXeD@example.com',
           phone: '555',
           address: 'Elsewhere',
           departmentId: 'd2',
@@ -483,7 +483,7 @@ describe('employee-service', () => {
           last_name: 'Name',
           date_of_birth: dob,
           gender: Gender.MALE,
-          email: 'mixed@test.com',
+          email: 'mixed@example.com',
           phone: '555',
           address: 'Elsewhere',
           department_id: 'd2',
@@ -821,7 +821,7 @@ describe('employee-service', () => {
     const baseSelfParams = {
       employeeId: 'e1',
       userId: 'u1',
-      userEmail: 'me@test.com',
+      userEmail: 'me@example.com',
     };
 
     function selfRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -1011,7 +1011,7 @@ describe('employee-service', () => {
     const baseAvatarParams = {
       employeeId: 'e1',
       userId: 'u1',
-      userEmail: 'me@test.com',
+      userEmail: 'me@example.com',
       filePath: '/tmp/avatar.png',
       storedFilename: 'avatar-123.png',
     };
@@ -1077,7 +1077,7 @@ describe('employee-service', () => {
     const baseRemoveParams = {
       employeeId: 'e1',
       userId: 'u1',
-      userEmail: 'me@test.com',
+      userEmail: 'me@example.com',
     };
 
     it('throws 404 when the employee does not exist', async () => {

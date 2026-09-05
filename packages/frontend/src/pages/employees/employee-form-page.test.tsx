@@ -96,7 +96,7 @@ const employees = [
     id: 'e1',
     firstName: 'Alice',
     lastName: 'Admin',
-    email: 'alice@acme.com',
+    email: 'alice@example.com',
     employeeNo: 'E001',
     departmentId: 'd1',
     departmentName: 'Human Resources',
@@ -110,11 +110,11 @@ const employees = [
     nationalId: 'ID-111',
     dateOfBirth: '1990-01-01',
     gender: 'Female',
-    phone: '+1 415 555 0100',
-    address: '123 Market St, San Francisco',
+    phone: '+1 123 555 0100',
+    address: '1 Invented St, Springfield',
     emergencyContactName: 'John',
     emergencyContactRelationship: 'Spouse',
-    emergencyContactPhone: '+1 415 555 0200',
+    emergencyContactPhone: '+1 123 555 0200',
   },
 ];
 
@@ -152,13 +152,13 @@ describe('EmployeeFormPage', () => {
 
   it('shows validation errors when required fields are missing on submit', async () => {
     render(<EmployeeFormPage />);
-    // The form seeds demo defaults, so clear the required text fields first.
-    setControl('First name', '');
-    setControl('Last name', '');
-    setControl('Email', '');
+    // The create form starts blank, so submitting without filling required
+    // fields surfaces validation errors for every missing required field.
     fireEvent.submit(document.getElementById('employee-form') as HTMLElement);
     expect(await screen.findByText(/first name is required/i)).toBeInTheDocument();
     expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/hire date is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/employment type is required/i)).toBeInTheDocument();
     expect(createEmployeeMock).not.toHaveBeenCalled();
   });
 
@@ -172,15 +172,17 @@ describe('EmployeeFormPage', () => {
     render(<EmployeeFormPage />);
     setControl('First name', 'New');
     setControl('Last name', 'Hire');
-    setControl('Email', 'new.hire@acme.com');
+    setControl('Email', 'new.hire@example.com');
+    setControl('Hire date', '2024-06-01');
     fireEvent.change(controlFor('Department'), { target: { value: 'd1' } });
     fireEvent.change(controlFor('Position'), { target: { value: 'p1' } });
+    fireEvent.change(controlFor('Employment type'), { target: { value: 'Full-time' } });
     fireEvent.submit(document.getElementById('employee-form') as HTMLElement);
 
     await waitFor(() => expect(createEmployeeMock).toHaveBeenCalled());
     const call = createEmployeeMock.mock.calls[0][0];
     expect(call.firstName).toBe('New');
-    expect(call.email).toBe('new.hire@acme.com');
+    expect(call.email).toBe('new.hire@example.com');
     expect(navigateMock).toHaveBeenCalledWith('/app/employees/e-new', { replace: true });
   });
 
@@ -209,9 +211,11 @@ describe('EmployeeFormPage', () => {
     render(<EmployeeFormPage />);
     setControl('First name', 'New');
     setControl('Last name', 'Hire');
-    setControl('Email', 'new.hire@acme.com');
+    setControl('Email', 'new.hire@example.com');
+    setControl('Hire date', '2024-06-01');
     fireEvent.change(controlFor('Department'), { target: { value: 'd1' } });
     fireEvent.change(controlFor('Position'), { target: { value: 'p1' } });
+    fireEvent.change(controlFor('Employment type'), { target: { value: 'Full-time' } });
     fireEvent.submit(document.getElementById('employee-form') as HTMLElement);
 
     expect(await screen.findByText(/email already exists/i)).toBeInTheDocument();

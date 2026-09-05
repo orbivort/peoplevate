@@ -86,9 +86,9 @@ const employee = {
   id: 'e1',
   firstName: 'Alice',
   lastName: 'Admin',
-  email: 'alice@acme.com',
-  phone: '+1 415 555 0100',
-  address: '123 Market St, San Francisco',
+  email: 'alice@example.com',
+  phone: '+1 123 555 0100',
+  address: '1 Invented St, Springfield',
   employeeNo: 'E001',
   departmentId: 'd1',
   departmentName: 'Human Resources',
@@ -105,7 +105,7 @@ const employee = {
   gender: 'Female',
   emergencyContactName: 'John',
   emergencyContactRelationship: 'Spouse',
-  emergencyContactPhone: '+1 415 555 0200',
+  emergencyContactPhone: '+1 123 555 0200',
   createdAt: '2022-01-01T00:00:00.000Z',
   updatedAt: '2023-01-01T00:00:00.000Z',
 };
@@ -118,14 +118,14 @@ const documents = [
     originalFilename: 'passport.pdf',
     fileSize: 1024,
     mimeType: 'application/pdf',
-    uploadedBy: 'alice@acme.com',
+    uploadedBy: 'alice@example.com',
     uploadedAt: '2023-01-01T00:00:00.000Z',
     expiryDate: '2030-01-01T00:00:00.000Z',
   },
 ];
 
 const makeAuth = (overrides: Record<string, unknown> = {}) => ({
-  user: { id: 'u1', role: 'Admin', email: 'admin@acme.com', employeeId: 'e1' },
+  user: { id: 'u1', role: 'Admin', email: 'admin@example.com', employeeId: 'e1' },
   hasPermission: vi.fn(() => true),
   canViewEmployee: vi.fn(() => true),
   ...overrides,
@@ -152,7 +152,7 @@ describe('EmployeeProfilePage', () => {
     expect(screen.getByRole('heading', { name: 'Alice Admin' })).toBeInTheDocument();
     expect(screen.getByText('Human Resources')).toBeInTheDocument();
     expect(screen.getByText('HR Lead')).toBeInTheDocument();
-    expect(screen.getByText('alice@acme.com')).toBeInTheDocument();
+    expect(screen.getByText('alice@example.com')).toBeInTheDocument();
   });
 
   it('shows the edit profile button for HR/Admin', () => {
@@ -170,7 +170,7 @@ describe('EmployeeProfilePage', () => {
   it('masks the national ID and hides salary for users without salary access', () => {
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u2', role: 'Employee', email: 'bob@acme.com', employeeId: 'e2' },
+        user: { id: 'u2', role: 'Employee', email: 'bob@example.com', employeeId: 'e2' },
         hasPermission: vi.fn((p: string) => p !== 'accessSalary'),
       }),
     );
@@ -183,7 +183,7 @@ describe('EmployeeProfilePage', () => {
   it('shows an access-restricted state when canViewEmployee returns false', () => {
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u2', role: 'Employee', email: 'bob@acme.com', employeeId: 'e2' },
+        user: { id: 'u2', role: 'Employee', email: 'bob@example.com', employeeId: 'e2' },
         canViewEmployee: vi.fn(() => false),
       }),
     );
@@ -223,7 +223,7 @@ describe('EmployeeProfilePage', () => {
         newValue: 'Senior',
         reason: 'Strong performance',
         effectiveDate: '2024-01-01',
-        recordedBy: 'admin@acme.com',
+        recordedBy: 'admin@example.com',
         recordedAt: '2024-01-01T00:00:00.000Z',
         status: 'Applied',
       },
@@ -255,7 +255,7 @@ describe('EmployeeProfilePage', () => {
   it('hides the upload and record-change actions for non-HR/non-manager viewers', async () => {
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u2', role: 'Employee', email: 'bob@acme.com', employeeId: 'e2' },
+        user: { id: 'u2', role: 'Employee', email: 'bob@example.com', employeeId: 'e2' },
         hasPermission: vi.fn((p: string) => p !== 'viewAllEmployees' && p !== 'accessSalary'),
       }),
     );
@@ -353,7 +353,7 @@ describe('EmployeeProfilePage', () => {
   it('hides the edit profile link for a manager-scoped viewer of another employee', () => {
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u-mgr', role: 'Manager', email: 'mgr@acme.com', employeeId: 'e-other' },
+        user: { id: 'u-mgr', role: 'Manager', email: 'mgr@example.com', employeeId: 'e-other' },
         hasPermission: vi.fn((p: string) => p !== 'viewAllEmployees'),
       }),
     );
@@ -374,7 +374,7 @@ describe('EmployeeProfilePage', () => {
     // The employee's managerId is 'm1'; a manager whose employeeId matches that is the manager.
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u-mgr', role: 'Manager', email: 'mgr@acme.com', employeeId: 'm1' },
+        user: { id: 'u-mgr', role: 'Manager', email: 'mgr@example.com', employeeId: 'm1' },
         hasPermission: vi.fn((p: string) => p !== 'viewAllEmployees'),
       }),
     );
@@ -403,7 +403,7 @@ describe('document list and expiry states', () => {
     originalFilename: 'passport.pdf',
     fileSize: 1024,
     mimeType: 'application/pdf',
-    uploadedBy: 'alice@acme.com',
+    uploadedBy: 'alice@example.com',
     uploadedAt: '2023-01-01T00:00:00.000Z',
     expiryDate: null,
     ...overrides,
@@ -470,7 +470,7 @@ describe('upload button gating', () => {
     // A viewer without the 'viewAllEmployees' permission must not see the upload action.
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u-emp', role: 'Employee', email: 'emp@acme.com', employeeId: 'e1' },
+        user: { id: 'u-emp', role: 'Employee', email: 'emp@example.com', employeeId: 'e1' },
         hasPermission: vi.fn((p: string) => p !== 'viewAllEmployees'),
       }),
     );
@@ -509,7 +509,7 @@ describe('manager recording a change', () => {
     // isManagerOfEmployee => managerId ('m1') equals auth.employeeId.
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u-mgr', role: 'Manager', email: 'mgr@acme.com', employeeId: 'm1' },
+        user: { id: 'u-mgr', role: 'Manager', email: 'mgr@example.com', employeeId: 'm1' },
         hasPermission: vi.fn((p: string) => p !== 'viewAllEmployees'),
       }),
     );

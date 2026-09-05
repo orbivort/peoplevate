@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => {
       positionName: 'Engineering Manager',
       separationType: 'Resignation',
       status: 'Clearance In Progress',
-      initiatedBy: 'Grace Liu',
+      initiatedBy: 'Jing Zhao',
       initiatedAt: '2026-05-01T00:00:00.000Z',
       lastWorkingDay: '2026-06-01',
       deactivationDate: '2026-06-02',

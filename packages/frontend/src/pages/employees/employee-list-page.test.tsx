@@ -73,7 +73,7 @@ const employees = [
     id: 'e1',
     firstName: 'Alice',
     lastName: 'Admin',
-    email: 'alice@acme.com',
+    email: 'alice@example.com',
     employeeNo: 'E001',
     positionName: 'HR Lead',
     departmentName: 'HR',
@@ -86,7 +86,7 @@ const employees = [
     id: 'e2',
     firstName: 'Bob',
     lastName: 'Probie',
-    email: 'bob@acme.com',
+    email: 'bob@example.com',
     employeeNo: 'E002',
     positionName: 'Engineer',
     departmentName: 'Engineering',
@@ -103,7 +103,7 @@ const departments = [
 ];
 
 const makeAuth = (overrides: Record<string, unknown> = {}) => ({
-  user: { id: 'u1', role: 'Admin', email: 'alice@acme.com' },
+  user: { id: 'u1', role: 'Admin', email: 'alice@example.com' },
   hasPermission: vi.fn(() => true),
   canViewEmployee: vi.fn(() => true),
   ...overrides,
@@ -197,7 +197,7 @@ describe('EmployeeListPage', () => {
   it('hides filters and the add button for Employees', () => {
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u2', role: 'Employee', email: 'bob@acme.com' },
+        user: { id: 'u2', role: 'Employee', email: 'bob@example.com' },
         hasPermission: vi.fn(() => false),
         canViewEmployee: vi.fn((e: { id: string }) => e.id === 'e2'),
       }),
@@ -210,7 +210,7 @@ describe('EmployeeListPage', () => {
   it('scopes the visible employees via canViewEmployee', () => {
     useAuthMock.mockReturnValue(
       makeAuth({
-        user: { id: 'u2', role: 'Manager', email: 'boss@acme.com' },
+        user: { id: 'u2', role: 'Manager', email: 'boss@example.com' },
         hasPermission: vi.fn(() => false),
         canViewEmployee: vi.fn((e: { id: string }) => e.id === 'e2'),
       }),

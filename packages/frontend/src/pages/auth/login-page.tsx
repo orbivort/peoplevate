@@ -141,7 +141,7 @@ export function LoginPage() {
                         name="email"
                         type="email"
                         autoComplete="email"
-                        placeholder="you@company.com"
+                        placeholder="you@example.com"
                         className={inputWithIcon(Boolean(touched.email && errors.email))}
                       />
                     </div>

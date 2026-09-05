@@ -30,7 +30,7 @@ vi.mock('./audit-service.js', () => ({
 
 vi.mock('../config/env.js', () => ({
   env: {
-    DPO_CONTACT_EMAIL: 'dpo@peoplevate.com',
+    DPO_CONTACT_EMAIL: 'dpo@example.com',
     ANOMALY_FAILED_LOGIN_WINDOW_MINUTES: 15,
     ANOMALY_FAILED_LOGIN_THRESHOLD: 10,
     ANOMALY_BULK_DOWNLOAD_WINDOW_MINUTES: 60,
@@ -316,7 +316,7 @@ describe('breach-service', () => {
       const calls = spy.mock.calls.map((c) => String(c[0]));
       expect(calls.some((c) => c.includes('BREACH ESCALATION'))).toBe(true);
       expect(calls.some((c) => c.includes('BREACH OVERDUE'))).toBe(true);
-      expect(calls.every((c) => c.includes('dpo@peoplevate.com'))).toBe(true);
+      expect(calls.every((c) => c.includes('dpo@example.com'))).toBe(true);
       spy.mockRestore();
     });
 

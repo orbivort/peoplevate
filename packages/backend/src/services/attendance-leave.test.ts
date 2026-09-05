@@ -59,7 +59,7 @@ const m = {
 };
 
 const EMPLOYEE = {
-  email: 'emp@test.com',
+  email: 'emp@example.com',
   first_name: 'Ann',
   last_name: 'Lee',
 };

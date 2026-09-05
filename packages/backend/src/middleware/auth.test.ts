@@ -87,7 +87,7 @@ describe('authenticate middleware', () => {
     mockedVerifyJwt.mockReturnValue({ userId: 'u1' } as never);
     mockedFindUnique.mockResolvedValue({
       id: 'u1',
-      email: 'a@b.com',
+      email: 'a@example.com',
       role: 'EMPLOYEE',
       status: 'SUSPENDED',
       employee: { id: 'e1' },
@@ -104,7 +104,7 @@ describe('authenticate middleware', () => {
     mockedVerifyJwt.mockReturnValue({ userId: 'u1' } as never);
     mockedFindUnique.mockResolvedValue({
       id: 'u1',
-      email: 'a@b.com',
+      email: 'a@example.com',
       role: 'HR_MANAGER',
       status: 'ACTIVE',
       employee: { id: 'e1' },
@@ -118,7 +118,7 @@ describe('authenticate middleware', () => {
     expect((req as AuthenticatedRequest).user).toEqual({
       userId: 'u1',
       role: 'HR_MANAGER',
-      email: 'a@b.com',
+      email: 'a@example.com',
       employeeId: 'e1',
     });
   });
@@ -127,7 +127,7 @@ describe('authenticate middleware', () => {
     mockedVerifyJwt.mockReturnValue({ userId: 'u2' } as never);
     mockedFindUnique.mockResolvedValue({
       id: 'u2',
-      email: 'admin@b.com',
+      email: 'admin@example.com',
       role: 'ADMIN',
       status: 'ACTIVE',
       employee: null,
@@ -144,9 +144,9 @@ describe('authenticate middleware', () => {
 
 describe('getAuthUser', () => {
   it('returns the attached user', () => {
-    const req = { user: { userId: 'u1', role: 'ADMIN', email: 'a@b.com' } } as AuthenticatedRequest;
+    const req = { user: { userId: 'u1', role: 'ADMIN', email: 'a@example.com' } } as AuthenticatedRequest;
 
-    expect(getAuthUser(req)).toEqual({ userId: 'u1', role: 'ADMIN', email: 'a@b.com' });
+    expect(getAuthUser(req)).toEqual({ userId: 'u1', role: 'ADMIN', email: 'a@example.com' });
   });
 
   it('throws when no user is attached', () => {

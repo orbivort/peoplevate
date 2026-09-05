@@ -33,7 +33,7 @@ interface FormValues {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
-  gender: 'Male' | 'Female' | 'Other';
+  gender: '' | 'Male' | 'Female' | 'Other';
   nationalId: string;
   email: string;
   phone: string;
@@ -45,36 +45,35 @@ interface FormValues {
   positionId: string;
   managerId: string;
   hireDate: string;
-  employmentType: EmploymentType;
+  employmentType: '' | EmploymentType;
   salary: string;
-  status: Employee['status'];
+  status: '' | Employee['status'];
 }
 
 /**
- * Default values for the "Add employee" form. These prefilled values make the
- * form pass client-side validation out of the box so it can be submitted
- * quickly for local testing. departmentId/positionId are populated once the
- * reference data loads (see the effect below); the rest are valid as-is.
+ * Initial blank state for the "New employee" form. No demo values are seeded —
+ * the user fills in every field they want to submit. `managerId` defaults to
+ * 'none' so the "Reports to" selector reads "None" (no manager assigned).
  */
 const emptyForm: FormValues = {
-  firstName: 'Jane',
-  lastName: 'Test',
-  dateOfBirth: '1990-01-15',
-  gender: 'Female',
-  nationalId: 'TEST-0001',
-  email: 'jane.test@example.com',
-  phone: '+1 415 555 0100',
-  address: '123 Market Street, San Francisco, CA',
-  emergencyContactName: 'John Test',
-  emergencyContactRelationship: 'Spouse',
-  emergencyContactPhone: '+1 415 555 0200',
+  firstName: '',
+  lastName: '',
+  dateOfBirth: '',
+  gender: '',
+  nationalId: '',
+  email: '',
+  phone: '',
+  address: '',
+  emergencyContactName: '',
+  emergencyContactRelationship: '',
+  emergencyContactPhone: '',
   departmentId: '',
   positionId: '',
   managerId: 'none',
-  hireDate: '2024-06-01',
-  employmentType: 'Full-time',
-  salary: '85000',
-  status: 'New Hire',
+  hireDate: '',
+  employmentType: '',
+  salary: '',
+  status: '',
 };
 
 /** Convert an ISO datetime (e.g. "2020-01-01T00:00:00.000Z") to a local
@@ -90,7 +89,7 @@ function toDateInputValue(value?: string | null): string {
 }
 
 /** Map frontend display labels to backend Prisma enum values. */
-const genderToEnum: Record<FormValues['gender'], string> = {
+const genderToEnum: Record<'Male' | 'Female' | 'Other', string> = {
   Male: 'MALE',
   Female: 'FEMALE',
   Other: 'OTHER',
@@ -145,64 +144,48 @@ export function EmployeeFormPage() {
         status: existing.status,
       };
     }
-    return { ...emptyForm, departmentId: departments[0]?.id ?? '' };
+    return { ...emptyForm };
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string | undefined>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Tracks whether the form has been hydrated from real data (employee or the
-  // empty template) so we never overwrite user edits with a stale render.
+  // Tracks whether the form has been hydrated from a real employee record so we
+  // never overwrite user edits with a stale render (edit mode only).
   const hydrated = useRef(false);
 
-  // Hydrate the form once the data is available.
-  // - Edit mode: populate from the loaded employee record (it may load
-  //   asynchronously after first render, so we must set it here rather than in
-  //   the useState initializer).
-  // - New mode: apply the prefilled empty template.
+  // Hydrate the form once the employee record and reference data are available.
+  // The Radix Select controls can only render a selected value when the
+  // matching option is already present, so hydrating too early (before the
+  // department/position options exist) leaves them showing "Select ...".
   useEffect(() => {
-    if (hydrated.current) return;
-    if (isEdit) {
-      // Wait for the employee record AND the reference data to be available.
-      // The Radix Select controls can only render a selected value when the
-      // matching option is already present, so hydrating too early (before the
-      // department/position options exist) leaves them showing "Select ...".
-      if (!existing || !departments.length || !positions.length) return;
-      const deptId = existing.departmentId;
-      const posId = positions.some((p) => p.id === existing.positionId) ? existing.positionId : '';
-      queueMicrotask(() =>
-        setForm({
-          firstName: existing.firstName,
-          lastName: existing.lastName,
-          dateOfBirth: toDateInputValue(existing.dateOfBirth),
-          gender: existing.gender,
-          nationalId: existing.nationalId,
-          email: existing.email,
-          phone: existing.phone,
-          address: existing.address,
-          emergencyContactName: existing.emergencyContactName,
-          emergencyContactRelationship: existing.emergencyContactRelationship,
-          emergencyContactPhone: existing.emergencyContactPhone,
-          departmentId: deptId,
-          positionId: posId,
-          managerId: existing.managerId ?? 'none',
-          hireDate: toDateInputValue(existing.hireDate),
-          employmentType: existing.employmentType,
-          salary: String(existing.salary ?? ''),
-          status: existing.status,
-        }),
-      );
-      hydrated.current = true;
-    } else if (departments.length) {
-      queueMicrotask(() =>
-        setForm({
-          ...emptyForm,
-          departmentId: departments[0]?.id ?? '',
-          positionId: positions.find((p) => p.departmentId === departments[0]?.id)?.id ?? '',
-        }),
-      );
-      hydrated.current = true;
-    }
+    if (hydrated.current || !isEdit) return;
+    if (!existing || !departments.length || !positions.length) return;
+    const deptId = existing.departmentId;
+    const posId = positions.some((p) => p.id === existing.positionId) ? existing.positionId : '';
+    queueMicrotask(() =>
+      setForm({
+        firstName: existing.firstName,
+        lastName: existing.lastName,
+        dateOfBirth: toDateInputValue(existing.dateOfBirth),
+        gender: existing.gender,
+        nationalId: existing.nationalId,
+        email: existing.email,
+        phone: existing.phone,
+        address: existing.address,
+        emergencyContactName: existing.emergencyContactName,
+        emergencyContactRelationship: existing.emergencyContactRelationship,
+        emergencyContactPhone: existing.emergencyContactPhone,
+        departmentId: deptId,
+        positionId: posId,
+        managerId: existing.managerId ?? 'none',
+        hireDate: toDateInputValue(existing.hireDate),
+        employmentType: existing.employmentType,
+        salary: String(existing.salary ?? ''),
+        status: existing.status,
+      }),
+    );
+    hydrated.current = true;
   }, [isEdit, existing, departments, positions]);
 
   const availablePositions = useMemo(
@@ -224,6 +207,9 @@ export function EmployeeFormPage() {
     e.departmentId = validateRequired(form.departmentId, 'Department') ?? undefined;
     e.positionId = validateRequired(form.positionId, 'Position') ?? undefined;
     e.hireDate = validateDate(form.hireDate, 'Hire date') ?? undefined;
+    // employmentType is required by the backend create schema (no DB default is
+    // sent through the API). Gender and status are optional there.
+    e.employmentType = validateRequired(form.employmentType, 'Employment type') ?? undefined;
 
     // Optional fields — validate format only when a value is present, so an
     // existing record with empty optional values can still be saved.
@@ -257,6 +243,9 @@ export function EmployeeFormPage() {
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validate()) return;
+    // employmentType is required by the backend create schema; validation above
+    // guarantees it is non-empty, so narrow the type for the payload below.
+    if (!form.employmentType) return;
 
     setSubmitting(true);
     setSubmitError(null);
@@ -265,7 +254,7 @@ export function EmployeeFormPage() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         dateOfBirth: form.dateOfBirth || undefined,
-        gender: genderToEnum[form.gender],
+        gender: form.gender ? genderToEnum[form.gender] : undefined,
         nationalId: form.nationalId.trim() || undefined,
         email: form.email.trim(),
         phone: form.phone.trim() || undefined,
@@ -279,7 +268,7 @@ export function EmployeeFormPage() {
         hireDate: form.hireDate,
         employmentType: employmentTypeToEnum[form.employmentType],
         salary: form.salary ? Number(form.salary) : undefined,
-        status: statusToEnum[form.status],
+        status: form.status ? statusToEnum[form.status] : undefined,
       };
 
       if (isEdit) {
@@ -387,7 +376,7 @@ export function EmployeeFormPage() {
                 onValueChange={(v) => set('gender', v as FormValues['gender'])}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Male">Male</SelectItem>
@@ -423,14 +412,14 @@ export function EmployeeFormPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
-                placeholder="jane.doe@company.com"
+                placeholder="jane.doe@example.com"
               />
             </Field>
             <Field label="Phone" error={errors.phone}>
               <Input
                 value={form.phone}
                 onChange={(e) => set('phone', e.target.value)}
-                placeholder="+1 415 555 0000"
+                placeholder="+1 123 555 0000"
               />
             </Field>
             <Field label="Address" error={errors.address} className="sm:col-span-2">
@@ -468,7 +457,7 @@ export function EmployeeFormPage() {
               <Input
                 value={form.emergencyContactPhone}
                 onChange={(e) => set('emergencyContactPhone', e.target.value)}
-                placeholder="+1 415 555 0000"
+                placeholder="+1 123 555 0000"
               />
             </Field>
           </CardContent>
@@ -546,13 +535,13 @@ export function EmployeeFormPage() {
                 onChange={(e) => set('hireDate', e.target.value)}
               />
             </Field>
-            <Field label="Employment type">
+            <Field label="Employment type" required error={errors.employmentType}>
               <Select
                 value={form.employmentType}
                 onValueChange={(v) => set('employmentType', v as EmploymentType)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select employment type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Full-time">Full-time</SelectItem>
@@ -567,7 +556,7 @@ export function EmployeeFormPage() {
                 onValueChange={(v) => set('status', v as Employee['status'])}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="New Hire">New Hire</SelectItem>

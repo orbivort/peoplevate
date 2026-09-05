@@ -60,7 +60,7 @@ describe('useAuth', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     let res: { success: boolean; error?: string };
     await act(async () => {
-      res = await result.current.login('nobody@peoplevate.com', 'whatever');
+      res = await result.current.login('nobody@example.com', 'whatever');
     });
     expect(res!.success).toBe(false);
     expect(result.current.isAuthenticated).toBe(false);

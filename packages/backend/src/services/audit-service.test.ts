@@ -143,7 +143,7 @@ describe('audit-service', () => {
       const view = summarizeAuditRow({
         id: 'l1',
         actor_id: 'u1',
-        actor_name: 'Grace Liu',
+        actor_name: 'Jing Zhao',
         action: 'UPDATE',
         entity: AuditEntity.EMPLOYEES,
         entity_id: 'emp-1',

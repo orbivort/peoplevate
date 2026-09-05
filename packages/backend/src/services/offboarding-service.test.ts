@@ -439,7 +439,7 @@ describe('offboarding-service', () => {
           deactivation_date: past,
           employee: {
             id: 'emp-1',
-            email: 'e@x.com',
+            email: 'e@example.com',
             first_name: 'A',
             last_name: 'B',
             user: { id: 'u-1', status: 'DEACTIVATED' },
