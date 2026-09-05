@@ -60,6 +60,9 @@ jobs:
 
       - name: Create and push the release tag
         env:
+          # The tag's tagger identity is derived from this token below, and it
+          # also authorizes the push.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           set -euo pipefail
@@ -67,6 +70,15 @@ jobs:
             echo "::error::Tag $TAG already exists."
             exit 1
           fi
+          # Annotated tags embed a tagger identity, which GitHub runners have
+          # none of by default. Instead of hardcoding a user.name/email,
+          # resolve the identity from the token that authorizes the push
+          # (GITHUB_TOKEN resolves to github-actions[bot]) so the tag is
+          # attributed to the automation account. The noreply email matches the
+          # `<id>+<login>@users.noreply.github.com` GitHub convention.
+          read -r login uid < <(gh api user --jq '"\(.login) \(.id)"')
+          git config user.name "$login"
+          git config user.email "${uid}+${login}@users.noreply.github.com"
           # Annotated tag pointing at the merge commit that carries the
           # reviewed version bump and changelog entry.
           git tag -a "$TAG" -m "Release $TAG"
