@@ -294,7 +294,11 @@ describe('CandidatesPage', () => {
     await user.click(screen.getByRole('button', { name: /add candidate$/i }));
     await waitFor(() =>
       expect(createCandidateMock).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'New Person', email: 'new@example.com', requisitionId: 'r1' }),
+        expect.objectContaining({
+          name: 'New Person',
+          email: 'new@example.com',
+          requisitionId: 'r1',
+        }),
       ),
     );
   });

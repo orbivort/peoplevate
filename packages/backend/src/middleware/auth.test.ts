@@ -144,7 +144,9 @@ describe('authenticate middleware', () => {
 
 describe('getAuthUser', () => {
   it('returns the attached user', () => {
-    const req = { user: { userId: 'u1', role: 'ADMIN', email: 'a@example.com' } } as AuthenticatedRequest;
+    const req = {
+      user: { userId: 'u1', role: 'ADMIN', email: 'a@example.com' },
+    } as AuthenticatedRequest;
 
     expect(getAuthUser(req)).toEqual({ userId: 'u1', role: 'ADMIN', email: 'a@example.com' });
   });

@@ -151,7 +151,13 @@ describe('performance-service', () => {
     it('excludes employees whose probation has not yet started (lower-bound false branch)', async () => {
       // hired today -> probation end ~6 months out, well beyond ahead window
       mocked.employeeFindMany.mockResolvedValue([
-        { id: 'emp-3', first_name: 'C', last_name: 'D', email: 'c@example.com', hire_date: new Date() },
+        {
+          id: 'emp-3',
+          first_name: 'C',
+          last_name: 'D',
+          email: 'c@example.com',
+          hire_date: new Date(),
+        },
       ] as never);
 
       const result = (await listSoonToExpireProbationEmployees()) as { id: string }[];
@@ -213,7 +219,13 @@ describe('performance-service', () => {
     it('skips employees whose probation is outside the ahead window (out-of-window continue branch)', async () => {
       mocked.employeeFindMany.mockResolvedValue([
         // hired 1 day ago -> probation end ~6 months out, beyond ahead window
-        { id: 'emp-1', first_name: 'J', last_name: 'D', email: 'j@example.com', hire_date: new Date() },
+        {
+          id: 'emp-1',
+          first_name: 'J',
+          last_name: 'D',
+          email: 'j@example.com',
+          hire_date: new Date(),
+        },
       ] as never);
 
       const result = (await autoCreateProbationCycles()) as { created: number };
@@ -390,7 +402,13 @@ describe('performance-service', () => {
           last_name: 'D',
           hire_date: new Date(Date.now() - 165 * DAY),
         },
-        { id: 'emp-no-hire', email: 'n@example.com', first_name: 'N', last_name: 'H', hire_date: null },
+        {
+          id: 'emp-no-hire',
+          email: 'n@example.com',
+          first_name: 'N',
+          last_name: 'H',
+          hire_date: null,
+        },
       ] as never);
       mocked.evaluationCycleCreate.mockResolvedValue({ id: 'c-new' } as never);
       mocked.performanceReviewCreate.mockResolvedValue({} as never);
