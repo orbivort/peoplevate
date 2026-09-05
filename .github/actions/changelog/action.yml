@@ -28,7 +28,7 @@ outputs:
     description: Markdown body for the GitHub Release.
     value: ${{ steps.generate.outputs.body }}
   source:
-    description: Where the notes came from: "changelog-file" or "commits".
+    description: 'Where the notes came from: "changelog-file" or "commits".'
     value: ${{ steps.generate.outputs.source }}
 
 runs:
