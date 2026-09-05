@@ -131,6 +131,35 @@ The workflow:
 4. Pushes a `release/vX.Y.Z` branch and opens a **release pull request**
    titled `chore(release): vX.Y.Z` containing the changelog section.
 
+### Required repo/org setup for release pull requests
+
+The Prepare Release workflow opens its pull request with the default
+`GITHUB_TOKEN`, which GitHub only allows to create pull requests while the
+**Allow GitHub Actions to create and approve pull requests** setting is
+enabled (_Settings → Actions → General_). When it is disabled the run fails
+after pushing the `release/vX.Y.Z` branch with:
+
+```text
+pull request create failed: GraphQL: GitHub Actions is not permitted to
+create or approve pull requests (createPullRequest)
+```
+
+Fix it with one of the following:
+
+1. Enable **Allow GitHub Actions to create and approve pull requests** under
+   _Settings → Actions → General_. For organization repositories the checkbox
+   may be greyed out; an organization owner must then enable it at the
+   organization level (_Organization settings → Actions → General_).
+2. Add a `RELEASE_BOT_TOKEN` repository secret: a fine-grained personal access
+   token with `Contents: read/write` and `Pull requests: write` on this
+   repository. The workflow detects that the default token was rejected and
+   retries with this secret automatically.
+
+The workflow is safe to re-run: pushing the `release/vX.Y.Z` branch again is
+idempotent, and an already-open release PR for the branch is detected and
+reported instead of duplicated. Alternatively, open the pull request manually
+from the pushed `release/vX.Y.Z` branch with the title `chore(release): vX.Y.Z`.
+
 ### Phase 2 — Review
 
 Review the release PR like any other: check the version bump and the

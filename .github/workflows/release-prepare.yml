@@ -28,6 +28,13 @@ on:
 
 # `contents: write` pushes the release branch; `pull-requests: write` opens
 # the release PR. Nothing else is granted.
+#
+# Opening the PR with the default GITHUB_TOKEN additionally requires the
+# repo/org setting "Allow GitHub Actions to create and approve pull requests"
+# (Settings > Actions > General). If that setting is disabled, the workflow
+# falls back to the optional `RELEASE_BOT_TOKEN` PAT secret (see the
+# "Required repo/org setup for release pull requests" section in
+# CONTRIBUTING.md).
 permissions:
   contents: write
   pull-requests: write
@@ -94,17 +101,49 @@ jobs:
       - name: Commit and push release branch
         env:
           BRANCH: release/${{ steps.version.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          # A previous run may already have opened the PR for this tag (the
+          # workflow is re-runnable by design). If so, the branch is in review:
+          # do not rebuild or overwrite it. The Open release pull request step
+          # below reports the existing PR and exits cleanly.
+          existing_pr_url="$(gh pr view "$BRANCH" --json state,url -q 'select(.state == "OPEN") | .url' 2>/dev/null || true)"
+          if [[ -n "$existing_pr_url" ]]; then
+            echo "Release PR for $BRANCH is already open: $existing_pr_url"
+            exit 0
+          fi
+
           git checkout -b "$BRANCH"
           # Stage only the files the release tooling touches; any local runner
           # artifacts must never leak into the release PR.
           git add package.json packages/backend/package.json packages/frontend/package.json CHANGELOG.md
           git commit -m "chore(release): ${{ steps.version.outputs.tag }}"
-          git push origin "$BRANCH"
+
+          # The release/v* branch can already exist from an earlier run that
+          # failed before it could open the PR. A plain push would then be
+          # rejected as non-fast-forward (the new commit is based on current
+          # main, not on the stale remote tip), so refresh the automation-owned
+          # branch with a force-with-lease push. The lease only overwrites the
+          # tip we just fetched and aborts if the branch moved concurrently.
+          if git ls-remote --exit-code --heads origin "refs/heads/$BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$BRANCH"
+            git push --force-with-lease origin "$BRANCH"
+          else
+            git push origin "$BRANCH"
+          fi
 
       - name: Open release pull request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The default GITHUB_TOKEN cannot create PRs when the repo/org
+          # disables "Allow GitHub Actions to create and approve pull requests"
+          # (Settings > Actions > General). If that setting is off, create a
+          # fine-grained PAT with Contents: read/write and Pull requests: write
+          # on this repository, store it in the RELEASE_BOT_TOKEN secret, and
+          # this step retries with it automatically.
+          BOT_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -128,11 +167,64 @@ jobs:
             echo "- [ ] CHANGELOG.md section accurately describes the changes"
             echo "- [ ] \`pnpm ci\` passes on this branch"
           } > pr-body.md
+
+          # Report the URL of an existing open release PR instead of failing on
+          # a duplicate. Re-runs are safe: the Commit and push release branch
+          # step above skips the branch when its PR is already open, so this
+          # fallback only matters when an earlier attempt pushed the branch but
+          # never managed to open the PR.
+          find_existing_pr() {
+            # Only an *open* PR counts as "already exists"; a closed one means
+            # the branch is stale and was just refreshed by this run.
+            gh pr view "release/$TAG" --json state,url -q 'select(.state == "OPEN") | .url' 2>/dev/null || true
+          }
+          export GH_TOKEN="$GITHUB_TOKEN"
+          EXISTING_URL="$(find_existing_pr)"
+          if [[ -z "$EXISTING_URL" && -n "$BOT_TOKEN" ]]; then
+            export GH_TOKEN="$BOT_TOKEN"
+            EXISTING_URL="$(find_existing_pr)"
+          fi
+          if [[ -n "$EXISTING_URL" ]]; then
+            echo "A release PR for $TAG already exists: $EXISTING_URL"
+            rm -f changelog-section.md pr-body.md
+            exit 0
+          fi
+
           # No --label here: a missing label would fail the whole call.
           # Release PRs are recognized by their `release/v*` head branch.
-          gh pr create \
-            --base main \
-            --head "release/$TAG" \
-            --title "chore(release): $TAG" \
-            --body-file pr-body.md
+          create_pr() {
+            gh pr create \
+              --base main \
+              --head "release/$TAG" \
+              --title "chore(release): $TAG" \
+              --body-file pr-body.md
+          }
+
+          # Try the default token first; when the repo/org blocks PR creation
+          # by GitHub Actions it is rejected, so retry with the PAT if set.
+          export GH_TOKEN="$GITHUB_TOKEN"
+          PR_CREATED=false
+          if create_pr; then
+            PR_CREATED=true
+          elif [[ -n "$BOT_TOKEN" ]]; then
+            echo "::notice::GITHUB_TOKEN was blocked from creating the PR; retrying with the RELEASE_BOT_TOKEN secret..."
+            export GH_TOKEN="$BOT_TOKEN"
+            if create_pr; then
+              PR_CREATED=true
+            fi
+          fi
           rm -f changelog-section.md pr-body.md
+
+          if [[ "$PR_CREATED" != true ]]; then
+            if [[ -n "$BOT_TOKEN" ]]; then
+              echo "::error::Neither GITHUB_TOKEN nor the RELEASE_BOT_TOKEN secret was permitted to create the release PR."
+              echo "::error::Check that RELEASE_BOT_TOKEN is a valid fine-grained PAT with Contents: read/write and Pull requests: write on this repository."
+            else
+              echo "::error::The default GITHUB_TOKEN was not permitted to create the release PR."
+              echo "::error::Fix ONE of the following and re-run this workflow (the pushed release/$TAG branch is reused):"
+              echo "::error::  1) Enable 'Allow GitHub Actions to create and approve pull requests' under Settings > Actions > General (if greyed out, an org owner must enable it at the organization level)."
+              echo "::error::  2) Add a RELEASE_BOT_TOKEN repository secret: a fine-grained PAT with Contents: read/write and Pull requests: write on this repository."
+            fi
+            echo "::error::Alternatively, open the PR manually from the pushed release/$TAG branch with title 'chore(release): $TAG'."
+            exit 1
+          fi
