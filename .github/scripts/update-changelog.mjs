@@ -7,9 +7,10 @@
  * CLI usage:
  *   node update-changelog.mjs <version>
  *
- * Idempotency guards: fails if a section for the version already exists or if
- * no commits are available (explicit version overrides with an empty history
- * are rejected here as well - use the workflow's "bump" input instead).
+ * Idempotency guards: exits successfully without changes if a section for the
+ * version already exists; fails if no commits are available (explicit version
+ * overrides with an empty history are rejected here as well - use the
+ * workflow's "bump" input instead).
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { collectCommits, generateSection, latestTag } from './changelog.mjs';
@@ -29,8 +30,8 @@ const CHANGELOG_PATH = 'CHANGELOG.md';
 const changelog = readFile(CHANGELOG_PATH, 'utf8');
 
 if (changelog.includes(`## [${version}]`)) {
-  console.error(`CHANGELOG.md already contains a section for ${version}. Nothing to do.`);
-  process.exit(1);
+  console.log(`CHANGELOG.md already contains a section for ${version}. Nothing to do.`);
+  process.exit(0);
 }
 
 const previousTag = latestTag();
