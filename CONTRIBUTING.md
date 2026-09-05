@@ -121,8 +121,11 @@ Run **Prepare Release** (`release-prepare.yml`) via _Actions → Prepare Release
 The workflow:
 
 1. Computes the next version and fails early if the tag already exists.
-2. Bumps the `version` field in `package.json` and every
-   `packages/*/package.json`.
+2. Bumps the `version` field in the release manifests — the root
+   `package.json`, `packages/backend/package.json`, and
+   `packages/frontend/package.json` — kept in lockstep with the git tag. The
+   other workspace packages (`@peoplevate/e2e`, `@peoplevate/eslint-config`,
+   `@peoplevate/vitest-config`) are versionless internal tooling.
 3. Prepends a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) section
    generated from the conventional commits to `CHANGELOG.md`.
 4. Pushes a `release/vX.Y.Z` branch and opens a **release pull request**

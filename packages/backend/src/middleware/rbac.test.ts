@@ -24,7 +24,9 @@ function buildRes(): Response & { statusCode?: number; body?: unknown } {
 }
 
 function buildReq(role?: string): Request {
-  return (role ? { user: { userId: 'u1', role, email: 'a@b.com' } } : {}) as unknown as Request;
+  return (role
+    ? { user: { userId: 'u1', role, email: 'a@example.com' } }
+    : {}) as unknown as Request;
 }
 
 describe('requireRoles', () => {

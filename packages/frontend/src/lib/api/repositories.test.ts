@@ -109,7 +109,7 @@ describe('repositories (real backend wrappers)', () => {
     await employeeRepo.create({
       firstName: 'A',
       lastName: 'B',
-      email: 'a@b.com',
+      email: 'a@example.com',
       departmentId: 'd1',
       positionId: 'p1',
       hireDate: '2026-01-01',
@@ -242,7 +242,7 @@ describe('repositories (real backend wrappers)', () => {
     expect(r).toEqual([]);
 
     apiMock.post.mockResolvedValueOnce({ message: 'ok' });
-    await userRepo.invite({ email: 'a@b.com', role: 'Admin', employeeId: 'e1' });
+    await userRepo.invite({ email: 'a@example.com', role: 'Admin', employeeId: 'e1' });
     apiMock.patch.mockResolvedValueOnce({ message: 'ok' });
     await userRepo.changeRole('u1', 'Admin');
     expect(apiMock.patch).toHaveBeenCalledWith('/api/users/u1/role', { role: 'Admin' });
@@ -291,10 +291,10 @@ describe('repositories (real backend wrappers)', () => {
 
   it('authRepo login/logout/refresh (cookie-based, no token in bodies)', async () => {
     apiMock.post.mockResolvedValue({ accessToken: 'a', user: { id: 'u' } });
-    await authRepo.login('a@b.com', 'pw');
+    await authRepo.login('a@example.com', 'pw');
     expect(apiMock.post).toHaveBeenCalledWith(
       '/api/auth/login',
-      { email: 'a@b.com', password: 'pw' },
+      { email: 'a@example.com', password: 'pw' },
       { auth: false },
     );
     await authRepo.refresh();
@@ -380,12 +380,12 @@ describe('repositories (real backend wrappers)', () => {
     apiMock.post.mockResolvedValueOnce({ dsar: { id: 'd3' } });
     await dsarRepo.create({
       requestType: 'ACCESS',
-      dataSubjectEmail: 'a@b.com',
+      dataSubjectEmail: 'a@example.com',
       description: 'need my data',
     });
     expect(apiMock.post).toHaveBeenCalledWith('/api/dsar', {
       requestType: 'ACCESS',
-      dataSubjectEmail: 'a@b.com',
+      dataSubjectEmail: 'a@example.com',
       description: 'need my data',
     });
 
@@ -469,9 +469,9 @@ describe('repositories (real backend wrappers)', () => {
 
   it('consentRepo list/record/withdraw', async () => {
     apiMock.get.mockResolvedValueOnce({ consents: [{ id: 'c1' }] });
-    await consentRepo.list({ dataSubjectUserId: 'u1', dataSubjectEmail: 'a@b.com' });
+    await consentRepo.list({ dataSubjectUserId: 'u1', dataSubjectEmail: 'a@example.com' });
     expect(apiMock.get).toHaveBeenCalledWith(
-      '/api/consent?dataSubjectUserId=u1&dataSubjectEmail=a%40b.com',
+      '/api/consent?dataSubjectUserId=u1&dataSubjectEmail=a%40example.com',
     );
 
     apiMock.get.mockResolvedValueOnce({ consents: [{ id: 'c2' }] });
@@ -483,7 +483,7 @@ describe('repositories (real backend wrappers)', () => {
 
     apiMock.post.mockResolvedValueOnce({ consent: { id: 'c3' } });
     await consentRepo.record({
-      dataSubjectEmail: 'a@b.com',
+      dataSubjectEmail: 'a@example.com',
       processingPurpose: 'marketing',
       consentText: 'I agree',
       noticeVersion: 'v1',

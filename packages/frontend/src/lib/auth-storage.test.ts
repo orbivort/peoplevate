@@ -19,13 +19,13 @@ describe('auth-storage (in-memory session)', () => {
   });
 
   it('stores a session in memory', () => {
-    authStorage.setSession('a', { email: 'e@x.com' });
+    authStorage.setSession('a', { email: 'e@example.com' });
     expect(authStorage.getAccessToken()).toBe('a');
-    expect(authStorage.getSessionUser<{ email: string }>()?.email).toBe('e@x.com');
+    expect(authStorage.getSessionUser<{ email: string }>()?.email).toBe('e@example.com');
   });
 
   it('never persists anything to localStorage', () => {
-    authStorage.setSession('a', { email: 'e@x.com' });
+    authStorage.setSession('a', { email: 'e@example.com' });
     authStorage.getAccessToken();
     authStorage.getSessionUser();
     authStorage.clear();
@@ -40,16 +40,16 @@ describe('auth-storage (in-memory session)', () => {
   });
 
   it('clears the session', () => {
-    authStorage.setSession('a', { email: 'e@x.com' });
+    authStorage.setSession('a', { email: 'e@example.com' });
     authStorage.clear();
     expect(authStorage.getAccessToken()).toBeNull();
     expect(authStorage.getSessionUser()).toBeNull();
   });
 
   it('replaces a previous session on setSession', () => {
-    authStorage.setSession('old', { email: 'old@x.com' });
-    authStorage.setSession('new', { email: 'new@x.com' });
+    authStorage.setSession('old', { email: 'old@example.com' });
+    authStorage.setSession('new', { email: 'new@example.com' });
     expect(authStorage.getAccessToken()).toBe('new');
-    expect(authStorage.getSessionUser<{ email: string }>()?.email).toBe('new@x.com');
+    expect(authStorage.getSessionUser<{ email: string }>()?.email).toBe('new@example.com');
   });
 });

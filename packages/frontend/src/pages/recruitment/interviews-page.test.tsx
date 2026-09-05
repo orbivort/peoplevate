@@ -100,16 +100,16 @@ import { InterviewsPage } from './interviews-page';
 const candidates = [
   {
     id: 'c1',
-    name: 'Grace Liu',
-    email: 'grace@applicants.com',
+    name: 'Jing Zhao',
+    email: 'grace@example.com',
     requisitionId: 'r1',
     requisitionTitle: 'Senior Frontend Engineer',
     stage: 'Interview' as const,
   },
   {
     id: 'c2',
-    name: 'David Kim',
-    email: 'david@applicants.com',
+    name: 'Derek Tan',
+    email: 'david@example.com',
     requisitionId: 'r1',
     requisitionTitle: 'Senior Frontend Engineer',
     stage: 'Offer' as const,
@@ -120,12 +120,12 @@ const interviews = [
   {
     id: 'iv1',
     candidateId: 'c1',
-    candidateName: 'Grace Liu',
+    candidateName: 'Jing Zhao',
     requisitionTitle: 'Senior Frontend Engineer',
     scheduledAt: '2026-06-15T10:00:00.000Z',
     durationMin: 60,
     interviewers: ['Alice Admin'],
-    location: 'Zoom',
+    location: 'Video link',
     status: 'Scheduled' as const,
   },
 ];
@@ -163,7 +163,7 @@ describe('InterviewsPage', () => {
   it('renders the heading and loads interviews', async () => {
     render(<InterviewsPage />);
     expect(await screen.findByRole('heading', { name: /interviews/i })).toBeInTheDocument();
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
     expect(screen.getAllByText('Scheduled').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -176,7 +176,7 @@ describe('InterviewsPage', () => {
   it('filters interviews by status tab', async () => {
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByRole('button', { name: /cancelled/i }));
     expect(await screen.findByText(/no interviews scheduled/i)).toBeInTheDocument();
   });
@@ -215,7 +215,7 @@ describe('InterviewsPage', () => {
   it('marks an interview as completed', async () => {
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Mark completed'));
     expect(
       await waitFor(() =>
@@ -227,7 +227,7 @@ describe('InterviewsPage', () => {
   it('deletes an interview', async () => {
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Delete'));
     expect(await waitFor(() => expect(deleteInterviewMock).toHaveBeenCalledWith('c1', 'iv1')));
   });
@@ -235,7 +235,7 @@ describe('InterviewsPage', () => {
   it('cancels an interview', async () => {
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Cancel'));
     expect(
       await waitFor(() =>
@@ -260,11 +260,11 @@ describe('InterviewsPage', () => {
     // datetime-local input has no display value; target by type.
     const dt = document.querySelector('input[type="datetime-local"]') as HTMLInputElement;
     fireEvent.change(dt, { target: { value: '2026-03-10T10:00' } });
-    fireEvent.change(screen.getByPlaceholderText(/e\.g\. grace liu, david kim/i), {
-      target: { value: 'Grace Liu, David Kim' },
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. alice doe, bob doe/i), {
+      target: { value: 'Alice Doe, Bob Doe' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/conference room a or zoom link/i), {
-      target: { value: 'Zoom link' },
+    fireEvent.change(screen.getByPlaceholderText(/conference room a or video link/i), {
+      target: { value: 'Video link' },
     });
     fireEvent.change(screen.getByPlaceholderText(/focus areas/i), {
       target: { value: 'System design focus' },
@@ -276,8 +276,8 @@ describe('InterviewsPage', () => {
           'c1',
           expect.objectContaining({
             durationMin: 60,
-            interviewerIds: ['Grace Liu', 'David Kim'],
-            location: 'Zoom link',
+            interviewerIds: ['Alice Doe', 'Bob Doe'],
+            location: 'Video link',
             notes: 'System design focus',
           }),
         ),
@@ -324,9 +324,9 @@ describe('InterviewsPage', () => {
   it('filters interviews by status tab', async () => {
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getAllByRole('button', { name: /completed/i })[0]);
-    expect(screen.queryByText('Grace Liu')).not.toBeInTheDocument();
+    expect(screen.queryByText('Jing Zhao')).not.toBeInTheDocument();
     expect(screen.getByText(/no interviews scheduled/i)).toBeInTheDocument();
   });
 
@@ -381,7 +381,7 @@ describe('InterviewsPage', () => {
       .mockResolvedValueOnce(interviews)
       .mockRejectedValueOnce(new Error('forbidden'));
     render(<InterviewsPage />);
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
     // load() completes without throwing despite the rejected candidate call.
     await waitFor(() => expect(screen.queryByText(/loading interviews/i)).not.toBeInTheDocument());
     await user.click(screen.getByRole('button', { name: /all/i }));
@@ -397,7 +397,7 @@ describe('InterviewsPage', () => {
         : [],
     );
     render(<InterviewsPage />);
-    const rows = await screen.findAllByText('Grace Liu');
+    const rows = await screen.findAllByText('Jing Zhao');
     expect(rows.length).toBe(2);
   });
 
@@ -405,7 +405,7 @@ describe('InterviewsPage', () => {
     // Manager (dept scope only) should not see the All departments select.
     useAuthMock.mockReturnValue(makeAuth(['manageRecruitmentDept']));
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     expect(screen.queryByText(/all departments/i)).not.toBeInTheDocument();
   });
 
@@ -414,11 +414,11 @@ describe('InterviewsPage', () => {
       id === 'c1' ? interviews : id === 'c2' ? [] : [],
     );
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     // The requisition <select> lists the published requisition as an option.
     expect(screen.getByRole('option', { name: 'Senior Frontend Engineer' })).toBeInTheDocument();
     // With "All requisitions" selected the interview remains visible.
-    expect(screen.getByText('Grace Liu')).toBeInTheDocument();
+    expect(screen.getByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('filters interviews by department select for HR/admin', async () => {
@@ -436,7 +436,7 @@ describe('InterviewsPage', () => {
       {
         id: 'c3',
         name: 'Other Dept',
-        email: 'o@x.com',
+        email: 'o@example.com',
         requisitionId: 'r2',
         requisitionTitle: 'Backend Engineer',
         stage: 'Interview' as const,
@@ -465,11 +465,11 @@ describe('InterviewsPage', () => {
       { id: 'dOther', name: 'Other' },
     ];
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     expect(screen.getByText('Other Dept')).toBeInTheDocument();
     fireEvent.change(screen.getByDisplayValue(/all departments/i), { target: { value: 'd1' } });
     await waitFor(() => expect(screen.queryByText('Other Dept')).not.toBeInTheDocument());
-    expect(screen.getByText('Grace Liu')).toBeInTheDocument();
+    expect(screen.getByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('scopes interviews to a manager department', async () => {
@@ -488,7 +488,7 @@ describe('InterviewsPage', () => {
       {
         id: 'c3',
         name: 'Other Dept',
-        email: 'o@x.com',
+        email: 'o@example.com',
         requisitionId: 'r2',
         requisitionTitle: 'Backend Engineer',
         stage: 'Interview' as const,
@@ -514,15 +514,15 @@ describe('InterviewsPage', () => {
     });
     render(<InterviewsPage />);
     await waitFor(() => expect(screen.queryByText(/other dept/i)).not.toBeInTheDocument());
-    expect(screen.getByText('Grace Liu')).toBeInTheDocument();
+    expect(screen.getByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('renders a video icon for video locations', async () => {
     listInterviewsMock.mockImplementation(async (id: string) =>
-      id === 'c1' ? [{ ...interviews[0], location: 'https://meet.google.com/abc' }] : [],
+      id === 'c1' ? [{ ...interviews[0], location: 'https://meet.example.com/abc' }] : [],
     );
     render(<InterviewsPage />);
-    expect(await screen.findByText(/meet\.google\.com/i)).toBeInTheDocument();
+    expect(await screen.findByText(/meet\.example\.com/i)).toBeInTheDocument();
   });
 
   it('renders a map pin icon for physical locations', async () => {
@@ -538,7 +538,7 @@ describe('InterviewsPage', () => {
       id === 'c1' ? [{ ...interviews[0], interviewers: [] }] : [],
     );
     render(<InterviewsPage />);
-    const row = await screen.findByText('Grace Liu');
+    const row = await screen.findByText('Jing Zhao');
     expect(row).toBeInTheDocument();
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1);
   });
@@ -550,7 +550,7 @@ describe('InterviewsPage', () => {
       {
         id: 'cRej',
         name: 'Reject Me',
-        email: 'r@x.com',
+        email: 'r@example.com',
         requisitionId: 'r1',
         requisitionTitle: 'Senior Frontend Engineer',
         stage: 'Rejected' as const,
@@ -558,7 +558,7 @@ describe('InterviewsPage', () => {
       {
         id: 'cHired',
         name: 'Hired Me',
-        email: 'h@x.com',
+        email: 'h@example.com',
         requisitionId: 'r1',
         requisitionTitle: 'Senior Frontend Engineer',
         stage: 'Hired' as const,
@@ -570,7 +570,7 @@ describe('InterviewsPage', () => {
     const options = screen.getAllByRole('option').map((o) => o.textContent);
     expect(options.some((t) => t?.includes('Reject Me'))).toBe(false);
     expect(options.some((t) => t?.includes('Hired Me'))).toBe(false);
-    expect(options.some((t) => t?.includes('Grace Liu'))).toBe(true);
+    expect(options.some((t) => t?.includes('Jing Zhao'))).toBe(true);
   });
 
   it('changes duration selection in the schedule dialog', async () => {
@@ -618,47 +618,47 @@ describe('InterviewsPage', () => {
     updateInterviewStatusMock.mockRejectedValueOnce(new Error('update failed'));
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Mark completed'));
     // Catch branch runs; the interview is not optimistically changed, so the
     // "Mark completed" action remains available and the row is still present.
     await waitFor(() => expect(screen.getByTitle('Mark completed')).toBeInTheDocument());
-    expect(screen.getByText('Grace Liu')).toBeInTheDocument();
+    expect(screen.getByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('keeps the interview unchanged when cancelling fails', async () => {
     updateInterviewStatusMock.mockRejectedValueOnce(new Error('cancel failed'));
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Cancel'));
     await waitFor(() => expect(screen.getByTitle('Cancel')).toBeInTheDocument());
-    expect(screen.getByText('Grace Liu')).toBeInTheDocument();
+    expect(screen.getByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('keeps the interview when deleting fails', async () => {
     deleteInterviewMock.mockRejectedValueOnce(new Error('delete failed'));
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Delete'));
-    await waitFor(() => expect(screen.getByText('Grace Liu')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Jing Zhao')).toBeInTheDocument());
   });
 
   it('captures a non-Error failure when marking completed', async () => {
     updateInterviewStatusMock.mockRejectedValueOnce('weird');
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByTitle('Mark completed'));
     await waitFor(() => expect(screen.getByTitle('Mark completed')).toBeInTheDocument());
-    expect(screen.getByText('Grace Liu')).toBeInTheDocument();
+    expect(screen.getByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('clears filters via the clear button', async () => {
     const user = userEvent.setup();
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     fireEvent.change(screen.getByDisplayValue(/all requisitions/i), { target: { value: 'r1' } });
     expect(await screen.findByText(/clear filters/i)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /clear filters/i }));
@@ -675,7 +675,7 @@ describe('InterviewsPage', () => {
         : [],
     );
     render(<InterviewsPage />);
-    await screen.findAllByText('Grace Liu');
+    await screen.findAllByText('Jing Zhao');
     const completed = await screen.findAllByText('Completed');
     expect(completed.length).toBeGreaterThanOrEqual(1);
     // The completed interview must not expose a "Mark completed" action.
@@ -692,7 +692,7 @@ describe('InterviewsPage', () => {
         : [],
     );
     render(<InterviewsPage />);
-    await screen.findAllByText('Grace Liu');
+    await screen.findAllByText('Jing Zhao');
     // The Scheduled status tab shows a count of 2.
     const scheduledTabs = screen.getAllByText(/Scheduled/);
     expect(scheduledTabs.length).toBeGreaterThanOrEqual(1);
@@ -702,7 +702,7 @@ describe('InterviewsPage', () => {
   it('hides interview action buttons for non-recruiters', async () => {
     useAuthMock.mockReturnValue(makeAuth([]));
     render(<InterviewsPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     expect(screen.queryByTitle('Mark completed')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Delete')).not.toBeInTheDocument();
   });

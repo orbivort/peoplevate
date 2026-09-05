@@ -551,7 +551,7 @@ export function InterviewsPage() {
               <Input
                 value={form.interviewers}
                 onChange={(e) => setForm((f) => ({ ...f, interviewers: e.target.value }))}
-                placeholder="e.g. Grace Liu, David Kim"
+                placeholder="e.g. Alice Doe, Bob Doe"
               />
             </div>
             <div className="space-y-1.5">
@@ -559,7 +559,7 @@ export function InterviewsPage() {
               <Input
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
-                placeholder="e.g. Conference Room A or Zoom link"
+                placeholder="e.g. Conference Room A or video link"
               />
             </div>
             <div className="space-y-1.5">

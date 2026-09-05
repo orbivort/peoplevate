@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-09-05
+
+### Security
+
+- Remediate **high**-severity transitive dependency vulnerabilities:  
+  - `mysql2` 3.15.3 → 3.24.3 — fixes an auth-plugin downgrade to `mysql_clear_password`
+    that leaks plaintext credentials
+    ([GHSA-3f6p-5ww8-9rcr](https://github.com/advisories/GHSA-3f6p-5ww8-9rcr)) and an
+    unbounded zlib-inflate decompression-bomb DoS in the compressed protocol handler
+    ([GHSA-rgwj-5xj2-c3m3](https://github.com/advisories/GHSA-rgwj-5xj2-c3m3)). It is pulled
+    by the Prisma CLI, which pins the vulnerable version exactly
+  - `fast-uri` 3.1.5 → 3.1.7 — fixes SSRF / host confusion via malformed IPv6,
+    percent-decoding, and IDN normalization
+    ([GHSA-5jgf-p345-68v8](https://github.com/advisories/GHSA-5jgf-p345-68v8),
+    [GHSA-f65p-4m7j-42xc](https://github.com/advisories/GHSA-f65p-4m7j-42xc),
+    [GHSA-fph4-wmhf-6fwf](https://github.com/advisories/GHSA-fph4-wmhf-6fwf),
+    [GHSA-jqff-g426-hqxp](https://github.com/advisories/GHSA-jqff-g426-hqxp)). It is pulled by
+    `ajv` through the Prisma CLI and stylelint toolchains
+  - `qs` 6.15.3 → 6.16.0 — fixes an array-limit bypass via bracket-key comma parsing
+    ([GHSA-x5fp-wj9c-mxmx](https://github.com/advisories/GHSA-x5fp-wj9c-mxmx)) and a DoS via
+    an attacker-controlled `isBuffer`
+    ([GHSA-4mjr-xmp4-gh2g](https://github.com/advisories/GHSA-4mjr-xmp4-gh2g)). It is pulled
+    by Express, body-parser, and superagent  
+
+- Upgrade engine to Node.js `^24.19.0` and pnpm `^11.21.0`
+
+## [1.0.1] - 2026-09-01
+
+### Security
+
+- Remediate **high**-severity transitive dependency vulnerability: 
+  - `deepmerge-ts` 1.2.0 → 1.2.1 — fixes a stack exhaustion DoS via recursive object graphs
+  exhaustion when merging recursive object graphs
+  ([GHSA-ggr8-5vv4-36mx](https://github.com/advisories/GHSA-ggr8-5vv4-36mx) /
+  [CVE-2026-40345](https://nvd.nist.gov/vuln/detail/CVE-2026-40345)). It is pulled by Prisma CLI via @prisma/config
+- Enhance API rate limiting and harden document file paths
+- Enhance store refresh token in httpOnly cookie
+
 ## [1.0.0] - 2026-08-08
 
 ### Summary
@@ -134,3 +172,5 @@ Key achievements of this release:
 ---
 
 [1.0.0]: https://github.com/orbivort/peoplevate/releases/tag/v1.0.0
+[1.0.1]: https://github.com/orbivort/peoplevate/compare/v1.0.0...v1.0.1
+[1.0.2]: https://github.com/orbivort/peoplevate/compare/v1.0.1...v1.0.2

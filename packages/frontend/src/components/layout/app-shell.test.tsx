@@ -52,7 +52,7 @@ describe('AppShell', () => {
   });
 
   it('renders all nav items for Admin', () => {
-    renderShell({ id: '1', role: 'Admin', email: 'admin@peoplevate.com' });
+    renderShell({ id: '1', role: 'Admin', email: 'admin@example.com' });
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Departments')).toBeInTheDocument();
     expect(screen.getByText('Positions')).toBeInTheDocument();
@@ -61,14 +61,14 @@ describe('AppShell', () => {
   });
 
   it('hides HR-only items for Manager', () => {
-    renderShell({ id: '2', role: 'Manager', email: 'm@x.com' });
+    renderShell({ id: '2', role: 'Manager', email: 'm@example.com' });
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.queryByText('User Management')).not.toBeInTheDocument();
     expect(screen.queryByText('Audit Log')).not.toBeInTheDocument();
   });
 
   it('collapses the sidebar on toggle', () => {
-    renderShell({ id: '1', role: 'Admin', email: 'admin@peoplevate.com' });
+    renderShell({ id: '1', role: 'Admin', email: 'admin@example.com' });
     expect(screen.getByText('Collapse sidebar')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Collapse sidebar'));
     // When collapsed, the label is hidden (icon-only button).
@@ -76,17 +76,17 @@ describe('AppShell', () => {
   });
 
   it('shows the user display name in the header', () => {
-    renderShell({ id: '1', role: 'Admin', email: 'admin@peoplevate.com' });
+    renderShell({ id: '1', role: 'Admin', email: 'admin@example.com' });
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
   });
 
   it('displays role badge', () => {
-    renderShell({ id: '1', role: 'HR Manager', email: 'hr@x.com' });
+    renderShell({ id: '1', role: 'HR Manager', email: 'hr@example.com' });
     expect(screen.getByText('HR Manager')).toBeInTheDocument();
   });
 
   it('renders the user dropdown trigger', () => {
-    renderShell({ id: '1', role: 'Admin', email: 'admin@peoplevate.com' });
+    renderShell({ id: '1', role: 'Admin', email: 'admin@example.com' });
     // The dropdown trigger is the button containing the display name.
     // Radix UI dropdowns don't render content in jsdom until triggered,
     // so we verify the trigger exists — the onClick handlers are tested via

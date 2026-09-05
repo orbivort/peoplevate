@@ -55,7 +55,7 @@ describe('SmtpTransport', () => {
     const transport = new SmtpTransport();
     expect(createTransportMock).not.toHaveBeenCalled();
 
-    await transport.deliver({ to: 'a@b.com', subject: 'Hi', html: '<p>Body</p>' });
+    await transport.deliver({ to: 'a@example.com', subject: 'Hi', html: '<p>Body</p>' });
 
     expect(createTransportMock).toHaveBeenCalledTimes(1);
     expect(createTransportMock).toHaveBeenCalledWith({
@@ -66,7 +66,7 @@ describe('SmtpTransport', () => {
     });
     expect(sendMailMock).toHaveBeenCalledWith({
       from: 'noreply@peoplevate.test',
-      to: 'a@b.com',
+      to: 'a@example.com',
       subject: 'Hi',
       html: '<p>Body</p>',
     });
@@ -74,8 +74,8 @@ describe('SmtpTransport', () => {
 
   it('reuses a single transporter across deliveries', async () => {
     const transport = new SmtpTransport();
-    await transport.deliver({ to: 'a@b.com', subject: 'S1', html: 'x' });
-    await transport.deliver({ to: 'b@b.com', subject: 'S2', html: 'y' });
+    await transport.deliver({ to: 'a@example.com', subject: 'S1', html: 'x' });
+    await transport.deliver({ to: 'b@example.com', subject: 'S2', html: 'y' });
 
     expect(createTransportMock).toHaveBeenCalledTimes(1);
   });
@@ -88,20 +88,20 @@ describe('MockTransport + Mailbox', () => {
 
   it('records delivered payloads into the shared mailbox', async () => {
     const transport = new MockTransport(mailbox);
-    await transport.deliver({ to: 'a@b.com', subject: 'S1', html: '<p>1</p>' });
-    await transport.deliver({ to: 'a@b.com', subject: 'S2', html: '<p>2</p>' });
-    await transport.deliver({ to: 'b@b.com', subject: 'S3', html: '<p>3</p>' });
+    await transport.deliver({ to: 'a@example.com', subject: 'S1', html: '<p>1</p>' });
+    await transport.deliver({ to: 'a@example.com', subject: 'S2', html: '<p>2</p>' });
+    await transport.deliver({ to: 'b@example.com', subject: 'S3', html: '<p>3</p>' });
 
     expect(mailbox.size).toBe(3);
-    expect(mailbox.findByRecipient('a@b.com')).toHaveLength(2);
+    expect(mailbox.findByRecipient('a@example.com')).toHaveLength(2);
     expect(mailbox.findBySubject('S2')).toEqual([
-      { to: 'a@b.com', subject: 'S2', html: '<p>2</p>' },
+      { to: 'a@example.com', subject: 'S2', html: '<p>2</p>' },
     ]);
   });
 
   it('returns copies so callers cannot mutate stored messages', async () => {
     const local = new Mailbox();
-    await new MockTransport(local).deliver({ to: 'a@b.com', subject: 'S1', html: 'x' });
+    await new MockTransport(local).deliver({ to: 'a@example.com', subject: 'S1', html: 'x' });
 
     const snapshot = local.all();
     snapshot[0].subject = 'tampered';

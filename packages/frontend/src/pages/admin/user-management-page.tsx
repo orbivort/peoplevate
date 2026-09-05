@@ -476,7 +476,7 @@ export function UserManagementPage() {
                 type="email"
                 value={inviteForm.email}
                 onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="newuser@company.com"
+                placeholder="newuser@example.com"
               />
             </div>
             <div className="space-y-1.5">

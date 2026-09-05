@@ -86,7 +86,7 @@ export function ForgotPasswordPage() {
                           name="email"
                           type="email"
                           autoComplete="email"
-                          placeholder="you@company.com"
+                          placeholder="you@example.com"
                           className={[
                             'h-11 w-full rounded-lg border bg-white pr-3 pl-10 text-sm text-ink-900 transition-colors placeholder:text-ink-400',
                             'focus:ring-2 focus:outline-none',

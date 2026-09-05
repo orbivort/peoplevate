@@ -53,30 +53,30 @@ describe('email-service', () => {
 
   describe('sendEmail', () => {
     it('sends mail with the configured from address and logs success', async () => {
-      await sendEmail('a@b.com', 'Subject', '<p>Body</p>');
+      await sendEmail('a@example.com', 'Subject', '<p>Body</p>');
 
       expect(lastMail()).toEqual({
         from: 'noreply@peoplevate.test',
-        to: 'a@b.com',
+        to: 'a@example.com',
         subject: 'Subject',
         html: '<p>Body</p>',
       });
-      expect(vi.mocked(logger.info)).toHaveBeenCalledWith('Email sent to a@b.com: Subject');
+      expect(vi.mocked(logger.info)).toHaveBeenCalledWith('Email sent to a@example.com: Subject');
     });
 
     it('swallows transport errors so callers are not blocked', async () => {
       sendMailMock.mockRejectedValue(new Error('smtp down'));
 
-      await expect(sendEmail('a@b.com', 'Subject', '<p>Body</p>')).resolves.toBeUndefined();
+      await expect(sendEmail('a@example.com', 'Subject', '<p>Body</p>')).resolves.toBeUndefined();
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        'Failed to send email to a@b.com:',
+        'Failed to send email to a@example.com:',
         expect.any(Error),
       );
     });
   });
 
   it('sendSetupEmail embeds the setup link and expiry', async () => {
-    await sendSetupEmail('new@b.com', 'tok-123');
+    await sendSetupEmail('new@example.com', 'tok-123');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Set up your Peoplevate account');
@@ -85,7 +85,7 @@ describe('email-service', () => {
   });
 
   it('sendPasswordResetEmail embeds the reset link and expiry', async () => {
-    await sendPasswordResetEmail('user@b.com', 'reset-9');
+    await sendPasswordResetEmail('user@example.com', 'reset-9');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Reset your Peoplevate password');
@@ -94,7 +94,7 @@ describe('email-service', () => {
   });
 
   it('sendLockoutNotification states the lockout duration', async () => {
-    await sendLockoutNotification('locked@b.com');
+    await sendLockoutNotification('locked@example.com');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Your Peoplevate account has been locked');
@@ -102,7 +102,7 @@ describe('email-service', () => {
   });
 
   it('sendOfferLetterEmail includes candidate name and position', async () => {
-    await sendOfferLetterEmail('cand@b.com', 'Ann Lee', 'Senior Engineer');
+    await sendOfferLetterEmail('cand@example.com', 'Ann Lee', 'Senior Engineer');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Your offer from Peoplevate — Senior Engineer');
@@ -111,7 +111,7 @@ describe('email-service', () => {
   });
 
   it('sendLeaveStatusEmail includes the status and leave type', async () => {
-    await sendLeaveStatusEmail('emp@b.com', 'Bob Ray', 'APPROVED', 'Annual');
+    await sendLeaveStatusEmail('emp@example.com', 'Bob Ray', 'APPROVED', 'Annual');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Leave request APPROVED');
@@ -120,7 +120,7 @@ describe('email-service', () => {
   });
 
   it('sendEvaluationCycleEmail includes the cycle type', async () => {
-    await sendEvaluationCycleEmail('emp@b.com', 'Cat Poe', 'ANNUAL');
+    await sendEvaluationCycleEmail('emp@example.com', 'Cat Poe', 'ANNUAL');
 
     const mail = lastMail();
     expect(mail.subject).toBe('ANNUAL evaluation is open');
@@ -128,7 +128,7 @@ describe('email-service', () => {
   });
 
   it('sendClearanceReminderEmail names the pending item', async () => {
-    await sendClearanceReminderEmail('it@b.com', 'IT Team', 'Return laptop');
+    await sendClearanceReminderEmail('it@example.com', 'IT Team', 'Return laptop');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Clearance item reminder');
@@ -136,7 +136,7 @@ describe('email-service', () => {
   });
 
   it('sendDeactivationNotice addresses the employee', async () => {
-    await sendDeactivationNotice('ex@b.com', 'Dan Fox');
+    await sendDeactivationNotice('ex@example.com', 'Dan Fox');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Your Peoplevate access has been revoked');
@@ -144,7 +144,7 @@ describe('email-service', () => {
   });
 
   it('sendResignationAck acknowledges the resignation', async () => {
-    await sendResignationAck('emp@b.com', 'Eve Kim');
+    await sendResignationAck('emp@example.com', 'Eve Kim');
 
     const mail = lastMail();
     expect(mail.subject).toBe('Your resignation has been received');

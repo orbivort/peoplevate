@@ -57,7 +57,7 @@ describe('AuthProvider (real backend + edge cases)', () => {
   it('logs in via the real backend and loads own employee', async () => {
     mocks.authRepoMock.login.mockResolvedValue({
       accessToken: 'a',
-      user: { id: 'u1', email: 'real@x.com', role: 'ADMIN', employeeId: 'e1' },
+      user: { id: 'u1', email: 'real@example.com', role: 'ADMIN', employeeId: 'e1' },
     });
     mocks.employeeRepoMock.get.mockResolvedValue({ id: 'e1', firstName: 'Real', lastName: 'User' });
 
@@ -65,7 +65,7 @@ describe('AuthProvider (real backend + edge cases)', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     let res: { success: boolean };
     await act(async () => {
-      res = await result.current.login('real@x.com', 'pw');
+      res = await result.current.login('real@example.com', 'pw');
     });
     expect(res!.success).toBe(true);
     expect(result.current.isAuthenticated).toBe(true);
@@ -78,7 +78,7 @@ describe('AuthProvider (real backend + edge cases)', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     let res: { success: boolean; error?: string };
     await act(async () => {
-      res = await result.current.login('real@x.com', 'pw');
+      res = await result.current.login('real@example.com', 'pw');
     });
     expect(res!.success).toBe(false);
     expect(res!.error).toContain('bad creds');
@@ -88,7 +88,7 @@ describe('AuthProvider (real backend + edge cases)', () => {
     // Inject a session so the in-memory restore branch is taken.
     authStorage.setSession('tok', {
       id: 'u2',
-      email: 'saved@x.com',
+      email: 'saved@example.com',
       role: 'Manager',
       employeeId: 'e2',
     });
@@ -112,7 +112,7 @@ describe('AuthProvider (real backend + edge cases)', () => {
     // cookie-based silent refresh.
     mocks.authRepoMock.refresh.mockResolvedValue({
       accessToken: 'fresh-access',
-      user: { id: 'u2', email: 'saved@x.com', role: 'ADMIN', employeeId: 'e2' },
+      user: { id: 'u2', email: 'saved@example.com', role: 'ADMIN', employeeId: 'e2' },
     });
     mocks.employeeRepoMock.get.mockResolvedValue({
       id: 'e2',
@@ -134,7 +134,7 @@ describe('AuthProvider (real backend + edge cases)', () => {
   });
 
   it('logout calls the cookie-based backend logout', async () => {
-    authStorage.setSession('tok', { id: 'u3', email: 'l@x.com', role: 'Admin' });
+    authStorage.setSession('tok', { id: 'u3', email: 'l@example.com', role: 'Admin' });
     mocks.authRepoMock.logout.mockResolvedValue({ message: 'Logged out' });
 
     const { result } = renderHook(() => useAuth(), { wrapper });

@@ -1,6 +1,6 @@
 {
   "name": "@peoplevate/backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Peoplevate backend — Express 5 + Prisma 7 REST API for the Employee Lifecycle Management System.",
@@ -18,7 +18,7 @@
     "employee-lifecycle"
   ],
   "engines": {
-    "node": "^24.18.1"
+    "node": "^24.19.0"
   },
   "imports": {
     "#prisma": "./src/generated/prisma/client.ts"

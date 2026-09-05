@@ -296,10 +296,10 @@ describe('data-layer getters (mock mode)', () => {
   });
 
   it('getAuditLog filters mock data by user', async () => {
-    const { data } = await getAuditLog({ page: 1, pageSize: 25, user: 'grace' });
+    const { data } = await getAuditLog({ page: 1, pageSize: 25, user: 'emily' });
     expect(data.logs.length).toBeGreaterThan(0);
-    // Every returned entry belongs to Grace Liu (by name or id u-hr).
-    expect(data.logs.every((e) => e.actorName.toLowerCase().includes('grace'))).toBe(true);
+    // Every returned entry belongs to Emily Doe (by name or id u-hr).
+    expect(data.logs.every((e) => e.actorName.toLowerCase().includes('emily'))).toBe(true);
   });
 
   it('getAuditLog filters mock data by date range', async () => {
@@ -392,7 +392,7 @@ describe('data-layer getters (api mode)', () => {
   });
 
   it('getUsers returns api mode on success', async () => {
-    hoisted.userList.mockResolvedValueOnce([{ id: 'u1', email: 'a@b.co' }]);
+    hoisted.userList.mockResolvedValueOnce([{ id: 'u1', email: 'a@example.com' }]);
     const { mode, data } = await getUsers();
     expect(mode).toBe('api');
     expect(data).toHaveLength(1);
@@ -544,8 +544,8 @@ describe('data-layer write operations', () => {
 
     it('updateEmployee forwards id and payload and resolves to undefined', async () => {
       hoisted.employeeUpdate.mockResolvedValueOnce({ message: 'ok' });
-      await expect(updateEmployee('e1', { firstName: 'Grace' })).resolves.toBeUndefined();
-      expect(hoisted.employeeUpdate).toHaveBeenCalledWith('e1', { firstName: 'Grace' });
+      await expect(updateEmployee('e1', { firstName: 'Emily' })).resolves.toBeUndefined();
+      expect(hoisted.employeeUpdate).toHaveBeenCalledWith('e1', { firstName: 'Emily' });
     });
 
     it('updateEmployee propagates repository errors', async () => {
@@ -1009,13 +1009,13 @@ describe('GDPR data-layer functions (mock mode)', () => {
   });
 
   it('getConsentRecords filters mock data by email', async () => {
-    const { data } = await getConsentRecords({ dataSubjectEmail: 'elena.vasquez@peoplevate.com' });
+    const { data } = await getConsentRecords({ dataSubjectEmail: 'alice.doe@example.com' });
     expect(data).toHaveLength(1);
-    expect(data[0].dataSubjectEmail).toBe('elena.vasquez@peoplevate.com');
+    expect(data[0].dataSubjectEmail).toBe('alice.doe@example.com');
   });
 
   it('getConsentRecords returns empty when no subject matches', async () => {
-    const { data } = await getConsentRecords({ dataSubjectEmail: 'nobody@peoplevate.com' });
+    const { data } = await getConsentRecords({ dataSubjectEmail: 'nobody@example.com' });
     expect(data).toHaveLength(0);
   });
 
@@ -1106,7 +1106,7 @@ describe('GDPR data-layer functions (api mode)', () => {
   });
 
   it('createDsar delegates to dsarRepo.create', async () => {
-    const payload = { requestType: 'ACCESS', dataSubjectEmail: 'x@peoplevate.com' };
+    const payload = { requestType: 'ACCESS', dataSubjectEmail: 'x@example.com' };
     hoisted.dsarCreate.mockResolvedValueOnce({ dsar: { id: 'dsar-9' } });
     await createDsar(payload);
     expect(hoisted.dsarCreate).toHaveBeenCalledWith(payload);
@@ -1179,7 +1179,7 @@ describe('GDPR data-layer functions (api mode)', () => {
 
   it('recordConsent delegates to consentRepo.record', async () => {
     const payload = {
-      dataSubjectEmail: 'x@peoplevate.com',
+      dataSubjectEmail: 'x@example.com',
       processingPurpose: 'marketing',
       consentText: 'I consent',
       noticeVersion: 'v2',

@@ -21,7 +21,7 @@ const records = vi.hoisted(() => [
     positionName: 'Engineering Manager',
     separationType: 'Resignation',
     status: 'Clearance In Progress',
-    initiatedBy: 'Grace Liu',
+    initiatedBy: 'Jing Zhao',
     initiatedAt: '2026-05-01T00:00:00.000Z',
     lastWorkingDay: '2026-06-01',
     deactivationDate: '2026-06-02',
@@ -358,7 +358,7 @@ describe('OffboardingPage', () => {
     await user.click(screen.getByRole('button', { name: /conduct interview/i }));
     await screen.findByRole('dialog');
     fireEvent.change(screen.getByPlaceholderText(/hr representative name/i), {
-      target: { value: 'Grace Liu' },
+      target: { value: 'Jing Zhao' },
     });
     fireEvent.change(screen.getAllByPlaceholderText(/primary reason for leaving/i)[0], {
       target: { value: 'Better opportunity' },

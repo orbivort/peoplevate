@@ -8,7 +8,7 @@ environment. It is aimed at operators, DevOps engineers, and administrators.
 ## Prerequisites
 
 - **Node.js** `^24`
-- **pnpm** `^11` (the repo pins `pnpm@11.19.0` via `packageManager`)
+- **pnpm** `^11` (the repo pins `pnpm@11.21.0` via `packageManager`)
 - **PostgreSQL** (>= 18 recommended)
 
 ---
@@ -220,7 +220,7 @@ backend, frontend, and database into isolated, reproducible containers.
 ### Requirements
 
 - Docker Engine 24+ with Docker Compose v2 (`docker compose`).
-- A server with enough RAM for PostgreSQL + Node 24 (24.18.1, recommend 2 GB+).
+- A server with enough RAM for PostgreSQL + Node 24 (24.19.0, recommend 2 GB+).
 
 ### 1. Configure environment
 
@@ -240,7 +240,7 @@ This starts three services on an isolated bridge network:
 | Service   | Image base            | Purpose                                      |
 | --------- | --------------------- | -------------------------------------------- |
 | `db`      | `postgres:18-alpine`  | Persistent PostgreSQL data store             |
-| `backend` | `node:24.18.1-alpine` | Express 5 + Prisma 7 REST API                |
+| `backend` | `node:24.19.0-alpine` | Express 5 + Prisma 7 REST API                |
 | `frontend`| `nginx:1.27-alpine`   | Serves the React SPA and proxies `/api`      |
 
 The app is then reachable at `http://<server-host>` (port `${APP_PORT}`, default `80`).

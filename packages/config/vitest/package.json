@@ -1,6 +1,5 @@
 {
   "name": "@peoplevate/vitest-config",
-  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Shared Vitest base config for the peoplevate monorepo",
@@ -24,7 +23,7 @@
     "vitest": "^4.1.10"
   },
   "engines": {
-    "node": "^24.18.1"
+    "node": "^24.19.0"
   },
   "scripts": {
     "clean": "rimraf dist build out coverage",

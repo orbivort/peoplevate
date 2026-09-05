@@ -289,13 +289,13 @@ describe('AuditLogPage', () => {
     const user = userEvent.setup();
     render(<AuditLogPage />);
     const input = screen.getByPlaceholderText(/filter by user/i);
-    await user.type(input, 'grace');
+    await user.type(input, 'jing');
     await waitFor(() => {
       const lastCall = useAuditLogMock.mock.calls.at(-1)?.[0] as {
         user?: string;
         page: number;
       };
-      expect(lastCall.user).toBe('grace');
+      expect(lastCall.user).toBe('jing');
       expect(lastCall.page).toBe(1);
     });
   });

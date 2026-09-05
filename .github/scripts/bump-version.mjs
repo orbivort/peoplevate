@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * Bump the "version" field in the root package.json and every workspace
- * package (packages/<name>/package.json) to the given release version.
+ * Bump the "version" field in the release manifests to the given version: the
+ * root package.json plus the backend and frontend application packages.
  *
- * The Peoplevate monorepo ships a single coordinated release, so all package
- * versions are kept in lockstep with the git tag (release-please "single
- * package" style).
+ * The Peoplevate monorepo ships as a single coordinated release, so these
+ * three manifests are kept in lockstep with the git tag (release-please
+ * "single package" style). The remaining workspace packages (@peoplevate/e2e
+ * and the shared config packages) are versionless internal tooling.
  *
  * CLI usage:
  *   node bump-version.mjs <version>
@@ -14,7 +15,7 @@
  * project uses. pnpm-lock.yaml does not need updating: it records dependency
  * edges, not the workspace packages' own versions.
  */
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 /** Read a UTF-8 file, tolerating a leading BOM (common on Windows editors). */
 function readFile(path, encoding) {
@@ -27,18 +28,17 @@ if (!version || !/^\d+\.\d+\.\d+(?:[-+].+)?$/.test(version)) {
   process.exit(1);
 }
 
-/** Candidate package manifests: the root plus one per workspace package. */
-const manifestPaths = ['package.json'];
-for (const entry of readdirSync('packages', { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
-  const manifest = `packages/${entry.name}/package.json`;
-  try {
-    readFileSync(manifest, 'utf8');
-    manifestPaths.push(manifest);
-  } catch {
-    // Workspace folder without a package.json (e.g. generated code) - skip.
-  }
-}
+/**
+ * Manifests that carry the release version. The internal packages
+ * (@peoplevate/e2e, @peoplevate/eslint-config, @peoplevate/vitest-config) are
+ * intentionally versionless, so this list must be updated only if a package
+ * becomes part of the released artifact set.
+ */
+const manifestPaths = [
+  'package.json',
+  'packages/backend/package.json',
+  'packages/frontend/package.json',
+];
 
 for (const path of manifestPaths) {
   const pkg = JSON.parse(readFile(path, 'utf8'));

@@ -141,7 +141,7 @@ describe('performance-service', () => {
 
     it('excludes employees without a hire_date (continue branch)', async () => {
       mocked.employeeFindMany.mockResolvedValue([
-        { id: 'emp-2', first_name: 'A', last_name: 'B', email: 'a@x.com', hire_date: null },
+        { id: 'emp-2', first_name: 'A', last_name: 'B', email: 'a@example.com', hire_date: null },
       ] as never);
 
       const result = (await listSoonToExpireProbationEmployees()) as { id: string }[];
@@ -151,7 +151,13 @@ describe('performance-service', () => {
     it('excludes employees whose probation has not yet started (lower-bound false branch)', async () => {
       // hired today -> probation end ~6 months out, well beyond ahead window
       mocked.employeeFindMany.mockResolvedValue([
-        { id: 'emp-3', first_name: 'C', last_name: 'D', email: 'c@x.com', hire_date: new Date() },
+        {
+          id: 'emp-3',
+          first_name: 'C',
+          last_name: 'D',
+          email: 'c@example.com',
+          hire_date: new Date(),
+        },
       ] as never);
 
       const result = (await listSoonToExpireProbationEmployees()) as { id: string }[];
@@ -189,7 +195,7 @@ describe('performance-service', () => {
           id: 'emp-1',
           first_name: 'Jane',
           last_name: 'Doe',
-          email: 'j@x.com',
+          email: 'j@example.com',
           hire_date: new Date(Date.now() - 165 * DAY),
         },
       ] as never);
@@ -202,7 +208,7 @@ describe('performance-service', () => {
 
     it('skips employees without a hire_date (continue branch)', async () => {
       mocked.employeeFindMany.mockResolvedValue([
-        { id: 'emp-1', first_name: 'J', last_name: 'D', email: 'j@x.com', hire_date: null },
+        { id: 'emp-1', first_name: 'J', last_name: 'D', email: 'j@example.com', hire_date: null },
       ] as never);
 
       const result = (await autoCreateProbationCycles()) as { created: number };
@@ -213,7 +219,13 @@ describe('performance-service', () => {
     it('skips employees whose probation is outside the ahead window (out-of-window continue branch)', async () => {
       mocked.employeeFindMany.mockResolvedValue([
         // hired 1 day ago -> probation end ~6 months out, beyond ahead window
-        { id: 'emp-1', first_name: 'J', last_name: 'D', email: 'j@x.com', hire_date: new Date() },
+        {
+          id: 'emp-1',
+          first_name: 'J',
+          last_name: 'D',
+          email: 'j@example.com',
+          hire_date: new Date(),
+        },
       ] as never);
 
       const result = (await autoCreateProbationCycles()) as { created: number };
@@ -385,12 +397,18 @@ describe('performance-service', () => {
       mocked.employeeFindMany.mockResolvedValue([
         {
           id: 'emp-1',
-          email: 'j@x.com',
+          email: 'j@example.com',
           first_name: 'J',
           last_name: 'D',
           hire_date: new Date(Date.now() - 165 * DAY),
         },
-        { id: 'emp-no-hire', email: 'n@x.com', first_name: 'N', last_name: 'H', hire_date: null },
+        {
+          id: 'emp-no-hire',
+          email: 'n@example.com',
+          first_name: 'N',
+          last_name: 'H',
+          hire_date: null,
+        },
       ] as never);
       mocked.evaluationCycleCreate.mockResolvedValue({ id: 'c-new' } as never);
       mocked.performanceReviewCreate.mockResolvedValue({} as never);
@@ -416,7 +434,7 @@ describe('performance-service', () => {
       mocked.employeeFindMany.mockResolvedValue([
         {
           id: 'emp-new',
-          email: 'n@x.com',
+          email: 'n@example.com',
           first_name: 'N',
           last_name: 'E',
           hire_date: new Date(now),
@@ -443,7 +461,7 @@ describe('performance-service', () => {
 
     it('creates a DRAFT cycle with all active participants for a non-PROBATION type', async () => {
       mocked.employeeFindMany.mockResolvedValue([
-        { id: 'emp-2', email: 'a@x.com', first_name: 'A', last_name: 'B' },
+        { id: 'emp-2', email: 'a@example.com', first_name: 'A', last_name: 'B' },
       ] as never);
       mocked.evaluationCycleCreate.mockResolvedValue({ id: 'c-new2' } as never);
       mocked.performanceReviewCreate.mockResolvedValue({} as never);
@@ -482,7 +500,7 @@ describe('performance-service', () => {
       mocked.employeeFindMany.mockResolvedValue([
         {
           id: 'emp-1',
-          email: 'j@x.com',
+          email: 'j@example.com',
           first_name: 'J',
           last_name: 'D',
           hire_date: new Date(Date.now() - 165 * DAY),
@@ -541,7 +559,7 @@ describe('performance-service', () => {
       mocked.employeeFindMany.mockResolvedValue([
         {
           id: 'emp-4',
-          email: 'e@x.com',
+          email: 'e@example.com',
           first_name: undefined,
           last_name: undefined,
           hire_date: new Date(Date.now() - 165 * DAY),
@@ -552,7 +570,7 @@ describe('performance-service', () => {
       await openEvaluationCycle('c3');
 
       expect(mocked.sendEvaluationCycleEmail).toHaveBeenCalledWith(
-        'e@x.com',
+        'e@example.com',
         '',
         EvaluationType.PROBATION,
       );

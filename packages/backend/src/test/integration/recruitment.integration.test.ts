@@ -319,7 +319,7 @@ describe('recruitment integration', () => {
         .post('/api/recruitment/candidates')
         .set('Authorization', `Bearer ${token}`)
         .send({
-          name: 'Carol King',
+          name: 'Carol Grant',
           email: 'carol@example.com',
           source: CandidateSource.DIRECT,
           requisitionId,

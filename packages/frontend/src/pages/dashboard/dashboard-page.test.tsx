@@ -68,7 +68,7 @@ const employees = [
     id: 'e1',
     firstName: 'Alice',
     lastName: 'Admin',
-    email: 'alice@acme.com',
+    email: 'alice@example.com',
     employeeNo: 'E001',
     positionName: 'HR Lead',
     departmentName: 'HR',
@@ -81,7 +81,7 @@ const employees = [
     id: 'e2',
     firstName: 'Bob',
     lastName: 'Probie',
-    email: 'bob@acme.com',
+    email: 'bob@example.com',
     employeeNo: 'E002',
     positionName: 'Engineer',
     departmentName: 'Eng',
@@ -162,7 +162,7 @@ describe('DashboardPage', () => {
 
   it('greets the user by first name for HR/Admin', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u1', role: 'Admin', email: 'alice@acme.com', name: 'Alice' },
+      user: { id: 'u1', role: 'Admin', email: 'alice@example.com', name: 'Alice' },
       employee: employees[0],
       hasPermission: vi.fn(() => true),
       canViewEmployee: vi.fn(() => true),
@@ -173,7 +173,7 @@ describe('DashboardPage', () => {
 
   it('shows HR/Admin stat cards with aggregated counts', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u1', role: 'Admin', email: 'alice@acme.com', name: 'Alice' },
+      user: { id: 'u1', role: 'Admin', email: 'alice@example.com', name: 'Alice' },
       employee: employees[0],
       hasPermission: vi.fn(() => true),
       canViewEmployee: vi.fn(() => true),
@@ -189,7 +189,7 @@ describe('DashboardPage', () => {
 
   it('counts only unacknowledged expiry alerts', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u1', role: 'Admin', email: 'alice@acme.com', name: 'Alice' },
+      user: { id: 'u1', role: 'Admin', email: 'alice@example.com', name: 'Alice' },
       employee: employees[0],
       hasPermission: vi.fn(() => true),
       canViewEmployee: vi.fn(() => true),
@@ -203,7 +203,7 @@ describe('DashboardPage', () => {
 
   it('renders recent audit activity', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u1', role: 'Admin', email: 'alice@acme.com', name: 'Alice' },
+      user: { id: 'u1', role: 'Admin', email: 'alice@example.com', name: 'Alice' },
       employee: employees[0],
       hasPermission: vi.fn(() => true),
       canViewEmployee: vi.fn(() => true),
@@ -215,7 +215,7 @@ describe('DashboardPage', () => {
 
   it('shows the "View all" audit link when the user can view the audit log', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u1', role: 'Admin', email: 'alice@acme.com', name: 'Alice' },
+      user: { id: 'u1', role: 'Admin', email: 'alice@example.com', name: 'Alice' },
       employee: employees[0],
       hasPermission: vi.fn(() => true),
       canViewEmployee: vi.fn(() => true),
@@ -227,7 +227,7 @@ describe('DashboardPage', () => {
 
   it('hides the "View all" audit link when the user lacks permission', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u1', role: 'Employee', email: 'bob@acme.com', name: 'Bob' },
+      user: { id: 'u1', role: 'Employee', email: 'bob@example.com', name: 'Bob' },
       employee: employees[1],
       hasPermission: vi.fn(() => false),
       canViewEmployee: vi.fn(() => true),
@@ -238,7 +238,7 @@ describe('DashboardPage', () => {
 
   it('shows a personal employment summary for Employees', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u2', role: 'Employee', email: 'bob@acme.com', name: 'Bob' },
+      user: { id: 'u2', role: 'Employee', email: 'bob@example.com', name: 'Bob' },
       employee: { ...employees[1], managerName: 'Alice Admin', hireDate: '2023-02-01' },
       hasPermission: vi.fn(() => false),
       canViewEmployee: vi.fn(() => true),
@@ -252,7 +252,7 @@ describe('DashboardPage', () => {
 
   it('does not render HR-only stat cards for an Employee', () => {
     useAuthMock.mockReturnValue({
-      user: { id: 'u2', role: 'Employee', email: 'bob@acme.com', name: 'Bob' },
+      user: { id: 'u2', role: 'Employee', email: 'bob@example.com', name: 'Bob' },
       employee: employees[1],
       hasPermission: vi.fn(() => false),
       canViewEmployee: vi.fn(() => true),

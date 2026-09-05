@@ -42,7 +42,7 @@ const employee = {
   id: 'e1',
   firstName: 'Alice',
   lastName: 'Admin',
-  email: 'alice@acme.com',
+  email: 'alice@example.com',
   employeeNo: 'E001',
   departmentId: 'd1',
   departmentName: 'HR',

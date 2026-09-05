@@ -118,7 +118,7 @@ const makeRecord = (over: Rec = {}): Rec => ({
   positionName: 'Engineering Manager',
   separationType: 'Resignation',
   status: 'Clearance In Progress',
-  initiatedBy: 'Grace Liu',
+  initiatedBy: 'Jing Zhao',
   initiatedAt: '2026-05-01T00:00:00.000Z',
   lastWorkingDay: '2026-06-01',
   deactivationDate: '2026-06-02',
@@ -269,7 +269,7 @@ describe('OffboardingPage - employee view scoping branches', () => {
 
 describe('OffboardingPage - toggleClearance branches', () => {
   it('reopens a completed item back to Pending', async () => {
-    setData([makeRecord()], { o1: [item({ status: 'Complete', signOffBy: 'Grace Liu' })] });
+    setData([makeRecord()], { o1: [item({ status: 'Complete', signOffBy: 'Jing Zhao' })] });
     const user = userEvent.setup();
     render(<OffboardingPage />);
     await openDetail(user);
@@ -889,7 +889,7 @@ describe('OffboardingPage - exit interview dialog branches', () => {
         makeRecord({
           status: 'Settlement',
           exitInterview: {
-            conductedBy: 'Grace Liu',
+            conductedBy: 'Jing Zhao',
             conductedAt: '2026-05-10T00:00:00.000Z',
             declined: false,
             responses: [{ question: 'Q1', answer: 'A1' }],
@@ -1133,7 +1133,7 @@ describe('OffboardingPage - list rendering branches', () => {
       o1: [
         item({
           status: 'Complete',
-          signOffBy: 'Grace Liu',
+          signOffBy: 'Jing Zhao',
           completedAt: '2026-05-15T00:00:00.000Z',
         }),
       ],
@@ -1141,7 +1141,7 @@ describe('OffboardingPage - list rendering branches', () => {
     const user = userEvent.setup();
     render(<OffboardingPage />);
     await openDetail(user);
-    expect(screen.getByText(/signed off by grace liu/i)).toBeInTheDocument();
+    expect(screen.getByText(/signed off by jing zhao/i)).toBeInTheDocument();
   });
 
   it('navigates back to the list from the detail view', async () => {

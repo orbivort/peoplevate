@@ -103,7 +103,7 @@ const offers = [
   {
     id: 'o1',
     candidateId: 'c1',
-    candidateName: 'Grace Liu',
+    candidateName: 'Jing Zhao',
     position: 'Senior Frontend Engineer',
     salary: 120000,
     startDate: '2026-07-01',
@@ -115,7 +115,7 @@ const offers = [
   {
     id: 'o2',
     candidateId: 'c2',
-    candidateName: 'David Kim',
+    candidateName: 'Derek Tan',
     position: 'Senior Frontend Engineer',
     salary: 115000,
     startDate: '2026-07-05',
@@ -129,14 +129,14 @@ const offers = [
 const candidates = [
   {
     id: 'c1',
-    name: 'Grace Liu',
+    name: 'Jing Zhao',
     stage: 'Offer',
     requisitionId: 'r1',
     requisitionTitle: 'Senior Frontend Engineer',
   },
   {
     id: 'c2',
-    name: 'David Kim',
+    name: 'Derek Tan',
     stage: 'Offer',
     requisitionId: 'r1',
     requisitionTitle: 'Senior Frontend Engineer',
@@ -170,14 +170,14 @@ describe('OffersPage', () => {
   it('renders the heading and lists offer letters', async () => {
     render(<OffersPage />);
     expect(await screen.findByRole('heading', { name: /offer letters/i })).toBeInTheDocument();
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
     expect(screen.getAllByText('Draft')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Sent')[0]).toBeInTheDocument();
   });
 
   it('formats the salary as currency', async () => {
     render(<OffersPage />);
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
     expect(screen.getByText('$120,000')).toBeInTheDocument();
   });
 
@@ -216,7 +216,7 @@ describe('OffersPage', () => {
   it('sends a draft offer', async () => {
     const user = userEvent.setup();
     render(<OffersPage />);
-    await screen.findByText('Grace Liu');
+    await screen.findByText('Jing Zhao');
     await user.click(screen.getByRole('button', { name: /send/i }));
     expect(await waitFor(() => expect(sendOfferMock).toHaveBeenCalledWith('o1')));
   });
@@ -224,7 +224,7 @@ describe('OffersPage', () => {
   it('accepts a sent offer', async () => {
     const user = userEvent.setup();
     render(<OffersPage />);
-    await screen.findByText('David Kim');
+    await screen.findByText('Derek Tan');
     await user.click(screen.getByTitle('Mark accepted'));
     expect(await waitFor(() => expect(acceptOfferMock).toHaveBeenCalledWith('o2')));
   });
@@ -232,8 +232,8 @@ describe('OffersPage', () => {
   it('deletes an offer', async () => {
     const user = userEvent.setup();
     render(<OffersPage />);
-    await screen.findByText('Grace Liu');
-    const row = screen.getByText('Grace Liu').closest('tr') as HTMLElement;
+    await screen.findByText('Jing Zhao');
+    const row = screen.getByText('Jing Zhao').closest('tr') as HTMLElement;
     await user.click(within(row).getByTitle('Delete'));
     expect(await waitFor(() => expect(deleteOfferMock).toHaveBeenCalledWith('o1')));
   });
@@ -247,7 +247,7 @@ describe('OffersPage', () => {
   it('declines a sent offer', async () => {
     const user = userEvent.setup();
     render(<OffersPage />);
-    await screen.findByText('David Kim');
+    await screen.findByText('Derek Tan');
     await user.click(screen.getByTitle('Mark declined'));
     // Decline has no backend endpoint; the status updates locally (badge + status tab).
     const declined = await screen.findAllByText(/declined/i);
@@ -287,8 +287,8 @@ describe('OffersPage', () => {
     const user = userEvent.setup();
     render(<OffersPage />);
     await user.click(await screen.findByRole('button', { name: /sent/i }));
-    expect(screen.queryByText('Grace Liu')).not.toBeInTheDocument();
-    expect(screen.getByText('David Kim')).toBeInTheDocument();
+    expect(screen.queryByText('Jing Zhao')).not.toBeInTheDocument();
+    expect(screen.getByText('Derek Tan')).toBeInTheDocument();
   });
 
   it('filters offers by requisition', async () => {
@@ -301,7 +301,7 @@ describe('OffersPage', () => {
     const reqSelect = screen.getByDisplayValue('All requisitions');
     fireEvent.change(reqSelect, { target: { value: 'r1' } });
     // Both offers belong to r1 candidates, so both remain visible.
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('filters offers by department', async () => {
@@ -312,7 +312,7 @@ describe('OffersPage', () => {
     await user.click(screen.getByRole('button', { name: /cancel/i }));
     const deptSelect = screen.getByDisplayValue('All departments');
     fireEvent.change(deptSelect, { target: { value: 'd1' } });
-    expect(await screen.findByText('Grace Liu')).toBeInTheDocument();
+    expect(await screen.findByText('Jing Zhao')).toBeInTheDocument();
   });
 
   it('shows the empty state when there are no offers', async () => {

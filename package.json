@@ -1,6 +1,6 @@
 {
   "name": "peoplevate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Peoplevate — an open-source Employee Lifecycle Management System covering recruitment, onboarding, attendance & leave, performance, offboarding, RBAC, and audit logging.",
   "license": "Apache-2.0",
@@ -21,10 +21,10 @@
     "rbac",
     "audit"
   ],
-  "packageManager": "pnpm@11.19.0",
+  "packageManager": "pnpm@11.21.0",
   "engines": {
-    "node": "^24.18.1",
-    "pnpm": "^11.19.0"
+    "node": "^24.19.0",
+    "pnpm": "^11.21.0"
   },
   "engine-strict": true,
   "scripts": {

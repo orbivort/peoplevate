@@ -227,9 +227,9 @@ export const handlers = [
     const record = {
       id: crypto.randomUUID(),
       employee_id: 'e-006',
-      employee: { id: 'e-006', first_name: 'Tom', last_name: 'Andersen' },
+      employee: { id: 'e-006', first_name: 'Charlie', last_name: 'Doe' },
       status: 'PENDING_MANAGER_APPROVAL',
-      submitted_by: 'Tom Andersen',
+      submitted_by: 'Charlie Doe',
       submitted_at: new Date().toISOString(),
       approvals: [],
       ...body,
@@ -388,18 +388,18 @@ export const handlers = [
       reason: body.reason != null ? String(body.reason) : '',
       last_working_day: `${lastWorkingDay.slice(0, 10)}T00:00:00.000Z`,
       status: 'INITIATED',
-      initiated_by: 'Grace Liu',
+      initiated_by: 'Emily Doe',
       initiated_at: new Date().toISOString(),
       deactivation_date: `${lastWorkingDay.slice(0, 10)}T00:00:00.000Z`,
       clearance_items: [
         mockNewClearanceItem(
           'ASSET_RETURN',
           `Return company assets for ${employee.firstName}`,
-          "Kevin O'Brien",
+          'Henry Doe',
         ),
-        mockNewClearanceItem('ACCESS_REVOCATION', 'Revoke system access', 'Grace Liu'),
-        mockNewClearanceItem('KNOWLEDGE_TRANSFER', 'Hand over responsibilities', 'Grace Liu'),
-        mockNewClearanceItem('FINAL_SETTLEMENT', 'Compute final settlement', 'Sophie Müller'),
+        mockNewClearanceItem('ACCESS_REVOCATION', 'Revoke system access', 'Emily Doe'),
+        mockNewClearanceItem('KNOWLEDGE_TRANSFER', 'Hand over responsibilities', 'Emily Doe'),
+        mockNewClearanceItem('FINAL_SETTLEMENT', 'Compute final settlement', 'Grace Doe'),
       ],
       exit_interviews: [],
       settlements: [],
@@ -425,17 +425,13 @@ export const handlers = [
       initiated_at: new Date().toISOString(),
       deactivation_date: `${lastWorkingDay.slice(0, 10)}T00:00:00.000Z`,
       clearance_items: [
-        mockNewClearanceItem(
-          'ASSET_RETURN',
-          'Return company laptop and peripherals',
-          "Kevin O'Brien",
-        ),
-        mockNewClearanceItem('ACCESS_REVOCATION', 'Revoke system and VPN access', 'Grace Liu'),
-        mockNewClearanceItem('KNOWLEDGE_TRANSFER', 'Hand over responsibilities', 'Elena Vasquez'),
+        mockNewClearanceItem('ASSET_RETURN', 'Return company laptop and peripherals', 'Henry Doe'),
+        mockNewClearanceItem('ACCESS_REVOCATION', 'Revoke system and VPN access', 'Emily Doe'),
+        mockNewClearanceItem('KNOWLEDGE_TRANSFER', 'Hand over responsibilities', 'Alice Doe'),
         mockNewClearanceItem(
           'FINAL_SETTLEMENT',
           'Compute leave encashment and final dues',
-          'Sophie Müller',
+          'Grace Doe',
         ),
       ],
       exit_interviews: [],
@@ -453,7 +449,7 @@ export const handlers = [
       return HttpResponse.json({ error: 'Offboarding record not found' }, { status: 404 });
     record.exit_interviews = [
       {
-        conducted_by: 'Grace Liu',
+        conducted_by: 'Emily Doe',
         conducted_at: new Date().toISOString(),
         declined: Boolean(body.declined),
         responses: Array.isArray(body.responses) ? body.responses : [],

@@ -122,17 +122,17 @@ const employees: Employee[] = [
   {
     id: 'e-001',
     employeeNo: 'EMP-0001',
-    firstName: 'Sarah',
-    lastName: 'Chen',
+    firstName: 'Lena',
+    lastName: 'Whitfield',
     dateOfBirth: '1985-03-12',
     gender: 'Female',
     nationalId: 'ID-8821-44571',
-    email: 'sarah.chen@example.com',
-    phone: '+1 415 555 0142',
-    address: '204 Larkin St, San Francisco, CA 94102',
-    emergencyContactName: 'David Chen',
+    email: 'lena.whitfield@example.com',
+    phone: '+1 123 555 0142',
+    address: '999 Nowhere Rd, Springfield, CA 00001',
+    emergencyContactName: 'Miles Whitfield',
     emergencyContactRelationship: 'Spouse',
-    emergencyContactPhone: '+1 415 555 0188',
+    emergencyContactPhone: '+1 123 555 0188',
     departmentId: 'd-eng',
     departmentName: 'Engineering',
     positionId: 'p-cto',
@@ -150,17 +150,17 @@ const employees: Employee[] = [
   {
     id: 'e-002',
     employeeNo: 'EMP-0002',
-    firstName: 'Marcus',
-    lastName: 'Okafor',
+    firstName: 'Emeka',
+    lastName: 'Diallo',
     dateOfBirth: '1988-09-23',
     gender: 'Male',
     nationalId: 'ID-7732-12903',
-    email: 'marcus.okafor@example.com',
-    phone: '+1 415 555 0231',
-    address: '118 Pine St, San Francisco, CA 94104',
-    emergencyContactName: 'Ada Okafor',
+    email: 'emeka.diallo@example.com',
+    phone: '+1 123 555 0231',
+    address: '1 Fictional Ln, Springfield, CA 00002',
+    emergencyContactName: 'Aminata Diallo',
     emergencyContactRelationship: 'Sister',
-    emergencyContactPhone: '+1 415 555 0299',
+    emergencyContactPhone: '+1 123 555 0299',
     departmentId: 'd-hr',
     departmentName: 'Human Resources',
     positionId: 'p-hr-dir',
@@ -177,23 +177,23 @@ const employees: Employee[] = [
   {
     id: 'e-003',
     employeeNo: 'EMP-0003',
-    firstName: 'Elena',
-    lastName: 'Vasquez',
+    firstName: 'Lucía',
+    lastName: 'Herrera',
     dateOfBirth: '1990-07-04',
     gender: 'Female',
     nationalId: 'ID-6610-77820',
-    email: 'elena.vasquez@example.com',
-    phone: '+1 415 555 0312',
-    address: '55 Mint St, San Francisco, CA 94103',
-    emergencyContactName: 'Carlos Vasquez',
+    email: 'lucia.herrera@example.com',
+    phone: '+1 123 555 0312',
+    address: '7 Makebelieve Ct, Springfield, CA 00003',
+    emergencyContactName: 'Mateo Herrera',
     emergencyContactRelationship: 'Brother',
-    emergencyContactPhone: '+1 415 555 0388',
+    emergencyContactPhone: '+1 123 555 0388',
     departmentId: 'd-eng-fe',
     departmentName: 'Frontend',
     positionId: 'p-eng-mgr',
     positionName: 'Engineering Manager',
     managerId: 'e-001',
-    managerName: 'Sarah Chen',
+    managerName: 'Lena Whitfield',
     hireDate: '2022-01-10',
     employmentType: 'Full-time',
     salary: 175000,
@@ -204,23 +204,23 @@ const employees: Employee[] = [
   {
     id: 'e-006',
     employeeNo: 'EMP-0006',
-    firstName: 'Tom',
-    lastName: 'Andersen',
+    firstName: 'Felix',
+    lastName: 'Mikkelsen',
     dateOfBirth: '1996-12-03',
     gender: 'Male',
     nationalId: 'ID-3398-44510',
-    email: 'tom.andersen@example.com',
-    phone: '+1 415 555 0612',
-    address: '77 Howard St, San Francisco, CA 94105',
-    emergencyContactName: 'Lisa Andersen',
+    email: 'felix.mikkelsen@example.com',
+    phone: '+1 123 555 0612',
+    address: '13 Unreal Blvd, Springfield, CA 00006',
+    emergencyContactName: 'Hanne Mikkelsen',
     emergencyContactRelationship: 'Mother',
-    emergencyContactPhone: '+1 415 555 0688',
+    emergencyContactPhone: '+1 123 555 0688',
     departmentId: 'd-eng-fe',
     departmentName: 'Frontend',
     positionId: 'p-fe-eng',
     positionName: 'Frontend Engineer',
     managerId: 'e-003',
-    managerName: 'Elena Vasquez',
+    managerName: 'Lucía Herrera',
     hireDate: '2024-02-05',
     employmentType: 'Full-time',
     salary: 118000,
@@ -276,10 +276,10 @@ describe('UserManagementPage', () => {
   it('renders all users with linked employee info and status badges', () => {
     render(<UserManagementPage />);
 
-    expect(screen.getByText('Sarah Chen')).toBeInTheDocument();
-    expect(screen.getByText('Marcus Okafor')).toBeInTheDocument();
-    expect(screen.getByText('Tom Andersen')).toBeInTheDocument();
-    expect(screen.getByText('Elena Vasquez')).toBeInTheDocument();
+    expect(screen.getByText('Lena Whitfield')).toBeInTheDocument();
+    expect(screen.getByText('Emeka Diallo')).toBeInTheDocument();
+    expect(screen.getByText('Felix Mikkelsen')).toBeInTheDocument();
+    expect(screen.getByText('Lucía Herrera')).toBeInTheDocument();
     expect(screen.getByText('hr@example.com')).toBeInTheDocument();
     // Linked employee info rendered with employeeNo.
     expect(screen.getByText(/EMP-0001/)).toBeInTheDocument();
@@ -306,11 +306,11 @@ describe('UserManagementPage', () => {
     render(<UserManagementPage />);
 
     const searchInput = screen.getByPlaceholderText(/Search by email, name, or role/);
-    await user.type(searchInput, 'marcus');
+    await user.type(searchInput, 'emeka');
 
-    expect(screen.getByText('Marcus Okafor')).toBeInTheDocument();
-    expect(screen.queryByText('Sarah Chen')).not.toBeInTheDocument();
-    expect(screen.queryByText('Tom Andersen')).not.toBeInTheDocument();
+    expect(screen.getByText('Emeka Diallo')).toBeInTheDocument();
+    expect(screen.queryByText('Lena Whitfield')).not.toBeInTheDocument();
+    expect(screen.queryByText('Felix Mikkelsen')).not.toBeInTheDocument();
   });
 
   it('filters users by email and role keywords', async () => {
@@ -320,12 +320,12 @@ describe('UserManagementPage', () => {
     const searchInput = screen.getByPlaceholderText(/Search by email, name, or role/);
 
     await user.type(searchInput, 'employee@');
-    expect(screen.getByText('Tom Andersen')).toBeInTheDocument();
-    expect(screen.queryByText('Sarah Chen')).not.toBeInTheDocument();
+    expect(screen.getByText('Felix Mikkelsen')).toBeInTheDocument();
+    expect(screen.queryByText('Lena Whitfield')).not.toBeInTheDocument();
 
     await user.clear(searchInput);
     await user.type(searchInput, 'manager');
-    expect(screen.getByText('Elena Vasquez')).toBeInTheDocument();
+    expect(screen.getByText('Lucía Herrera')).toBeInTheDocument();
   });
 
   it('shows the empty state when the search matches nothing', async () => {
@@ -348,8 +348,8 @@ describe('UserManagementPage', () => {
     const filterSelect = screen.getAllByRole('combobox')[0];
     await user.selectOptions(filterSelect, 'HR Manager');
 
-    expect(screen.getByText('Marcus Okafor')).toBeInTheDocument();
-    expect(screen.queryByText('Sarah Chen')).not.toBeInTheDocument();
+    expect(screen.getByText('Emeka Diallo')).toBeInTheDocument();
+    expect(screen.queryByText('Lena Whitfield')).not.toBeInTheDocument();
   });
 
   it('opens the invite dialog and validates an empty email', async () => {
@@ -372,7 +372,7 @@ describe('UserManagementPage', () => {
 
     await user.click(screen.getByRole('button', { name: /Invite user/ }));
 
-    const emailInput = await screen.findByPlaceholderText('newuser@company.com');
+    const emailInput = await screen.findByPlaceholderText('newuser@example.com');
     await user.type(emailInput, 'hr@example.com');
     await user.click(screen.getByRole('button', { name: /Send invitation/ }));
 
@@ -386,7 +386,7 @@ describe('UserManagementPage', () => {
 
     await user.click(screen.getByRole('button', { name: /Invite user/ }));
 
-    const emailInput = await screen.findByPlaceholderText('newuser@company.com');
+    const emailInput = await screen.findByPlaceholderText('newuser@example.com');
     await user.type(emailInput, 'new.user@example.com');
     await user.click(screen.getByRole('button', { name: /Send invitation/ }));
 
@@ -405,7 +405,7 @@ describe('UserManagementPage', () => {
 
     await user.click(screen.getByRole('button', { name: /Invite user/ }));
 
-    const emailInput = await screen.findByPlaceholderText('newuser@company.com');
+    const emailInput = await screen.findByPlaceholderText('newuser@example.com');
     await user.type(emailInput, 'backend.user@example.com');
     await user.click(screen.getByRole('button', { name: /Send invitation/ }));
 
@@ -426,7 +426,7 @@ describe('UserManagementPage', () => {
 
     await user.click(screen.getByRole('button', { name: /Invite user/ }));
 
-    const emailInput = await screen.findByPlaceholderText('newuser@company.com');
+    const emailInput = await screen.findByPlaceholderText('newuser@example.com');
     await user.type(emailInput, 'fail.user@example.com');
     await user.click(screen.getByRole('button', { name: /Send invitation/ }));
 

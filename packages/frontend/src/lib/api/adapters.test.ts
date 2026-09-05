@@ -121,7 +121,7 @@ describe('adaptEmployee', () => {
       dateOfBirth: '1990-01-01',
       gender: 'FEMALE',
       nationalId: 'N1',
-      email: 'j@x.com',
+      email: 'j@example.com',
       phone: '123',
       address: 'addr',
       emergencyContactName: 'Bob',
@@ -521,7 +521,7 @@ describe('adaptDsar', () => {
       requestType: 'ERASURE',
       status: 'VERIFIED',
       dataSubjectUserId: 'u1',
-      dataSubjectEmail: 'a@x.com',
+      dataSubjectEmail: 'a@example.com',
       description: 'please',
       identityVerifiedBy: 'admin',
       identityVerifiedAt: '2021-01-01',
@@ -536,7 +536,7 @@ describe('adaptDsar', () => {
     expect(d.requestType).toBe('ERASURE');
     expect(d.status).toBe('VERIFIED');
     expect(d.dataSubjectUserId).toBe('u1');
-    expect(d.dataSubjectEmail).toBe('a@x.com');
+    expect(d.dataSubjectEmail).toBe('a@example.com');
     expect(d.description).toBe('please');
     expect(d.identityVerifiedBy).toBe('admin');
     expect(d.identityVerifiedAt).toBe('2021-01-01');
@@ -552,7 +552,7 @@ describe('adaptDsar', () => {
       id: 1,
       request_type: 'ACCESS',
       status: 'PENDING_VERIFICATION',
-      data_subject_email: 'b@x.com',
+      data_subject_email: 'b@example.com',
       data_subject_user_id: 'u2',
       identity_verified_by_id: 'admin2',
       identity_verified_at: '2021-01-05',
@@ -563,7 +563,7 @@ describe('adaptDsar', () => {
       rejection_reason: 'bad',
     });
     expect(d.dataSubjectUserId).toBe('u2');
-    expect(d.dataSubjectEmail).toBe('b@x.com');
+    expect(d.dataSubjectEmail).toBe('b@example.com');
     expect(d.identityVerifiedBy).toBe('admin2');
     expect(d.identityVerifiedAt).toBe('2021-01-05');
     expect(typeof d.createdAt).toBe('string');
@@ -679,7 +679,7 @@ describe('adaptConsent', () => {
     const c = adaptConsent({
       id: 1,
       dataSubjectUserId: 'u1',
-      dataSubjectEmail: 'a@x.com',
+      dataSubjectEmail: 'a@example.com',
       processingPurpose: 'marketing',
       consentText: 'I agree',
       noticeVersion: 'v2',
@@ -693,7 +693,7 @@ describe('adaptConsent', () => {
       updatedAt: '2021-01-02',
     });
     expect(c.dataSubjectUserId).toBe('u1');
-    expect(c.dataSubjectEmail).toBe('a@x.com');
+    expect(c.dataSubjectEmail).toBe('a@example.com');
     expect(c.processingPurpose).toBe('marketing');
     expect(c.consentText).toBe('I agree');
     expect(c.noticeVersion).toBe('v2');
@@ -709,7 +709,7 @@ describe('adaptConsent', () => {
     const c = adaptConsent({
       id: 1,
       data_subject_user_id: 'u2',
-      data_subject_email: 'b@x.com',
+      data_subject_email: 'b@example.com',
       processing_purpose: 'hr',
       consent_text: 'ok',
       notice_version: 'v1',
@@ -721,7 +721,7 @@ describe('adaptConsent', () => {
       recorded_at: '2021-02-01',
     });
     expect(c.dataSubjectUserId).toBe('u2');
-    expect(c.dataSubjectEmail).toBe('b@x.com');
+    expect(c.dataSubjectEmail).toBe('b@example.com');
     expect(c.processingPurpose).toBe('hr');
     expect(c.mechanism).toBe('SIGNATURE');
     expect(c.ipAddressTruncated).toBe('10.0.x.x');
@@ -733,7 +733,7 @@ describe('adaptConsent', () => {
   it('returns null for all optional fields when absent', () => {
     const c = adaptConsent({
       id: 1,
-      dataSubjectEmail: 'c@x.com',
+      dataSubjectEmail: 'c@example.com',
       processingPurpose: 'p',
       consentText: 't',
       noticeVersion: 'v',
