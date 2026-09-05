@@ -52,14 +52,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure git identity
-        # Annotated tags carry a tagger identity, so the runner must have
-        # user.name/user.email set or `git tag -a` fails with
-        # "Committer identity unknown".
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: Verify release metadata
         # Fails the publish if package.json or CHANGELOG.md drifted from the
         # reviewed release PR (e.g. main moved ahead between PR creation and
