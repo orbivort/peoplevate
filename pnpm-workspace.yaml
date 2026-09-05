@@ -36,6 +36,26 @@ overrides:
   # only merges plain object/array config files (no Maps, no deepmergeInto, no
   # deepmergeCustom with a MetaDataUpdater).
   deepmerge-ts: 8.0.2
+  # Force `mysql2` (pulled by the prisma CLI, which still pins 3.15.3 exactly)
+  # to a patched version to fix GHSA-3f6p-5ww8-9rcr (auth plugin downgrade to
+  # mysql_clear_password leaks plaintext credentials, patched >=3.22.0) and
+  # GHSA-rgwj-5xj2-c3m3 (unbounded zlib inflate decompression-bomb DoS, patched
+  # >=3.23.1). Peoplevate only uses PostgreSQL, so mysql2 is never loaded at
+  # runtime; the override keeps `pnpm audit` clean while the prisma CLI remains a
+  # dev dependency.
+  mysql2: 3.24.3
+  # Force `fast-uri` (pulled by ajv v8, which is used by the prisma CLI via
+  # @prisma/dev > @prisma/streams-local and by stylelint via table) to a patched
+  # version to fix GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf
+  # and GHSA-jqff-g426-hqxp (SSRF / host-confusion via URI normalization, all
+  # patched in >=3.1.6). 3.1.7 is the newest release in the 3.x range that ajv
+  # declares (^3.0.1), so a 4.x override would break the declared contract.
+  fast-uri: 3.1.7
+  # Force `qs` (pulled by express, body-parser and supertest's superagent) to a
+  # patched version to fix GHSA-x5fp-wj9c-mxmx (array-limit bypass via
+  # bracket-key comma parsing, patched >=6.15.4) and GHSA-4mjr-xmp4-gh2g
+  # (Denial of Service via an attacker-controlled isBuffer, patched >=6.16.0).
+  qs: 6.16.0
 
 # Shared dependency versions across all packages
 catalog:
