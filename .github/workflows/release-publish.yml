@@ -9,6 +9,20 @@ name: Publish Release
 on:
   pull_request:
     types: [closed]
+  # Escape hatch for the case where the merged-PR run above could not publish
+  # (e.g. a step failed and the run cannot be re-run, or the tag push was
+  # rejected). Re-running a failed run replays the workflow definition pinned
+  # to *that* run's commit, so a fix landed on `main` afterwards is only
+  # picked up by a freshly dispatched run like this one. Supply the same
+  # version the release PR carried; the metadata guard below still rejects a
+  # version that `package.json`/CHANGELOG.md on the dispatched ref do not
+  # match, so run this on `main` (or on the interrupted release commit).
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish, e.g. "1.0.3" or "v1.0.3" (tagged as v1.0.3).'
+        required: true
+        type: string
 
 # `contents: write` creates and pushes the annotated tag; `actions: write` is
 # required to dispatch the Release workflow via the API. Nothing else is
@@ -24,30 +38,46 @@ concurrency:
 
 jobs:
   tag:
-    name: Tag merged release PR
+    name: Tag release
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Normal path: a merged `release/v*` PR. Manual path: an operator supplied
+    # the version to publish through `workflow_dispatch`.
     if: >-
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'release/v')
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/v'))
     steps:
-      - name: Derive version from the release branch
+      - name: Derive version
         id: version
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          # Populated for a merged release PR (empty on manual dispatch).
           BRANCH: ${{ github.event.pull_request.head.ref }}
+          # Populated on manual dispatch (empty for a merged release PR).
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          TAG="${BRANCH#release/}" # release/v1.2.3 -> v1.2.3
+          if [[ "$EVENT_NAME" == 'workflow_dispatch' ]]; then
+            # Accept both "1.2.3" and "v1.2.3" so the input can be pasted from
+            # either the release PR title or the tag.
+            RAW="${INPUT_VERSION#v}"
+          else
+            RAW="${BRANCH#release/}" # release/v1.2.3 -> v1.2.3
+          fi
+          TAG="v${RAW#v}"
           if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+].+)?$ ]]; then
-            echo "::error::Unexpected release branch '$BRANCH'. Expected 'release/vX.Y.Z'."
+            echo "::error::Unexpected version '$RAW'. Expected 'X.Y.Z' (manual input) or 'release/vX.Y.Z' (release branch)."
             exit 1
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
           echo "Publishing $TAG"
 
-      - name: Checkout merged result (full history)
+      - name: Checkout the commit to tag (full history)
+        # Merged-PR run: the PR's merge commit. Manual run: the ref picked in
+        # the dispatch dialog (`main`, or the interrupted release commit).
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
@@ -55,14 +85,12 @@ jobs:
       - name: Verify release metadata
         # Fails the publish if package.json or CHANGELOG.md drifted from the
         # reviewed release PR (e.g. main moved ahead between PR creation and
-        # merge).
+        # merge), or when a manually dispatched version does not match the
+        # checked-out ref.
         run: node .github/scripts/verify-release.mjs "${{ steps.version.outputs.version }}"
 
       - name: Create and push the release tag
         env:
-          # The tag's tagger identity is derived from this token below, and it
-          # also authorizes the push.
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           set -euo pipefail
@@ -71,16 +99,17 @@ jobs:
             exit 1
           fi
           # Annotated tags embed a tagger identity, which GitHub runners have
-          # none of by default. Instead of hardcoding a user.name/email,
-          # resolve the identity from the token that authorizes the push
-          # (GITHUB_TOKEN resolves to github-actions[bot]) so the tag is
-          # attributed to the automation account. The noreply email matches the
-          # `<id>+<login>@users.noreply.github.com` GitHub convention.
-          read -r login uid < <(gh api user --jq '"\(.login) \(.id)"')
-          git config user.name "$login"
-          git config user.email "${uid}+${login}@users.noreply.github.com"
-          # Annotated tag pointing at the merge commit that carries the
-          # reviewed version bump and changelog entry.
+          # none of by default. Use the same fixed automation identity as the
+          # Prepare Release workflow: hardcoding it is required because
+          # GITHUB_TOKEN is an installation token and cannot call the
+          # `GET /user` endpoint (`gh api user` fails with
+          # "Resource not accessible by integration"). The noreply email
+          # matches the `<id>+<login>@users.noreply.github.com` GitHub
+          # convention, so the tag is attributed to github-actions[bot].
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Annotated tag pointing at the checked-out commit, which carries
+          # the reviewed version bump and changelog entry (verified above).
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
 

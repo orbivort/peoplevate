@@ -181,12 +181,21 @@ tags `main` with an annotated `vX.Y.Z` tag, and dispatches the existing
 and publishes the backend/frontend Docker images to GHCR and creates the
 GitHub Release with the reviewed changelog section as its body.
 
+If that run fails, **Publish Release** can be re-run by hand: _Actions → Publish
+Release → Run workflow_ takes the version to publish (e.g. `1.0.3` or `v1.0.3`).
+Run it on `main` (or on the interrupted release commit); the metadata guard
+rejects a version that `package.json`/`CHANGELOG.md` on that ref do not match.
+Re-running the *failed run* from the UI is not equivalent: it replays the
+workflow file as it existed at that run's commit, so a fix pushed to `main`
+afterwards only takes effect through a freshly started run.
+
 ### Manual fallback
 
 Manually pushing a tag (`git tag vX.Y.Z && git push origin vX.Y.Z`) still
 triggers the Release workflow. In that case the GitHub Release notes are
 generated from conventional commits instead of the changelog file, so prefer
-the release-PR flow whenever possible.
+dispatching **Publish Release** (which tags with the reviewed metadata) and
+treat a raw tag push as a last resort.
 
 ## Questions
 
