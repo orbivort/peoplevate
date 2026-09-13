@@ -74,6 +74,9 @@ catalog:
   '@eslint/js': ^10.0.1
   '@types/node': ^24.13.3
   cross-env: ^10.1.0
+  # Runtime dependencies shared by more than one workspace package.
+  dotenv: ^17.4.2
+  pg: ^8.22.0
   # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
   # the @vitest/mocker redirect mock).
   vitest: ^4.1.11

@@ -18,12 +18,18 @@ catalogs:
     cross-env:
       specifier: ^10.1.0
       version: 10.1.0
+    dotenv:
+      specifier: ^17.4.2
+      version: 17.4.2
     eslint:
       specifier: ^10.8.0
       version: 10.8.0
     globals:
       specifier: ^17.9.0
       version: 17.9.0
+    pg:
+      specifier: ^8.22.0
+      version: 8.22.0
     typescript:
       specifier: ^6.0.0
       version: 6.0.3
@@ -79,7 +85,7 @@ importers:
         specifier: ^2.8.6
         version: 2.8.6
       dotenv:
-        specifier: ^17.4.2
+        specifier: 'catalog:'
         version: 17.4.2
       express:
         specifier: ^5.2.1
@@ -103,7 +109,7 @@ importers:
         specifier: ^9.1.1
         version: 9.1.1
       pg:
-        specifier: ^8.22.0
+        specifier: 'catalog:'
         version: 8.22.0
       uuid:
         specifier: ^14.0.1
@@ -197,7 +203,7 @@ importers:
   packages/config/vitest:
     dependencies:
       vitest:
-        specifier: ^4.1.11
+        specifier: 'catalog:'
         version: 4.1.11(@types/node@26.1.2)(@vitest/coverage-v8@4.1.11)(jsdom@30.0.1)(msw@2.15.0(@types/node@26.1.2)(typescript@6.0.3))(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11))
 
   packages/e2e:
@@ -206,10 +212,10 @@ importers:
         specifier: ^1.49.0
         version: 1.62.1
       dotenv:
-        specifier: ^17.1.0
+        specifier: 'catalog:'
         version: 17.4.2
       pg:
-        specifier: ^8.13.1
+        specifier: 'catalog:'
         version: 8.22.0
     devDependencies:
       '@types/node':
