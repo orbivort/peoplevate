@@ -56,6 +56,16 @@ overrides:
   # bracket-key comma parsing, patched >=6.15.4) and GHSA-4mjr-xmp4-gh2g
   # (Denial of Service via an attacker-controlled isBuffer, patched >=6.16.0).
   qs: 6.16.0
+  # Force `js-yaml` (pulled by stylelint > cosmiconfig) to a patched version to
+  # fix GHSA-2883-xcg3-v3hh (maxTotalMergeKeys does not bound CPU consumption for
+  # empty merge sources, patched >=4.3.2). cosmiconfig declares `^4.1.0`, so 4.3.2
+  # is the newest release inside the declared range; a 5.x override would break
+  # the declared contract.
+  js-yaml: 4.3.2
+  # Force `colord` (pulled by stylelint) to a patched version to fix
+  # GHSA-2wm5-q62r-hmrv (slow rejection of oversized malformed color strings,
+  # patched >=2.9.4). stylelint declares `^2.9.3`, so 2.10.0 stays in range.
+  colord: 2.10.0
 
 # Shared dependency versions across all packages
 catalog:
@@ -64,8 +74,13 @@ catalog:
   '@eslint/js': ^10.0.1
   '@types/node': ^24.13.3
   cross-env: ^10.1.0
-  vitest: ^4.1.10
-  '@vitest/coverage-v8': ^4.1.10
+  # Runtime dependencies shared by more than one workspace package.
+  dotenv: ^17.4.2
+  pg: ^8.22.0
+  # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
+  # the @vitest/mocker redirect mock).
+  vitest: ^4.1.11
+  '@vitest/coverage-v8': ^4.1.11
   typescript-eslint: ^8.66.0
   globals: ^17.9.0
 
