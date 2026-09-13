@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Security
+
+- Remediate **11** dependency vulnerabilities:
+  - `multer` 2.2.0 → 2.3.0 — fixes a DoS via crafted multipart field names
+    ([GHSA-wc9g-mqfw-jrwm](https://github.com/advisories/GHSA-wc9g-mqfw-jrwm)),
+    a DoS via an oversized array index in field names
+    ([GHSA-535w-7cp7-47q4](https://github.com/advisories/GHSA-535w-7cp7-47q4)),
+    a file-size-limit bypass via an async `fileFilter` race condition
+    ([GHSA-qvfw-j98x-7q72](https://github.com/advisories/GHSA-qvfw-j98x-7q72)), and a file
+    descriptor leak on aborted uploads
+    ([GHSA-qfvm-cv95-jqjf](https://github.com/advisories/GHSA-qfvm-cv95-jqjf))
+  - `nodemailer` 9.0.5 → 9.1.1 — fixes a quadratic-time `addressparser` DoS
+    ([GHSA-2x7j-588g-ccc2](https://github.com/advisories/GHSA-2x7j-588g-ccc2)), a
+    `resolveContent()` bypass of `disableFileAccess` / `disableUrlAccess`
+    ([GHSA-8m3c-c648-2xjj](https://github.com/advisories/GHSA-8m3c-c648-2xjj)), and two
+    recipient-domain allow-list bypasses
+    ([GHSA-wmmp-3585-3rmp](https://github.com/advisories/GHSA-wmmp-3585-3rmp),
+    [GHSA-cc9r-2j5m-2m83](https://github.com/advisories/GHSA-cc9r-2j5m-2m83))
+  - `vitest` / `@vitest/coverage-v8` 4.1.10 → 4.1.11 — fixes a path traversal / arbitrary
+    file read via the `@vitest/mocker` redirect mock
+    ([GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9))
+  - `js-yaml` 4.3.1 → 4.3.2 — fixes unbounded CPU consumption for empty merge sources
+    ([GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh)). It is pulled
+    by `stylelint` through `cosmiconfig`, which declares `^4.1.0`, so the fix is pinned by a
+    pnpm override rather than a direct dependency bump
+  - `colord` 2.9.3 → 2.10.0 — fixes slow rejection of oversized malformed color strings
+    ([GHSA-2wm5-q62r-hmrv](https://github.com/advisories/GHSA-2wm5-q62r-hmrv)). It is pulled
+    by `stylelint`, which declares `^2.9.3`, and is pinned by a pnpm override
+
 ## [1.0.2] - 2026-09-05
 
 ### Security
