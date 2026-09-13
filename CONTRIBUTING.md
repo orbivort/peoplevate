@@ -126,8 +126,12 @@ The workflow:
    `packages/frontend/package.json` — kept in lockstep with the git tag. The
    other workspace packages (`@peoplevate/e2e`, `@peoplevate/eslint-config`,
    `@peoplevate/vitest-config`) are versionless internal tooling.
-3. Prepends a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) section
-   generated from the conventional commits to `CHANGELOG.md`.
+3. Updates `CHANGELOG.md` with a
+   [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) section. An existing
+   `## [Unreleased]` section is promoted in place to the new version, content
+   preserved. Otherwise the section is generated from the conventional commits
+   since the last tag (`feat` → Added, `fix` → Fixed, `refactor`/`perf` →
+   Changed), or added blank when no commit maps to one of those types.
 4. Pushes a `release/vX.Y.Z` branch and opens a **release pull request**
    titled `chore(release): vX.Y.Z` containing the changelog section.
 

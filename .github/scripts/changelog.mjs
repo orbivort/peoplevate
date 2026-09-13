@@ -14,11 +14,13 @@
  *               release tag, e.g. "v1.2.2"). When omitted or empty, the log
  *               starts from the repository root (first release).
  *
- * Also importable as a module: `collectCommits()`, `generateSection()`.
+ * Also importable as a module: `collectCommits()`, `generateSection()`,
+ * `renderBullet()`.
  * Depends on nothing outside Node's standard library, mirroring the
  * dependency-light approach of the rest of the release tooling.
  */
 import { execFileSync } from 'node:child_process';
+import { basename } from 'node:path';
 
 /**
  * Conventional-commit type -> Keep-a-Changelog section mapping, in output
@@ -112,7 +114,7 @@ function isBreaking(commit) {
  * Render one commit as a changelog bullet. The conventional type prefix is
  * stripped; a scope becomes a bold prefix (release-please style).
  */
-function renderBullet(commit) {
+export function renderBullet(commit) {
   const parsed = parseSubject(commit.subject);
   if (!parsed) return `- ${commit.subject}`;
   const scope = parsed.scope ? `**${parsed.scope}**: ` : '';
@@ -152,7 +154,9 @@ export function generateSection(version, date, commits) {
 }
 
 // --- CLI entry point -------------------------------------------------------
-if (process.argv[1] && process.argv[1].endsWith('changelog.mjs')) {
+// Compare the exact basename: a plain `endsWith('changelog.mjs')` would also
+// match sibling scripts such as `update-changelog.mjs` that import this module.
+if (basename(process.argv[1] ?? '') === 'changelog.mjs') {
   const [version, fromRef = ''] = process.argv.slice(2);
   if (!version) {
     console.error('Usage: node changelog.mjs <version> [from-ref]');
