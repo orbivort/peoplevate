@@ -130,6 +130,22 @@ const AttendanceLeavePage = lazy(() =>
     default: m.AttendanceLeavePage,
   })),
 );
+const TimesheetsPage = lazy(() =>
+  import('@/pages/timesheets/timesheets-page').then((m) => ({ default: m.TimesheetsPage })),
+);
+const TimesheetApprovalsPage = lazy(() =>
+  import('@/pages/timesheets/timesheet-approvals-page').then((m) => ({
+    default: m.TimesheetApprovalsPage,
+  })),
+);
+const TimesheetReportsPage = lazy(() =>
+  import('@/pages/timesheets/timesheet-reports-page').then((m) => ({
+    default: m.TimesheetReportsPage,
+  })),
+);
+const AdminProjectsPage = lazy(() =>
+  import('@/pages/admin/projects-page').then((m) => ({ default: m.ProjectsPage })),
+);
 const LeaveHolidaysPage = lazy(() =>
   import('@/pages/attendance/leave-holidays-page').then((m) => ({
     default: m.LeaveHolidaysPage,
@@ -434,6 +450,51 @@ const router = createBrowserRouter(
                       <AttendanceLeavePage />
                     </PageRoute>
                   ),
+                },
+                // ---- Timesheets: own weekly timesheet (all staff) ----
+                {
+                  path: '/app/timesheets',
+                  element: (
+                    <PageRoute>
+                      <TimesheetsPage />
+                    </PageRoute>
+                  ),
+                },
+                // ---- Timesheets: approvals & reports (Manager/HR/Admin) ----
+                {
+                  element: <ProtectedRoute roles={['Manager', 'HR Manager', 'Admin']} />,
+                  children: [
+                    {
+                      path: '/app/timesheets/approvals',
+                      element: (
+                        <PageRoute>
+                          <TimesheetApprovalsPage />
+                        </PageRoute>
+                      ),
+                    },
+                    {
+                      path: '/app/timesheets/reports',
+                      element: (
+                        <PageRoute>
+                          <TimesheetReportsPage />
+                        </PageRoute>
+                      ),
+                    },
+                  ],
+                },
+                // ---- Timesheets: project/task catalog (Admin/HR) ----
+                {
+                  element: <ProtectedRoute roles={['Admin', 'HR Manager']} />,
+                  children: [
+                    {
+                      path: '/app/admin/projects',
+                      element: (
+                        <PageRoute>
+                          <AdminProjectsPage />
+                        </PageRoute>
+                      ),
+                    },
+                  ],
                 },
                 {
                   path: '/app/performance',

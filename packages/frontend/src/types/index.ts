@@ -592,6 +592,9 @@ export interface DataBreachNotification {
   sentAt: string;
 }
 
+// Timesheet domain types (contract-matched, see types/timesheet.ts).
+export * from './timesheet';
+
 export type ConsentMechanism = 'CHECKBOX' | 'SIGNATURE' | 'EXPLICIT';
 export type ConsentStatus = 'GIVEN' | 'WITHDRAWN';
 

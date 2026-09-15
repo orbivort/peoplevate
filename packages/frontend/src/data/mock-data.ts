@@ -15,6 +15,14 @@ import type {
   Role,
   User,
 } from '@/types';
+import type {
+  Project,
+  ProjectTask,
+  TimesheetApproval,
+  TimesheetDetail,
+  TimesheetEntry,
+  TimesheetStatus,
+} from '@/types/timesheet';
 
 // ---------------------------------------------------------------------------
 // NOTE — Fictional demo data
@@ -4683,4 +4691,291 @@ export const offboardingRecords = [
       },
     ],
   },
+];
+
+// ---------------------------------------------------------------------------
+// Timesheets — projects, tasks, and weekly timesheets
+//
+// Weeks are anchored to the demo "today" of Monday 2026-09-14: the current
+// week (Sep 14–20) is a DRAFT in progress, the previous week (Sep 7–13) is
+// APPROVED for the demo employee and SUBMITTED for a direct report (manager
+// queue), and the week before that (Aug 31–Sep 6) is REJECTED to demo the
+// resubmission flow.
+// ---------------------------------------------------------------------------
+
+export const timesheetProjects: Project[] = [
+  {
+    id: 'p-erp',
+    code: 'ERP-001',
+    name: 'ERP Migration',
+    description: 'Phased migration of the legacy ERP to the new platform.',
+    client: 'Acme Corp',
+    isBillable: true,
+    startDate: '2026-04-01T00:00:00.000Z',
+    endDate: '2026-12-31T00:00:00.000Z',
+    isActive: true,
+    taskCount: 3,
+    createdAt: '2026-03-20T09:00:00Z',
+    updatedAt: '2026-08-30T14:00:00Z',
+  },
+  {
+    id: 'p-web',
+    code: 'WEB-002',
+    name: 'Website Redesign',
+    description: 'Marketing site redesign with a new design system.',
+    client: 'Globex',
+    isBillable: true,
+    startDate: '2026-06-15T00:00:00.000Z',
+    endDate: '2026-10-15T00:00:00.000Z',
+    isActive: true,
+    taskCount: 2,
+    createdAt: '2026-06-01T10:00:00Z',
+    updatedAt: '2026-09-01T09:00:00Z',
+  },
+  {
+    id: 'p-ops',
+    code: 'OPS-003',
+    name: 'Internal Operations',
+    description: 'Non-billable internal work: meetings, support, admin.',
+    client: null,
+    isBillable: false,
+    startDate: null,
+    endDate: null,
+    isActive: true,
+    taskCount: 2,
+    createdAt: '2026-01-05T08:00:00Z',
+    updatedAt: '2026-01-05T08:00:00Z',
+  },
+  {
+    id: 'p-qa',
+    code: 'QA-004',
+    name: 'QA Automation',
+    description: 'End-to-end test automation suite (completed pilot phase).',
+    client: 'Acme Corp',
+    isBillable: true,
+    startDate: '2026-02-01T00:00:00.000Z',
+    endDate: '2026-06-30T00:00:00.000Z',
+    isActive: false,
+    taskCount: 1,
+    createdAt: '2026-01-28T11:00:00Z',
+    updatedAt: '2026-07-02T16:00:00Z',
+  },
+];
+
+export const timesheetTasks: ProjectTask[] = [
+  { id: 't-erp-impl', projectId: 'p-erp', name: 'Implementation', isActive: true, createdAt: '2026-03-20T09:00:00Z', updatedAt: '2026-03-20T09:00:00Z' },
+  { id: 't-erp-mig', projectId: 'p-erp', name: 'Data Migration', isActive: true, createdAt: '2026-03-20T09:00:00Z', updatedAt: '2026-03-20T09:00:00Z' },
+  { id: 't-erp-test', projectId: 'p-erp', name: 'Testing', isActive: true, createdAt: '2026-03-20T09:00:00Z', updatedAt: '2026-03-20T09:00:00Z' },
+  { id: 't-web-design', projectId: 'p-web', name: 'Design', isActive: true, createdAt: '2026-06-01T10:00:00Z', updatedAt: '2026-06-01T10:00:00Z' },
+  { id: 't-web-fe', projectId: 'p-web', name: 'Frontend Build', isActive: true, createdAt: '2026-06-01T10:00:00Z', updatedAt: '2026-06-01T10:00:00Z' },
+  { id: 't-ops-mtg', projectId: 'p-ops', name: 'Team Meetings', isActive: true, createdAt: '2026-01-05T08:00:00Z', updatedAt: '2026-01-05T08:00:00Z' },
+  { id: 't-ops-support', projectId: 'p-ops', name: 'Internal Support', isActive: true, createdAt: '2026-01-05T08:00:00Z', updatedAt: '2026-01-05T08:00:00Z' },
+  { id: 't-qa-frame', projectId: 'p-qa', name: 'Framework Setup', isActive: false, createdAt: '2026-01-28T11:00:00Z', updatedAt: '2026-07-02T16:00:00Z' },
+];
+
+/** Build a TimesheetEntry with embedded project/task refs from the catalog. */
+function tsEntry(spec: {
+  id: string;
+  timesheetId: string;
+  employeeId: string;
+  entryDate: string;
+  projectId: string;
+  taskId: string | null;
+  hours: number;
+  description?: string;
+}): TimesheetEntry {
+  const project = timesheetProjects.find((p) => p.id === spec.projectId);
+  const task = spec.taskId ? timesheetTasks.find((t) => t.id === spec.taskId) : undefined;
+  return {
+    id: spec.id,
+    timesheetId: spec.timesheetId,
+    employeeId: spec.employeeId,
+    entryDate: spec.entryDate,
+    projectId: spec.projectId,
+    project: {
+      id: spec.projectId,
+      code: project?.code ?? '???',
+      name: project?.name ?? 'Unknown project',
+      isBillable: project?.isBillable ?? false,
+    },
+    taskId: spec.taskId,
+    task: task ? { id: task.id, name: task.name } : null,
+    hours: spec.hours,
+    description: spec.description ?? null,
+    createdAt: `${spec.entryDate}T08:00:00Z`,
+    updatedAt: `${spec.entryDate}T08:00:00Z`,
+  };
+}
+
+/** Build a full TimesheetDetail, computing totals from the entries. */
+function buildTimesheet(spec: {
+  id: string;
+  employeeId: string;
+  employee: { id: string; employeeNo: string; firstName: string; lastName: string };
+  periodStart: string;
+  periodEnd: string;
+  status: TimesheetStatus;
+  submittedAt: string | null;
+  createdAt: string;
+  approvals: TimesheetApproval[];
+  entries: TimesheetEntry[];
+}): TimesheetDetail {
+  const weeklyTotalHours =
+    Math.round(spec.entries.reduce((sum, e) => sum + e.hours, 0) * 100) / 100;
+  // Zero-filled per-day totals for all 7 days of the period.
+  const perDayTotals = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(`${spec.periodStart.slice(0, 10)}T00:00:00.000Z`);
+    date.setUTCDate(date.getUTCDate() + i);
+    const key = date.toISOString().slice(0, 10);
+    const hours = spec.entries
+      .filter((e) => e.entryDate === key)
+      .reduce((sum, e) => sum + e.hours, 0);
+    return { date: key, hours: Math.round(hours * 100) / 100 };
+  });
+  // Aggregated per-project totals.
+  const byProject = new Map<string, { code: string; name: string; hours: number }>();
+  for (const e of spec.entries) {
+    const current = byProject.get(e.projectId) ?? {
+      code: e.project.code,
+      name: e.project.name,
+      hours: 0,
+    };
+    current.hours += e.hours;
+    byProject.set(e.projectId, current);
+  }
+  const perProjectTotals = [...byProject.entries()].map(([projectId, value]) => ({
+    projectId,
+    projectCode: value.code,
+    projectName: value.name,
+    hours: Math.round(value.hours * 100) / 100,
+  }));
+  return {
+    id: spec.id,
+    employeeId: spec.employeeId,
+    employee: spec.employee,
+    periodStart: spec.periodStart,
+    periodEnd: spec.periodEnd,
+    status: spec.status,
+    submittedAt: spec.submittedAt,
+    weeklyTotalHours,
+    entryCount: spec.entries.length,
+    createdAt: spec.createdAt,
+    updatedAt: spec.submittedAt ?? spec.createdAt,
+    entries: spec.entries,
+    approvals: spec.approvals,
+    perDayTotals,
+    perProjectTotals,
+  };
+}
+
+const charlieRef = { id: 'e-006', employeeNo: 'EMP-0006', firstName: 'Charlie', lastName: 'Doe' };
+const bobRef = { id: 'e-004', employeeNo: 'EMP-0004', firstName: 'Bob', lastName: 'Doe' };
+
+export const timesheets: TimesheetDetail[] = [
+  // Current week (Sep 14–20) — DRAFT in progress for the demo employee.
+  buildTimesheet({
+    id: 'ts-001',
+    employeeId: 'e-006',
+    employee: charlieRef,
+    periodStart: '2026-09-14T00:00:00.000Z',
+    periodEnd: '2026-09-20T23:59:59.999Z',
+    status: 'DRAFT',
+    submittedAt: null,
+    createdAt: '2026-09-14T08:05:00Z',
+    approvals: [],
+    entries: [
+      tsEntry({ id: 'te-001', timesheetId: 'ts-001', employeeId: 'e-006', entryDate: '2026-09-14', projectId: 'p-erp', taskId: 't-erp-impl', hours: 6, description: 'Invoice module refactoring' }),
+      tsEntry({ id: 'te-002', timesheetId: 'ts-001', employeeId: 'e-006', entryDate: '2026-09-14', projectId: 'p-ops', taskId: 't-ops-mtg', hours: 1, description: 'Weekly sprint planning' }),
+      tsEntry({ id: 'te-003', timesheetId: 'ts-001', employeeId: 'e-006', entryDate: '2026-09-14', projectId: 'p-ops', taskId: 't-ops-support', hours: 1, description: 'Helped Bob with CI pipeline' }),
+      tsEntry({ id: 'te-004', timesheetId: 'ts-001', employeeId: 'e-006', entryDate: '2026-09-15', projectId: 'p-erp', taskId: 't-erp-impl', hours: 4, description: 'Invoice module tests' }),
+    ],
+  }),
+  // Previous week (Sep 7–13) — APPROVED for the demo employee.
+  buildTimesheet({
+    id: 'ts-002',
+    employeeId: 'e-006',
+    employee: charlieRef,
+    periodStart: '2026-09-07T00:00:00.000Z',
+    periodEnd: '2026-09-13T23:59:59.999Z',
+    status: 'APPROVED',
+    submittedAt: '2026-09-14T09:00:00Z',
+    createdAt: '2026-09-08T08:00:00Z',
+    approvals: [
+      {
+        id: 'ta-001',
+        action: 'APPROVE',
+        comment: 'Looks good, thanks.',
+        approverId: 'u-mgr',
+        approverEmail: 'manager@example.com',
+        createdAt: '2026-09-14T11:30:00Z',
+      },
+    ],
+    entries: [
+      tsEntry({ id: 'te-010', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-07', projectId: 'p-erp', taskId: 't-erp-impl', hours: 6, description: 'Invoice module scaffolding' }),
+      tsEntry({ id: 'te-011', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-07', projectId: 'p-ops', taskId: 't-ops-mtg', hours: 1, description: 'Sprint planning' }),
+      tsEntry({ id: 'te-012', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-07', projectId: 'p-ops', taskId: 't-ops-support', hours: 1 }),
+      tsEntry({ id: 'te-013', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-08', projectId: 'p-erp', taskId: 't-erp-mig', hours: 5, description: 'Legacy data mapping' }),
+      tsEntry({ id: 'te-014', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-08', projectId: 'p-web', taskId: 't-web-fe', hours: 3, description: 'Pricing page components' }),
+      tsEntry({ id: 'te-015', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-09', projectId: 'p-erp', taskId: 't-erp-impl', hours: 4 }),
+      tsEntry({ id: 'te-016', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-09', projectId: 'p-erp', taskId: 't-erp-test', hours: 2 }),
+      tsEntry({ id: 'te-017', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-09', projectId: 'p-web', taskId: 't-web-design', hours: 2, description: 'Design review with Globex' }),
+      tsEntry({ id: 'te-018', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-10', projectId: 'p-erp', taskId: 't-erp-mig', hours: 6 }),
+      tsEntry({ id: 'te-019', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-10', projectId: 'p-ops', taskId: 't-ops-support', hours: 2 }),
+      tsEntry({ id: 'te-020', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-11', projectId: 'p-web', taskId: 't-web-fe', hours: 4 }),
+      tsEntry({ id: 'te-021', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-11', projectId: 'p-erp', taskId: 't-erp-test', hours: 3 }),
+      tsEntry({ id: 'te-022', timesheetId: 'ts-002', employeeId: 'e-006', entryDate: '2026-09-11', projectId: 'p-ops', taskId: 't-ops-mtg', hours: 1, description: 'Retro' }),
+    ],
+  }),
+  // Previous week (Sep 7–13) — SUBMITTED by a direct report (manager queue).
+  buildTimesheet({
+    id: 'ts-003',
+    employeeId: 'e-004',
+    employee: bobRef,
+    periodStart: '2026-09-07T00:00:00.000Z',
+    periodEnd: '2026-09-13T23:59:59.999Z',
+    status: 'SUBMITTED',
+    submittedAt: '2026-09-12T17:05:00Z',
+    createdAt: '2026-09-08T08:30:00Z',
+    approvals: [],
+    entries: [
+      tsEntry({ id: 'te-030', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-07', projectId: 'p-web', taskId: 't-web-fe', hours: 6, description: 'Hero section implementation' }),
+      tsEntry({ id: 'te-031', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-07', projectId: 'p-ops', taskId: 't-ops-mtg', hours: 2 }),
+      tsEntry({ id: 'te-032', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-08', projectId: 'p-web', taskId: 't-web-fe', hours: 8 }),
+      tsEntry({ id: 'te-033', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-09', projectId: 'p-web', taskId: 't-web-design', hours: 5, description: 'Responsive breakpoints' }),
+      tsEntry({ id: 'te-034', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-09', projectId: 'p-ops', taskId: 't-ops-support', hours: 3 }),
+      tsEntry({ id: 'te-035', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-10', projectId: 'p-web', taskId: 't-web-fe', hours: 7 }),
+      tsEntry({ id: 'te-036', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-10', projectId: 'p-ops', taskId: 't-ops-mtg', hours: 1 }),
+      tsEntry({ id: 'te-037', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-11', projectId: 'p-web', taskId: 't-web-fe', hours: 6 }),
+      tsEntry({ id: 'te-038', timesheetId: 'ts-003', employeeId: 'e-004', entryDate: '2026-09-11', projectId: 'p-web', taskId: 't-web-design', hours: 2 }),
+    ],
+  }),
+  // Two weeks ago (Aug 31–Sep 6) — REJECTED for a direct report (resubmission demo).
+  buildTimesheet({
+    id: 'ts-004',
+    employeeId: 'e-004',
+    employee: bobRef,
+    periodStart: '2026-08-31T00:00:00.000Z',
+    periodEnd: '2026-09-06T23:59:59.999Z',
+    status: 'REJECTED',
+    submittedAt: '2026-09-05T16:45:00Z',
+    createdAt: '2026-09-01T08:00:00Z',
+    approvals: [
+      {
+        id: 'ta-002',
+        action: 'REJECT',
+        comment: 'Friday is missing — please add the client workshop hours and resubmit.',
+        approverId: 'u-mgr',
+        approverEmail: 'manager@example.com',
+        createdAt: '2026-09-06T10:15:00Z',
+      },
+    ],
+    entries: [
+      tsEntry({ id: 'te-040', timesheetId: 'ts-004', employeeId: 'e-004', entryDate: '2026-08-31', projectId: 'p-web', taskId: 't-web-fe', hours: 8 }),
+      tsEntry({ id: 'te-041', timesheetId: 'ts-004', employeeId: 'e-004', entryDate: '2026-09-01', projectId: 'p-web', taskId: 't-web-fe', hours: 6 }),
+      tsEntry({ id: 'te-042', timesheetId: 'ts-004', employeeId: 'e-004', entryDate: '2026-09-01', projectId: 'p-ops', taskId: 't-ops-mtg', hours: 2 }),
+      tsEntry({ id: 'te-043', timesheetId: 'ts-004', employeeId: 'e-004', entryDate: '2026-09-02', projectId: 'p-web', taskId: 't-web-design', hours: 8 }),
+      tsEntry({ id: 'te-044', timesheetId: 'ts-004', employeeId: 'e-004', entryDate: '2026-09-03', projectId: 'p-web', taskId: 't-web-fe', hours: 8 }),
+      tsEntry({ id: 'te-045', timesheetId: 'ts-004', employeeId: 'e-004', entryDate: '2026-09-04', projectId: 'p-web', taskId: 't-web-fe', hours: 4, description: 'Workshop prep (partial)' }),
+    ],
+  }),
 ];

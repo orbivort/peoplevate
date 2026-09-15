@@ -44,6 +44,9 @@ export const mockRegistry: MockResource[] = [
   { name: 'anomalyAlerts', select: (s) => s.mockAnomalyAlerts },
   { name: 'consentRecords', select: (s) => s.mockConsentRecords },
   { name: 'keyVersions', select: (s) => s.mockKeyVersions },
+  { name: 'timesheetProjects', select: (s) => s.timesheetProjects },
+  { name: 'timesheetTasks', select: (s) => s.timesheetTasks },
+  { name: 'timesheets', select: (s) => s.timesheets },
 ];
 
 /** Look up a resource by name. */

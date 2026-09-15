@@ -172,6 +172,8 @@ model Employee {
   employment_changes             EmploymentChange[]
   candidate                      Candidate?
   attendance_records             AttendanceRecord[]
+  timesheets                     Timesheet[]
+  timesheet_entries              TimesheetEntry[]
   leave_entitlements             LeaveEntitlement[]
   leave_requests                 LeaveRequest[]
   leave_balances                 LeaveBalance[]
@@ -308,6 +310,8 @@ enum AuditAction {
   CONSENT
   PURGE
   DSAR
+  APPROVE
+  REJECT
 }
 
 enum AuditEntity {
@@ -341,6 +345,10 @@ enum AuditEntity {
   RETENTION
   KEYS
   ANOMALIES
+  TIMESHEET
+  TIMESHEET_ENTRY
+  PROJECT
+  PROJECT_TASK
 }
 
 model AuditLog {
@@ -1184,4 +1192,107 @@ model AnomalyAlert {
 
   @@index([status])
   @@index([alert_type])
+}
+
+// ──────────────────────────────────────────────
+// Phase 3: Timesheet Management
+// ──────────────────────────────────────────────
+
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// Approval decisions reuse the existing ApprovalAction enum (APPROVE / REJECT /
+// REQUEST_INFO), mirroring the LeaveApproval pattern.
+
+model Project {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  name        String
+  description String?
+  client      String?
+  is_billable Boolean   @default(false)
+  start_date  DateTime?
+  end_date    DateTime?
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  tasks   ProjectTask[]
+  entries TimesheetEntry[]
+}
+
+model ProjectTask {
+  id         String       @id @default(uuid())
+  project_id String
+  project    Project      @relation(fields: [project_id], references: [id])
+  name       String
+  is_active  Boolean      @default(true)
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  deleted_at DateTime?
+
+  entries TimesheetEntry[]
+
+  @@unique([project_id, name])
+}
+
+model Timesheet {
+  id           String          @id @default(uuid())
+  employee_id  String
+  employee     Employee        @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  period_start DateTime        // Monday 00:00 org timezone
+  period_end   DateTime        // Sunday 23:59:59.999
+  status       TimesheetStatus @default(DRAFT)
+  submitted_at DateTime?
+  submitted_by String?
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  deleted_at   DateTime?
+
+  entries   TimesheetEntry[]
+  approvals TimesheetApproval[]
+
+  @@unique([employee_id, period_start])
+  @@index([employee_id])
+  @@index([status])
+  @@index([period_start])
+}
+
+model TimesheetEntry {
+  id           String        @id @default(uuid())
+  timesheet_id String
+  timesheet    Timesheet     @relation(fields: [timesheet_id], references: [id], onDelete: Cascade)
+  employee_id  String
+  employee     Employee      @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  entry_date   DateTime      // date of work (date-only semantics, stored at midnight UTC)
+  project_id   String
+  project      Project       @relation(fields: [project_id], references: [id])
+  task_id      String?
+  task         ProjectTask?  @relation(fields: [task_id], references: [id])
+  hours        Decimal       @db.Decimal(5, 2)
+  description  String?       @db.VarChar(500)
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  deleted_at   DateTime?
+
+  @@index([employee_id, entry_date])
+  @@index([project_id, entry_date])
+  @@index([timesheet_id])
+}
+
+model TimesheetApproval {
+  id           String         @id @default(uuid())
+  timesheet_id String
+  timesheet    Timesheet     @relation(fields: [timesheet_id], references: [id], onDelete: Cascade)
+  approver_id  String         // User.id
+  action       ApprovalAction
+  comment      String?
+  created_at   DateTime      @default(now())
+
+  @@index([timesheet_id])
 }

@@ -11,6 +11,7 @@
  */
 import { http, HttpResponse, delay, type JsonBodyType } from 'msw';
 import { getStore, resetStore, insert, updateById, removeById } from './store';
+import { timesheetHandlers } from './timesheet-handlers';
 
 /** Simulated network latency (ms). Set to 0 to disable. */
 const LATENCY_MS = 300;
@@ -44,6 +45,9 @@ function mockNewClearanceItem(
 }
 
 export const handlers = [
+  // ── Timesheets (see timesheet-handlers.ts) ──────────────────────────────
+  ...timesheetHandlers,
+
   // ── Auth ────────────────────────────────────────────────────────────────
   http.post('/api/auth/login', async ({ request }) => {
     await simulateLatency();

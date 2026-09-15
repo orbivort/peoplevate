@@ -12,6 +12,7 @@ administrators, HR staff, and API consumers who install and run the product.
 | [Roles & Permissions](./roles-permissions.md) | Admins, HR managers, operators         | The RBAC role matrix and capability mapping across the system.                                      |
 | [API Overview](./api-overview.md)             | API consumers, integrators, developers | REST endpoint reference for the backend API.                                                        |
 | [Deployment](./deployment.md)                 | Operators, DevOps, admins              | How to deploy and operate Peoplevate in production, including the recommended Docker Compose stack. |
+| [Timesheet Weekly-Entry Migration](./timesheet-weekly-entry-migration.md) | Developers, maintainers | Record of removing the single "Edit time entry" UI in favor of week-based editing, including affected components and verification. |
 
 ## Where Things Live
 

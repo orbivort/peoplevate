@@ -36,6 +36,10 @@ const ENTITY_LABELS: Record<string, string> = {
   [AuditEntity.RETENTION]: 'Retention',
   [AuditEntity.KEYS]: 'Encryption keys',
   [AuditEntity.ANOMALIES]: 'Anomalies',
+  [AuditEntity.TIMESHEET]: 'Timesheets',
+  [AuditEntity.TIMESHEET_ENTRY]: 'Timesheet entries',
+  [AuditEntity.PROJECT]: 'Projects',
+  [AuditEntity.PROJECT_TASK]: 'Project tasks',
 };
 
 /**
@@ -244,6 +248,10 @@ export function humanizeAction(action: string): string {
       return 'purged';
     case 'DSAR':
       return 'processed a data request';
+    case 'APPROVE':
+      return 'approved';
+    case 'REJECT':
+      return 'rejected';
     default:
       return (action ?? '').toLowerCase();
   }

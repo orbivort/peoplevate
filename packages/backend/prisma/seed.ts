@@ -428,6 +428,66 @@ async function main() {
     }
   }
 
+  // ── Timesheet: sample projects & tasks ──────────────────────
+  // Upserts on the natural unique keys (Project.code, ProjectTask
+  // [project_id, name]) keep the seed idempotent and re-runnable.
+  const projectPresets = [
+    {
+      code: 'ERP-001',
+      name: 'ERP Migration',
+      description: 'Migration of the legacy ERP platform',
+      client: 'Internal',
+      is_billable: true,
+      tasks: ['Analysis', 'Implementation', 'Testing'],
+    },
+    {
+      code: 'WEB-002',
+      name: 'Website Redesign',
+      description: 'Public website redesign and relaunch',
+      client: 'Acme Corp',
+      is_billable: true,
+      tasks: ['Design', 'Development', 'QA'],
+    },
+    {
+      code: 'OPS-003',
+      name: 'Internal Operations',
+      description: 'Internal operational and administrative work',
+      client: null,
+      is_billable: false,
+      tasks: ['Administration', 'Recruitment Support'],
+    },
+  ];
+  for (const p of projectPresets) {
+    const project = await prisma.project.upsert({
+      where: { code: p.code },
+      update: {
+        name: p.name,
+        description: p.description,
+        client: p.client,
+        is_billable: p.is_billable,
+        is_active: true,
+      },
+      create: {
+        code: p.code,
+        name: p.name,
+        description: p.description,
+        client: p.client,
+        is_billable: p.is_billable,
+        is_active: true,
+      },
+    });
+    for (const taskName of p.tasks) {
+      await prisma.projectTask.upsert({
+        where: { project_id_name: { project_id: project.id, name: taskName } },
+        update: { is_active: true },
+        create: { project_id: project.id, name: taskName, is_active: true },
+      });
+    }
+  }
+  console.log(
+    `  Projects: ${projectPresets.length} created (with ${projectPresets.reduce((n, p) => n + p.tasks.length, 0)} tasks)`,
+  );
+
   console.log('Seed data created:');
   console.log('  Admin:    admin@example.com / Admin@12345!');
   console.log('  HR:       hr@example.com / HR@12345!');

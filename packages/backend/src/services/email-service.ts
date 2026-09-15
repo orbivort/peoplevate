@@ -8,14 +8,31 @@ import { buildTransport } from './email/transport.js';
 // free.
 const transport = buildTransport(env.EMAIL_MODE);
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  try {
-    await transport.deliver({ to, subject, html });
-    logger.info(`Email sent to ${to}: ${subject}`);
-  } catch (err) {
-    logger.error(`Failed to send email to ${to}:`, err);
-    // Don't throw — email failure should not block the operation
-  }
+/**
+ * Dispatch a notification email.
+ *
+ * Delivery is intentionally detached from the caller: email is a side effect of
+ * the operation that triggered it, and a slow or unreachable SMTP server must
+ * never gate that operation. Awaiting the delivery used to hold the HTTP
+ * response open until the SMTP socket gave up (minutes, or forever when the
+ * connection was blackholed), which surfaced in the UI as a permanently
+ * "Submitting…" button.
+ *
+ * The returned promise resolves as soon as the delivery has been started, so
+ * callers can keep `await`ing this function; failures are logged, never thrown.
+ */
+export function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  void transport
+    .deliver({ to, subject, html })
+    .then(() => {
+      logger.info(`Email sent to ${to}: ${subject}`);
+    })
+    .catch((err: unknown) => {
+      logger.error(`Failed to send email to ${to}:`, err);
+      // Don't throw — email failure should not block the operation
+    });
+
+  return Promise.resolve();
 }
 
 export function sendSetupEmail(to: string, setupToken: string): Promise<void> {
@@ -96,6 +113,35 @@ export function sendEvaluationCycleEmail(
     <p>Please complete your self-evaluation by the deadline.</p>
   `;
   return sendEmail(to, `${cycleType} evaluation is open`, html);
+}
+
+// ──────────────────────────────────────────────
+// Timesheet workflow notifications
+// ──────────────────────────────────────────────
+
+/** Minimal HTML escaping for free-text values interpolated into email bodies. */
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+export function sendTimesheetStatusEmail(
+  to: string,
+  recipientName: string,
+  employeeName: string,
+  periodLabel: string,
+  status: 'submitted' | 'approved' | 'rejected',
+  comment?: string | undefined,
+): Promise<void> {
+  const commentHtml = comment ? `<p><strong>Comment:</strong> ${escapeHtml(comment)}</p>` : '';
+  const html = `
+    <h2>Timesheet ${status}</h2>
+    <p>Dear ${recipientName},</p>
+    <p>The timesheet for <strong>${employeeName}</strong> covering
+    <strong>${periodLabel}</strong> has been <strong>${status}</strong>.</p>
+    ${commentHtml}
+    <p>Please log in to Peoplevate for details.</p>
+  `;
+  return sendEmail(to, `Timesheet ${status} — ${employeeName} (${periodLabel})`, html);
 }
 
 export function sendClearanceReminderEmail(

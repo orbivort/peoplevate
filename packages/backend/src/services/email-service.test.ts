@@ -45,6 +45,14 @@ function lastMail(): { from: string; to: string; subject: string; html: string }
   return sendMailMock.mock.calls.at(-1)?.[0];
 }
 
+/**
+ * Delivery runs detached from `sendEmail`, so let the background promise chain
+ * settle before asserting on its side effects (logging).
+ */
+function flushDelivery(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
 describe('email-service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -54,6 +62,7 @@ describe('email-service', () => {
   describe('sendEmail', () => {
     it('sends mail with the configured from address and logs success', async () => {
       await sendEmail('a@example.com', 'Subject', '<p>Body</p>');
+      await flushDelivery();
 
       expect(lastMail()).toEqual({
         from: 'noreply@peoplevate.test',
@@ -64,10 +73,22 @@ describe('email-service', () => {
       expect(vi.mocked(logger.info)).toHaveBeenCalledWith('Email sent to a@example.com: Subject');
     });
 
+    it('resolves without waiting for delivery so callers are never blocked', async () => {
+      // A delivery that never settles must not keep the caller (an HTTP
+      // request) waiting — that is what left the UI stuck on "Submitting…".
+      sendMailMock.mockReturnValue(new Promise(() => {}));
+
+      await expect(sendEmail('a@example.com', 'Subject', '<p>Body</p>')).resolves.toBeUndefined();
+      expect(lastMail()).toEqual(
+        expect.objectContaining({ to: 'a@example.com', subject: 'Subject' }),
+      );
+    });
+
     it('swallows transport errors so callers are not blocked', async () => {
       sendMailMock.mockRejectedValue(new Error('smtp down'));
 
       await expect(sendEmail('a@example.com', 'Subject', '<p>Body</p>')).resolves.toBeUndefined();
+      await flushDelivery();
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
         'Failed to send email to a@example.com:',
         expect.any(Error),
