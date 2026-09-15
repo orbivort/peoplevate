@@ -63,9 +63,13 @@ export function WeekReviewLedger({ timesheet }: WeekReviewLedgerProps) {
   const renderCell = ({ row, date, hours }: WeekLedgerCellContext) => {
     const description = entryByCell.get(cellKey(row.id, date))?.description ?? null;
     return (
-      <span className="flex flex-col items-center" data-slot="review-cell" title={description ?? undefined}>
+      <span
+        className="flex flex-col items-center"
+        data-slot="review-cell"
+        title={description ?? undefined}
+      >
         {hours > 0 ? (
-          <span className="font-mono text-sm font-semibold tabular-nums text-ink-800">
+          <span className="font-mono text-sm font-semibold text-ink-800 tabular-nums">
             {formatHours(hours)}h
           </span>
         ) : (

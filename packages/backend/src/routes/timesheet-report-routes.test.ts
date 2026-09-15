@@ -65,8 +65,7 @@ const mocked = {
   exportReportCsv: vi.mocked(reports.exportReportCsv),
 };
 
-const SUMMARY_QUERY =
-  'groupBy=employee&from=2026-01-01&to=2026-09-30&includeAllStatuses=true';
+const SUMMARY_QUERY = 'groupBy=employee&from=2026-01-01&to=2026-09-30&includeAllStatuses=true';
 
 function buildApp(): express.Express {
   const app = express();
@@ -267,7 +266,9 @@ describe('timesheet-report-routes', () => {
 
     it('applies explicit pagination', async () => {
       await auth(
-        request(buildApp()).get(`/api/reports/timesheets/details?${SUMMARY_QUERY}&page=2&pageSize=10`),
+        request(buildApp()).get(
+          `/api/reports/timesheets/details?${SUMMARY_QUERY}&page=2&pageSize=10`,
+        ),
       );
 
       expect(mocked.getDetailsReport).toHaveBeenCalledWith(

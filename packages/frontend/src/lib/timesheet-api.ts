@@ -38,9 +38,12 @@ export const timesheetRepo = {
     if (params?.status) q.set('status', params.status);
     if (params?.page) q.set('page', String(params.page));
     if (params?.pageSize) q.set('pageSize', String(params.pageSize));
-    const res = await api.get<{ timesheets: TimesheetSummary[]; total: number; page: number; pageSize: number }>(
-      `/api/timesheets${q.toString() ? `?${q.toString()}` : ''}`,
-    );
+    const res = await api.get<{
+      timesheets: TimesheetSummary[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>(`/api/timesheets${q.toString() ? `?${q.toString()}` : ''}`);
     return res;
   },
 
@@ -99,7 +102,10 @@ const createEntry = async (payload: CreateEntryPayload) => {
 
 /** Update an entry (owner only, unlocked timesheet). */
 const updateEntry = async (id: string, payload: UpdateEntryPayload) => {
-  const res = await api.patch<{ timesheet: TimesheetDetail }>(`/api/timesheet-entries/${id}`, payload);
+  const res = await api.patch<{ timesheet: TimesheetDetail }>(
+    `/api/timesheet-entries/${id}`,
+    payload,
+  );
   return res.timesheet;
 };
 
@@ -216,7 +222,11 @@ export const projectRepo = {
     return res.task;
   },
 
-  updateTask: async (projectId: string, taskId: string, payload: { name?: string; isActive?: boolean }) => {
+  updateTask: async (
+    projectId: string,
+    taskId: string,
+    payload: { name?: string; isActive?: boolean },
+  ) => {
     const res = await api.patch<{ task: ProjectTask }>(
       `/api/projects/${projectId}/tasks/${taskId}`,
       payload,
@@ -273,9 +283,7 @@ export const timesheetReportRepo = {
     projectId?: string;
     includeAllStatuses?: boolean;
   }) => {
-    return api.get<SummaryReportResponse>(
-      `/api/reports/timesheets/summary${reportQuery(filters)}`,
-    );
+    return api.get<SummaryReportResponse>(`/api/reports/timesheets/summary${reportQuery(filters)}`);
   },
 
   /** Paged entry listing with the same filters as summary (MANAGER+). */

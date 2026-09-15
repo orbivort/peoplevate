@@ -228,7 +228,12 @@ export function TimesheetReportsPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="report-to">To *</Label>
-              <Input id="report-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+              <Input
+                id="report-to"
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="report-employee">Employee</Label>
@@ -336,7 +341,11 @@ export function TimesheetReportsPage() {
                     : 'rounded-md px-3 py-1.5 text-sm font-medium text-ink-500 transition-colors hover:text-ink-900'
                 }
               >
-                {option === 'employee' ? 'By employee' : option === 'project' ? 'By project' : 'By department'}
+                {option === 'employee'
+                  ? 'By employee'
+                  : option === 'project'
+                    ? 'By project'
+                    : 'By department'}
               </button>
             ))}
           </div>

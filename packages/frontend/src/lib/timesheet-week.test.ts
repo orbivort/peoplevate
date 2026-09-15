@@ -82,7 +82,11 @@ describe('buildWeekMatrix', () => {
   it('seeds one row per (project, task) ordered by project code', () => {
     const matrix = buildWeekMatrix(
       [
-        makeEntry({ id: 'e-2', projectId: 'p-web', project: { id: 'p-web', code: 'WEB-002', name: 'Website Redesign', isBillable: false } }),
+        makeEntry({
+          id: 'e-2',
+          projectId: 'p-web',
+          project: { id: 'p-web', code: 'WEB-002', name: 'Website Redesign', isBillable: false },
+        }),
         makeEntry(),
       ],
       DATES,
@@ -97,8 +101,18 @@ describe('buildWeekMatrix', () => {
   it('sums entries that share a cell and flags it as split', () => {
     const matrix = buildWeekMatrix(
       [
-        makeEntry({ id: 'e-1', taskId: 't-1', task: { id: 't-1', name: 'Implementation' }, hours: 4 }),
-        makeEntry({ id: 'e-2', taskId: 't-1', task: { id: 't-1', name: 'Implementation' }, hours: 3.5 }),
+        makeEntry({
+          id: 'e-1',
+          taskId: 't-1',
+          task: { id: 't-1', name: 'Implementation' },
+          hours: 4,
+        }),
+        makeEntry({
+          id: 'e-2',
+          taskId: 't-1',
+          task: { id: 't-1', name: 'Implementation' },
+          hours: 3.5,
+        }),
       ],
       DATES,
     );
@@ -154,7 +168,10 @@ describe('parseHoursInput', () => {
 
 describe('parseCellInputs', () => {
   it('splits valid values from field errors', () => {
-    const { values, errors } = parseCellInputs({ 'p-erp||2026-09-14': '8', 'p-erp||2026-09-15': 'nope' });
+    const { values, errors } = parseCellInputs({
+      'p-erp||2026-09-14': '8',
+      'p-erp||2026-09-15': 'nope',
+    });
     expect(values).toEqual({ 'p-erp||2026-09-14': 8 });
     expect(errors['p-erp||2026-09-15']).toMatch(/number/i);
   });
@@ -208,7 +225,14 @@ describe('diffWeekCells', () => {
   it('reports a create for a brand-new cell', () => {
     const changes = diff({ ...matrix.baseline, 'p-erp||2026-09-17': 4 });
     expect(changes).toEqual([
-      { rowId: 'p-erp|', projectId: 'p-erp', taskId: null, date: '2026-09-17', hours: 4, entryIds: [] },
+      {
+        rowId: 'p-erp|',
+        projectId: 'p-erp',
+        taskId: null,
+        date: '2026-09-17',
+        hours: 4,
+        entryIds: [],
+      },
     ]);
   });
 
@@ -252,7 +276,13 @@ describe('validateWeekDraft', () => {
   ).rows;
 
   function validate(values: Record<string, number>, inputErrors: Record<string, string> = {}) {
-    return validateWeekDraft({ rows, values, inputErrors, dates: DATES, periodStart: PERIOD_START });
+    return validateWeekDraft({
+      rows,
+      values,
+      inputErrors,
+      dates: DATES,
+      periodStart: PERIOD_START,
+    });
   }
 
   it('computes row, day, project, and weekly totals from the draft', () => {

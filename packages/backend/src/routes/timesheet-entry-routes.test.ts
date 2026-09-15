@@ -208,7 +208,11 @@ describe('timesheet-entry-routes', () => {
 
     it('returns 409 DAY_TOTAL_EXCEEDED when the day cap is exceeded (service-enforced)', async () => {
       mocked.createTimesheetEntry.mockRejectedValue(
-        new HttpError(409, 'Total logged hours for this date would exceed 24', 'DAY_TOTAL_EXCEEDED'),
+        new HttpError(
+          409,
+          'Total logged hours for this date would exceed 24',
+          'DAY_TOTAL_EXCEEDED',
+        ),
       );
 
       const res = await auth(request(buildApp()).post('/api/timesheet-entries')).send({

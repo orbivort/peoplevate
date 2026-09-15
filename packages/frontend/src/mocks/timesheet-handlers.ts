@@ -40,7 +40,10 @@ function conflict(message: string, code: string) {
 }
 
 function badRequest(message: string, details?: Record<string, string[]>) {
-  return HttpResponse.json({ error: 'Validation error', details: details ?? { _: [message] } }, { status: 400 });
+  return HttpResponse.json(
+    { error: 'Validation error', details: details ?? { _: [message] } },
+    { status: 400 },
+  );
 }
 
 /** Demo employee acting as the authenticated user (mirrors leave handlers). */
@@ -76,12 +79,18 @@ function recomputeTotals(timesheet: TimesheetDetail): void {
     const key = d.toISOString().slice(0, 10);
     return {
       date: key,
-      hours: round2(timesheet.entries.filter((e) => e.entryDate === key).reduce((s, e) => s + e.hours, 0)),
+      hours: round2(
+        timesheet.entries.filter((e) => e.entryDate === key).reduce((s, e) => s + e.hours, 0),
+      ),
     };
   });
   const byProject = new Map<string, { code: string; name: string; hours: number }>();
   for (const e of timesheet.entries) {
-    const current = byProject.get(e.projectId) ?? { code: e.project.code, name: e.project.name, hours: 0 };
+    const current = byProject.get(e.projectId) ?? {
+      code: e.project.code,
+      name: e.project.name,
+      hours: 0,
+    };
     current.hours += e.hours;
     byProject.set(e.projectId, current);
   }
@@ -302,18 +311,18 @@ export const timesheetHandlers = [
         hours: ['Invalid hours'],
       });
     }
-    const project = getStore().timesheetProjects.find(
-      (p) => p.id === projectId && p.isActive,
-    );
-    if (!project) return badRequest('Unknown or inactive project', { projectId: ['Invalid project'] });
+    const project = getStore().timesheetProjects.find((p) => p.id === projectId && p.isActive);
+    if (!project)
+      return badRequest('Unknown or inactive project', { projectId: ['Invalid project'] });
 
     const timesheet = getOrCreateTimesheet(entryDate);
     if (timesheet.status === 'SUBMITTED' || timesheet.status === 'APPROVED') {
       return conflict('Timesheet is locked for editing', 'TIMESHEET_LOCKED');
     }
     const dayTotal =
-      timesheet.entries.filter((e) => e.entryDate === entryDate.slice(0, 10)).reduce((s, e) => s + e.hours, 0) +
-      hours;
+      timesheet.entries
+        .filter((e) => e.entryDate === entryDate.slice(0, 10))
+        .reduce((s, e) => s + e.hours, 0) + hours;
     if (dayTotal > 24) {
       return conflict('Total hours for the day cannot exceed 24', 'DAY_TOTAL_EXCEEDED');
     }
@@ -468,10 +477,7 @@ export const timesheetHandlers = [
     const store = getStore();
     const referenced = store.timesheets.some((t) => t.entries.some((e) => e.projectId === id));
     if (referenced) {
-      return conflict(
-        'Project has timesheet entries and cannot be deleted',
-        'PROJECT_REFERENCED',
-      );
+      return conflict('Project has timesheet entries and cannot be deleted', 'PROJECT_REFERENCED');
     }
     if (!removeById(store.timesheetProjects, id)) return notFound('Project not found');
     store.timesheetTasks = store.timesheetTasks.filter((t) => t.projectId !== id);
@@ -537,9 +543,7 @@ export const timesheetHandlers = [
     await simulateLatency();
     const taskId = String(params.taskId);
     const store = getStore();
-    const referenced = store.timesheets.some((t) =>
-      t.entries.some((e) => e.taskId === taskId),
-    );
+    const referenced = store.timesheets.some((t) => t.entries.some((e) => e.taskId === taskId));
     if (referenced) {
       return conflict('Task has timesheet entries and cannot be deleted', 'TASK_REFERENCED');
     }
@@ -568,15 +572,16 @@ export const timesheetHandlers = [
     const entries = timesheets.flatMap((t) =>
       t.entries.filter(
         (e) =>
-          e.entryDate >= from &&
-          e.entryDate <= to &&
-          (!projectId || e.projectId === projectId),
+          e.entryDate >= from && e.entryDate <= to && (!projectId || e.projectId === projectId),
       ),
     );
 
     let rows: unknown[];
     if (groupBy === 'project') {
-      const map = new Map<string, { code: string; name: string; isBillable: boolean; hours: number; count: number }>();
+      const map = new Map<
+        string,
+        { code: string; name: string; isBillable: boolean; hours: number; count: number }
+      >();
       for (const e of entries) {
         const current = map.get(e.projectId) ?? {
           code: e.project.code,
@@ -598,7 +603,10 @@ export const timesheetHandlers = [
         entryCount: v.count,
       }));
     } else if (groupBy === 'department') {
-      const map = new Map<string, { name: string; employees: Set<string>; hours: number; count: number }>();
+      const map = new Map<
+        string,
+        { name: string; employees: Set<string>; hours: number; count: number }
+      >();
       for (const e of entries) {
         const employee = store.employees.find((emp) => emp.id === e.employeeId);
         const deptId = employee?.departmentId ?? 'unknown';
@@ -621,7 +629,18 @@ export const timesheetHandlers = [
         entryCount: v.count,
       }));
     } else {
-      const map = new Map<string, { name: string; no: string; deptId: string | null; deptName: string | null; hours: number; billable: number; count: number }>();
+      const map = new Map<
+        string,
+        {
+          name: string;
+          no: string;
+          deptId: string | null;
+          deptName: string | null;
+          hours: number;
+          billable: number;
+          count: number;
+        }
+      >();
       for (const e of entries) {
         const employee = store.employees.find((emp) => emp.id === e.employeeId);
         const current = map.get(e.employeeId) ?? {
@@ -666,11 +685,14 @@ export const timesheetHandlers = [
     const store = getStore();
 
     const all = store.timesheets
-      .filter((t) => (includeAllStatuses || t.status === 'APPROVED'))
+      .filter((t) => includeAllStatuses || t.status === 'APPROVED')
       .filter((t) => !employeeId || t.employeeId === employeeId)
       .flatMap((t) =>
         t.entries
-          .filter((e) => e.entryDate >= from && e.entryDate <= to && (!projectId || e.projectId === projectId))
+          .filter(
+            (e) =>
+              e.entryDate >= from && e.entryDate <= to && (!projectId || e.projectId === projectId),
+          )
           .map((e) => ({
             ...e,
             employeeName: `${t.employee.firstName} ${t.employee.lastName}`,
@@ -692,7 +714,7 @@ export const timesheetHandlers = [
     const store = getStore();
 
     const rows = store.timesheets
-      .filter((t) => (includeAllStatuses || t.status === 'APPROVED'))
+      .filter((t) => includeAllStatuses || t.status === 'APPROVED')
       .flatMap((t) =>
         t.entries
           .filter((e) => e.entryDate >= from && e.entryDate <= to)
@@ -709,7 +731,8 @@ export const timesheetHandlers = [
           ]),
       );
 
-    const header = 'employee_no,employee_name,date,project_code,project_name,task_name,hours,description,timesheet_status';
+    const header =
+      'employee_no,employee_name,date,project_code,project_name,task_name,hours,description,timesheet_status';
     const csv = [header, ...rows.map((r) => r.map(csvField).join(','))].join('\r\n');
     return new HttpResponse(csv, {
       headers: {

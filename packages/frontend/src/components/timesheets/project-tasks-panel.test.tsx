@@ -138,7 +138,12 @@ describe('ProjectTasksPanel', () => {
         code: 'WEB-002',
         name: 'Website Redesign',
       };
-      const webTask: ProjectTask = { ...activeTask, id: 't-web', projectId: 'p-web', name: 'Design' };
+      const webTask: ProjectTask = {
+        ...activeTask,
+        id: 't-web',
+        projectId: 'p-web',
+        name: 'Design',
+      };
       listTasksMock.mockResolvedValueOnce([activeTask]).mockResolvedValueOnce([webTask]);
 
       const { rerender } = render(<ProjectTasksPanel project={project} onChanged={onChanged} />);

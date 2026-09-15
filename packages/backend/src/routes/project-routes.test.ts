@@ -187,7 +187,9 @@ describe('project-routes', () => {
     });
 
     it('includes inactive tasks for HR', async () => {
-      const res = await auth(request(buildApp()).get('/api/projects/p-1/tasks?includeInactive=true'));
+      const res = await auth(
+        request(buildApp()).get('/api/projects/p-1/tasks?includeInactive=true'),
+      );
 
       expect(res.status).toBe(200);
       expect(mocked.listTasks).toHaveBeenCalledWith({ projectId: 'p-1', includeInactive: true });
@@ -405,9 +407,9 @@ describe('project-routes', () => {
 
   describe('PATCH /api/projects/:id/tasks/:taskId', () => {
     it('updates a task with a partial payload', async () => {
-      const res = await auth(
-        request(buildApp()).patch('/api/projects/p-1/tasks/t-1'),
-      ).send({ isActive: false });
+      const res = await auth(request(buildApp()).patch('/api/projects/p-1/tasks/t-1')).send({
+        isActive: false,
+      });
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(TASK);

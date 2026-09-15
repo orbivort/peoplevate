@@ -1,4 +1,12 @@
-import { ChevronDown, ChevronUp, FolderKanban, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  FolderKanban,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { ProjectFormDialog } from '@/components/timesheets/project-form-dialog';
@@ -215,7 +223,11 @@ export function ProjectsPage() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            aria-label={expanded ? `Hide tasks for ${project.code}` : `Show tasks for ${project.code}`}
+                            aria-label={
+                              expanded
+                                ? `Hide tasks for ${project.code}`
+                                : `Show tasks for ${project.code}`
+                            }
                             onClick={() => setExpandedId(expanded ? null : project.id)}
                           >
                             {expanded ? (
@@ -231,12 +243,17 @@ export function ProjectsPage() {
                         <TableCell>
                           <div className="font-medium text-ink-900">{project.name}</div>
                           {project.description && (
-                            <div className="max-w-64 truncate text-xs text-ink-400" title={project.description}>
+                            <div
+                              className="max-w-64 truncate text-xs text-ink-400"
+                              title={project.description}
+                            >
                               {project.description}
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm text-ink-600">{project.client ?? '—'}</TableCell>
+                        <TableCell className="text-sm text-ink-600">
+                          {project.client ?? '—'}
+                        </TableCell>
                         <TableCell>
                           {project.isBillable ? (
                             <Badge className="border-transparent bg-accent-100 text-accent-800">
@@ -258,8 +275,12 @@ export function ProjectsPage() {
                             {project.isActive ? 'Active' : 'Inactive'}
                           </Button>
                         </TableCell>
-                        <TableCell className="text-center font-mono text-sm">{project.taskCount}</TableCell>
-                        <TableCell className="text-center font-mono text-sm">{project.entryCount}</TableCell>
+                        <TableCell className="text-center font-mono text-sm">
+                          {project.taskCount}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-sm">
+                          {project.entryCount}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Button
@@ -325,7 +346,11 @@ export function ProjectsPage() {
             <Button variant="outline" onClick={() => setDeleting(null)}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={() => void handleDeleteConfirm()} disabled={deleteBusy}>
+            <Button
+              variant="danger"
+              onClick={() => void handleDeleteConfirm()}
+              disabled={deleteBusy}
+            >
               {deleteBusy ? 'Deleting…' : 'Delete project'}
             </Button>
           </DialogFooter>

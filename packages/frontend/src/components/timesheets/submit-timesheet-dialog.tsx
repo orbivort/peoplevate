@@ -85,8 +85,7 @@ export function SubmitTimesheetDialog({
               <div>
                 <p className="font-medium">Working days without logged hours</p>
                 <p className="mt-0.5 text-amber-700">
-                  {zeroHourDays.join(', ')} — you can still submit if you did not work those
-                  days.
+                  {zeroHourDays.join(', ')} — you can still submit if you did not work those days.
                 </p>
               </div>
             </div>

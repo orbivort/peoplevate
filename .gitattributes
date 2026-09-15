@@ -1,0 +1,16 @@
+# Normalize text files to LF in both the repository and the working tree.
+#
+# Git for Windows defaults to `core.autocrlf=true`, which rewrites every file to
+# CRLF on checkout. Because `.prettierrc` sets `endOfLine: "lf"`, that made
+# `prettier --check` (run by `pnpm format:check` and therefore by `pnpm ci`)
+# report the entire codebase as unformatted on Windows, while passing on Linux
+# where the blobs are already stored as LF.
+#
+# `text=auto` lets Git detect binaries itself; an explicit `eol=lf` removes the
+# platform dependency that `core.autocrlf` would otherwise control, so the
+# working tree matches the repo regardless of a developer's local Git settings.
+* text=auto eol=lf
+
+# Windows batch scripts need CRLF to execute reliably.
+*.bat text eol=crlf
+*.cmd text eol=crlf

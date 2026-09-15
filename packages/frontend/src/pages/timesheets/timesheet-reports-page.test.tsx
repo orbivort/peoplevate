@@ -134,7 +134,11 @@ describe('TimesheetReportsPage', () => {
 
     await waitFor(() => expect(summaryMock).toHaveBeenCalledTimes(1));
     expect(summaryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ from: expect.any(String), to: expect.any(String), groupBy: 'employee' }),
+      expect.objectContaining({
+        from: expect.any(String),
+        to: expect.any(String),
+        groupBy: 'employee',
+      }),
     );
     expect(await screen.findByText('Charlie Doe')).toBeInTheDocument();
     expect(screen.getByText('152h')).toBeInTheDocument();
@@ -163,9 +167,7 @@ describe('TimesheetReportsPage', () => {
 
     await waitFor(() => expect(detailsMock).toHaveBeenCalledTimes(1));
     expect(await screen.findByText('Sprint work')).toBeInTheDocument();
-    expect(
-      screen.getAllByText('ERP-001 — ERP Migration').length,
-    ).toBeGreaterThan(0); // details row + project filter option
+    expect(screen.getAllByText('ERP-001 — ERP Migration').length).toBeGreaterThan(0); // details row + project filter option
     // The summary is split across nested spans inside the pagination control.
     expect(
       screen.getByText(

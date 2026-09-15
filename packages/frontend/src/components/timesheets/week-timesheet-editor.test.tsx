@@ -124,7 +124,9 @@ function cell(project: string, dateLabel: string, taskName: string | null = null
 
 beforeEach(() => {
   vi.clearAllMocks();
-  listTasksMock.mockResolvedValue([{ id: 't-impl', projectId: 'p-web', name: 'Implementation', isActive: true }]);
+  listTasksMock.mockResolvedValue([
+    { id: 't-impl', projectId: 'p-web', name: 'Implementation', isActive: true },
+  ]);
 });
 
 describe('WeekTimesheetEditor', () => {

@@ -129,7 +129,9 @@ export function TimesheetsPage() {
     return rejects.length > 0 ? (rejects[rejects.length - 1] ?? null) : null;
   }, [timesheet]);
 
-  const showTimeline = Boolean(timesheet && (timesheet.submittedAt || timesheet.approvals.length > 0));
+  const showTimeline = Boolean(
+    timesheet && (timesheet.submittedAt || timesheet.approvals.length > 0),
+  );
 
   // The editor is remounted (and therefore re-seeded) after every write and
   // whenever the selected week changes.

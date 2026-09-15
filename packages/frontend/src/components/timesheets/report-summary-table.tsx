@@ -142,7 +142,11 @@ export function ReportSummaryTable({ rows, groupBy }: ReportSummaryTableProps) {
                 </TableCell>
                 <TableCell className="text-sm text-ink-600">{row.entryCount}</TableCell>
                 <TableCell>
-                  <DistributionBar hours={row.totalHours} maxHours={maxHours} billable={row.isBillable} />
+                  <DistributionBar
+                    hours={row.totalHours}
+                    maxHours={maxHours}
+                    billable={row.isBillable}
+                  />
                 </TableCell>
               </TableRow>
             ))

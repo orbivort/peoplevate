@@ -321,7 +321,7 @@ export function WeekLedgerMatrix({
                 })}
 
                 <td className="border-b border-l border-ink-100 px-3 py-2 text-right align-middle transition-colors group-hover:bg-ink-50">
-                  <span className="font-mono text-sm font-semibold tabular-nums text-ink-800">
+                  <span className="font-mono text-sm font-semibold text-ink-800 tabular-nums">
                     {formatHours(rowTotals[row.id] ?? 0)}h
                   </span>
                 </td>
@@ -355,7 +355,7 @@ export function WeekLedgerMatrix({
                 </td>
               ))}
               <td className="sticky bottom-0 z-[6] border-t border-l border-ink-200 bg-ink-50 px-3 py-2 text-right">
-                <span className="font-mono text-sm font-bold tabular-nums text-ink-900">
+                <span className="font-mono text-sm font-bold text-ink-900 tabular-nums">
                   {formatHours(weeklyTotal)}h
                 </span>
               </td>

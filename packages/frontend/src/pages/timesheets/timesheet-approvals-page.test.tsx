@@ -199,9 +199,7 @@ describe('TimesheetApprovalsPage', () => {
     render(<TimesheetApprovalsPage />);
 
     await screen.findByText('Bob Report');
-    await user.click(
-      screen.getByRole('checkbox', { name: /select bob report's timesheet/i }),
-    );
+    await user.click(screen.getByRole('checkbox', { name: /select bob report's timesheet/i }));
     await user.click(screen.getByRole('button', { name: /approve selected/i }));
 
     await waitFor(() => expect(approveMock).toHaveBeenCalledWith('ts-9', undefined));

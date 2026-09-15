@@ -328,9 +328,7 @@ export function validateWeekDraft(input: {
     hours: dayTotals[date] ?? 0,
   }));
 
-  const weeklyTotal = round2(
-    Object.values(dayTotals).reduce((sum, hours) => sum + hours, 0),
-  );
+  const weeklyTotal = round2(Object.values(dayTotals).reduce((sum, hours) => sum + hours, 0));
 
   return {
     errors: input.inputErrors,
@@ -342,8 +340,7 @@ export function validateWeekDraft(input: {
     ),
     weeklyTotal,
     emptyWeekdays: weekdayDatesWithZeroHours(periodStart, perDayTotals),
-    invalid:
-      Object.keys(input.inputErrors).length > 0 || Object.keys(dayErrors).length > 0,
+    invalid: Object.keys(input.inputErrors).length > 0 || Object.keys(dayErrors).length > 0,
   };
 }
 

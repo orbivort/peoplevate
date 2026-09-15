@@ -30,11 +30,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/toast';
 import { timesheetRepo } from '@/lib/timesheet-api';
-import {
-  formatHours,
-  formatWeekLabel,
-  timesheetStatusConfig,
-} from '@/lib/timesheet-utils';
+import { formatHours, formatWeekLabel, timesheetStatusConfig } from '@/lib/timesheet-utils';
 import { cn, formatDateTime, formatRelative, initials } from '@/lib/utils';
 import type { TimesheetDetail, TimesheetSummary } from '@/types/timesheet';
 
@@ -46,7 +42,7 @@ function QueueStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] font-semibold tracking-wider text-ink-500 uppercase">{label}</p>
-      <p className="font-mono text-lg leading-tight font-semibold tabular-nums text-ink-900">
+      <p className="font-mono text-lg leading-tight font-semibold text-ink-900 tabular-nums">
         {value}
       </p>
     </div>
@@ -362,7 +358,7 @@ export function TimesheetApprovalsPage() {
                           <TableCell>
                             <div className="flex items-center gap-1.5">
                               <Clock className="h-3.5 w-3.5 text-ink-300" />
-                              <span className="font-mono text-sm font-semibold tabular-nums text-ink-900">
+                              <span className="font-mono text-sm font-semibold text-ink-900 tabular-nums">
                                 {formatHours(row.weeklyTotalHours)}h
                               </span>
                             </div>
@@ -404,7 +400,9 @@ export function TimesheetApprovalsPage() {
                               ) : (
                                 <ChevronDown className="h-4 w-4" />
                               )}
-                              <span className="hidden sm:inline">{expanded ? 'Close' : 'Review'}</span>
+                              <span className="hidden sm:inline">
+                                {expanded ? 'Close' : 'Review'}
+                              </span>
                             </Button>
                           </TableCell>
                         </TableRow>

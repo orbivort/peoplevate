@@ -123,7 +123,9 @@ describe('ProjectFormDialog', () => {
     const { onSubmit, onOpenChange } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('Code *'), { target: { value: '  WEB-002  ' } });
-    fireEvent.change(screen.getByLabelText('Name *'), { target: { value: '  Website Redesign  ' } });
+    fireEvent.change(screen.getByLabelText('Name *'), {
+      target: { value: '  Website Redesign  ' },
+    });
     await user.click(screen.getByRole('button', { name: 'Create project' }));
 
     await waitFor(() =>
@@ -197,7 +199,9 @@ describe('ProjectFormDialog', () => {
 
     expect(await screen.findByText('Project code already exists.')).toBeInTheDocument();
     expect(onOpenChange).not.toHaveBeenCalled();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Create project' })).toBeEnabled());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Create project' })).toBeEnabled(),
+    );
   });
 
   it('falls back to a generic message for non-Error failures', async () => {

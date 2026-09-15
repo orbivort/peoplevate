@@ -75,9 +75,7 @@ projectRoutes.post('/', requireHR, async (req: Request, res: Response, next: Nex
     const user = getAuthUser(req)!;
     res
       .status(201)
-      .json(
-        await projects.createProject({ ...data, actorId: user.userId, actorName: user.email }),
-      );
+      .json(await projects.createProject({ ...data, actorId: user.userId, actorName: user.email }));
   } catch (err) {
     next(err);
   }

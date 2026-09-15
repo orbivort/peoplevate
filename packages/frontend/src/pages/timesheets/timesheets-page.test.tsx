@@ -301,7 +301,9 @@ describe('TimesheetsPage', () => {
 
     render(<TimesheetsPage />);
 
-    expect(await screen.findByText(/rejected by marcus\.manager@peoplevate\.io/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/rejected by marcus\.manager@peoplevate\.io/i),
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/Tuesday is missing — please add it\./i).length).toBeGreaterThan(0);
     // Editing is unlocked.
     expect(cell('ERP Migration', 'Mon, Sep 14')).toBeEnabled();

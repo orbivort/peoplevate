@@ -1,12 +1,24 @@
 import { Plus, RotateCcw, Save, Send } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { WeekDayLedger, WeekLedgerMatrix, WeekLedgerNotices, WeekLedgerSummary, type WeekLedgerCellContext } from '@/components/timesheets/week-ledger';
+import {
+  WeekDayLedger,
+  WeekLedgerMatrix,
+  WeekLedgerNotices,
+  WeekLedgerSummary,
+  type WeekLedgerCellContext,
+} from '@/components/timesheets/week-ledger';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { projectRepo } from '@/lib/timesheet-api';
-import { formatDayHeader, formatHours, isWeekend, todayISO, weekDates } from '@/lib/timesheet-utils';
+import {
+  formatDayHeader,
+  formatHours,
+  isWeekend,
+  todayISO,
+  weekDates,
+} from '@/lib/timesheet-utils';
 import {
   buildWeekMatrix,
   cellKey,
@@ -203,17 +215,17 @@ export function WeekTimesheetEditor({
   // ── Cell renderers ───────────────────────────────────────────────────────
 
   /** Shared cell chrome: the hours input (or the read-only combined figure). */
-  const renderCellInput = (
-    context: WeekLedgerCellContext,
-    variant: 'matrix' | 'day',
-  ) => {
+  const renderCellInput = (context: WeekLedgerCellContext, variant: 'matrix' | 'day') => {
     const { row, rowIndex, date, hours, split } = context;
     const key = cellKey(row.id, date);
     const error = validation.errors[key];
 
     const control = split ? (
       <span
-        className={cn('font-mono font-semibold text-ink-700', variant === 'day' ? 'text-sm' : 'text-sm')}
+        className={cn(
+          'font-mono font-semibold text-ink-700',
+          variant === 'day' ? 'text-sm' : 'text-sm',
+        )}
         title="Combined total for several logged entries on this day."
       >
         {formatHours(hours)}h

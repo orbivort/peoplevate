@@ -174,9 +174,7 @@ describe('timesheet-routes', () => {
 
   describe('GET /api/timesheets/current', () => {
     it('gets or creates the current week draft timesheet', async () => {
-      const res = await auth(
-        request(buildApp()).get('/api/timesheets/current?date=2026-09-16'),
-      );
+      const res = await auth(request(buildApp()).get('/api/timesheets/current?date=2026-09-16'));
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ timesheet: DETAIL });
@@ -232,7 +230,9 @@ describe('timesheet-routes', () => {
 
     it('returns the manager approval queue for managers', async () => {
       authUser.role = 'MANAGER';
-      mocked.listPendingTimesheets.mockResolvedValue([{ id: 'ts-9', status: 'SUBMITTED' }] as never);
+      mocked.listPendingTimesheets.mockResolvedValue([
+        { id: 'ts-9', status: 'SUBMITTED' },
+      ] as never);
 
       const res = await auth(request(buildApp()).get('/api/timesheets/pending'));
 
@@ -384,7 +384,9 @@ describe('timesheet-routes', () => {
       authUser.role = 'MANAGER';
 
       const res = await auth(
-        request(buildApp()).post('/api/timesheets/ts-1/approve').send({ comment: 'x'.repeat(501) }),
+        request(buildApp())
+          .post('/api/timesheets/ts-1/approve')
+          .send({ comment: 'x'.repeat(501) }),
       );
 
       expect(res.status).toBe(400);
@@ -470,7 +472,9 @@ describe('timesheet-routes', () => {
       authUser.role = 'MANAGER';
 
       const res = await auth(
-        request(buildApp()).post('/api/timesheets/ts-1/reject').send({ comment: 'x'.repeat(501) }),
+        request(buildApp())
+          .post('/api/timesheets/ts-1/reject')
+          .send({ comment: 'x'.repeat(501) }),
       );
 
       expect(res.status).toBe(400);
@@ -526,9 +530,7 @@ describe('timesheet-routes', () => {
       );
       expect(approved.status).toBe(200);
       expect(approved.body.timesheet.status).toBe('APPROVED');
-      expect(approved.body.timesheet.approvals).toEqual([
-        { id: 'ap-1', action: 'APPROVE' },
-      ]);
+      expect(approved.body.timesheet.approvals).toEqual([{ id: 'ap-1', action: 'APPROVE' }]);
     });
   });
 });
