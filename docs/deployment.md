@@ -35,24 +35,24 @@ cp packages/backend/.env.example packages/backend/.env
 
 Required variables (validated by zod at startup — the server exits on invalid values):
 
-| Variable | Description |
-| -------- | ----------- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | **At least 32 characters.** Used to sign access/refresh tokens. |
+| Variable               | Description                                                               |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string                                              |
+| `JWT_SECRET`           | **At least 32 characters.** Used to sign access/refresh tokens.           |
 | `FIELD_ENCRYPTION_KEY` | **At least 32 characters.** AES key that encrypts PII and salary at rest. |
 
 Important production variables (see `packages/backend/src/config/env.ts` for all options):
 
-| Variable | Default | Description |
-| -------- | ------- | ----------- |
-| `NODE_ENV` | `development` | Set to `production` for production runs. |
-| `PORT` | `4000` | Backend listen port. |
-| `CORS_ORIGIN` | `http://localhost:5173` | Allowed frontend origin. Set to your frontend URL. |
-| `JWT_ACCESS_EXPIRES_IN` | `15m` | Access token lifetime. |
-| `JWT_REFRESH_EXPIRES_IN` | `7d` | Refresh token lifetime. |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | localhost defaults | Outbound email for invitations, password resets, and notifications. |
-| `DPO_CONTACT_EMAIL` | `dpo@peoplevate.local` | Data protection officer contact used by GDPR workflows. |
-| `TERMINATED_RECORD_RETENTION_YEARS` | `7` | Retention period for terminated records before purge. |
+| Variable                                                            | Default                 | Description                                                         |
+| ------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------- |
+| `NODE_ENV`                                                          | `development`           | Set to `production` for production runs.                            |
+| `PORT`                                                              | `4000`                  | Backend listen port.                                                |
+| `CORS_ORIGIN`                                                       | `http://localhost:5173` | Allowed frontend origin. Set to your frontend URL.                  |
+| `JWT_ACCESS_EXPIRES_IN`                                             | `15m`                   | Access token lifetime.                                              |
+| `JWT_REFRESH_EXPIRES_IN`                                            | `7d`                    | Refresh token lifetime.                                             |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | localhost defaults      | Outbound email for invitations, password resets, and notifications. |
+| `DPO_CONTACT_EMAIL`                                                 | `dpo@peoplevate.local`  | Data protection officer contact used by GDPR workflows.             |
+| `TERMINATED_RECORD_RETENTION_YEARS`                                 | `7`                     | Retention period for terminated records before purge.               |
 
 ### Frontend
 
@@ -60,10 +60,10 @@ Important production variables (see `packages/backend/src/config/env.ts` for all
 cp packages/frontend/.env.example packages/frontend/.env.local
 ```
 
-| Variable | Default | Description |
-| -------- | ------- | ----------- |
-| `VITE_USE_MOCK` | `true` | Set to `false` to use the real API instead of bundled mock data. |
-| `VITE_API_BASE` | — | Optional override for the API base URL. |
+| Variable        | Default | Description                                                      |
+| --------------- | ------- | ---------------------------------------------------------------- |
+| `VITE_USE_MOCK` | `true`  | Set to `false` to use the real API instead of bundled mock data. |
+| `VITE_API_BASE` | —       | Optional override for the API base URL.                          |
 
 ### Secrets & Security
 
@@ -91,6 +91,10 @@ Optional seed data:
 ```bash
 pnpm db:seed
 ```
+
+The seed is idempotent and also creates three example projects with tasks (`ERP-001`,
+`WEB-002`, `OPS-003`) so the [timesheets](./usage-guide.md#timesheets) module can be tried
+immediately.
 
 ---
 
@@ -208,14 +212,14 @@ backend, frontend, and database into isolated, reproducible containers.
 
 ### Why Docker is essential for self-hosting
 
-| Criterion | Benefit |
-| --------- | ------- |
-| **Dependency isolation** | The backend needs Node 24 + pnpm 11 + Prisma 7 and the `argon2` native module; the frontend needs Node 24 at build time and Nginx at runtime; PostgreSQL 18 is required. Containers pin all of these, so a host OS with different runtimes (or none) can still run Peoplevate without conflicts. |
-| **Environment consistency** | The same image builds identically on a laptop and a server. Because the backend runs ESM with `#prisma` subpath imports and a Prisma-generated client, "works on my machine" issues are eliminated — the container is the machine. |
-| **Ease of scaling** | The API is stateless (JWT auth, PostgreSQL for persistence), so scaling to a cluster later only requires running more backend replicas behind a load balancer. The Compose topology already separates concerns into independent services. |
-| **Simplified updates** | Upgrades are a rebuild-and-recreate (`docker compose up -d --build`). `prisma migrate deploy` runs on every start so the schema upgrades in lockstep with the code, and named volumes preserve data across recreation. |
-| **Reproducible rollback** | Old images can be tagged and re-pinned, enabling fast rollback to a previous version. |
-| **Operational tooling** | Built-in health checks, restart policies, and log capture (`docker compose logs`) reduce the operational burden for a single-admin deployment. |
+| Criterion                   | Benefit                                                                                                                                                                                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Dependency isolation**    | The backend needs Node 24 + pnpm 11 + Prisma 7 and the `argon2` native module; the frontend needs Node 24 at build time and Nginx at runtime; PostgreSQL 18 is required. Containers pin all of these, so a host OS with different runtimes (or none) can still run Peoplevate without conflicts. |
+| **Environment consistency** | The same image builds identically on a laptop and a server. Because the backend runs ESM with `#prisma` subpath imports and a Prisma-generated client, "works on my machine" issues are eliminated — the container is the machine.                                                               |
+| **Ease of scaling**         | The API is stateless (JWT auth, PostgreSQL for persistence), so scaling to a cluster later only requires running more backend replicas behind a load balancer. The Compose topology already separates concerns into independent services.                                                        |
+| **Simplified updates**      | Upgrades are a rebuild-and-recreate (`docker compose up -d --build`). `prisma migrate deploy` runs on every start so the schema upgrades in lockstep with the code, and named volumes preserve data across recreation.                                                                           |
+| **Reproducible rollback**   | Old images can be tagged and re-pinned, enabling fast rollback to a previous version.                                                                                                                                                                                                            |
+| **Operational tooling**     | Built-in health checks, restart policies, and log capture (`docker compose logs`) reduce the operational burden for a single-admin deployment.                                                                                                                                                   |
 
 ### Requirements
 
@@ -237,11 +241,11 @@ docker compose up -d --build
 
 This starts three services on an isolated bridge network:
 
-| Service   | Image base            | Purpose                                      |
-| --------- | --------------------- | -------------------------------------------- |
-| `db`      | `postgres:18-alpine`  | Persistent PostgreSQL data store             |
-| `backend` | `node:24.19.0-alpine` | Express 5 + Prisma 7 REST API                |
-| `frontend`| `nginx:1.27-alpine`   | Serves the React SPA and proxies `/api`      |
+| Service    | Image base            | Purpose                                 |
+| ---------- | --------------------- | --------------------------------------- |
+| `db`       | `postgres:18-alpine`  | Persistent PostgreSQL data store        |
+| `backend`  | `node:24.19.0-alpine` | Express 5 + Prisma 7 REST API           |
+| `frontend` | `nginx:1.27-alpine`   | Serves the React SPA and proxies `/api` |
 
 The app is then reachable at `http://<server-host>` (port `${APP_PORT}`, default `80`).
 
@@ -256,9 +260,9 @@ curl http://localhost/api/health  # backend health (proxied)
 
 ### 4. Persistent data & volumes
 
-| Volume | Backs |
-| ------ | ----- |
-| `peoplevate-db-data` | PostgreSQL database files |
+| Volume               | Backs                             |
+| -------------------- | --------------------------------- |
+| `peoplevate-db-data` | PostgreSQL database files         |
 | `peoplevate-uploads` | Uploaded documents (`UPLOAD_DIR`) |
 
 Named volumes survive `docker compose down` and container recreation, so data is preserved

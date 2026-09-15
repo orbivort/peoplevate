@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Timesheets** — record how working time is distributed across projects and tasks:
+  - Manageable **project & task catalog** (HR Manager / Admin) with a billable flag, client,
+    and start/end dates.
+  - **Weekly timesheets** (Monday–Sunday) edited as a project × day grid, with 0.25-hour
+    steps, a 24-hour daily cap, and a Draft → Submitted → Approved/Rejected lifecycle.
+  - **Manager approval workflow** — approve or reject direct reports' weeks (rejection
+    requires a comment), with batch approve, approval history, and email notifications.
+  - **Working-time reports** — group by employee, project, or department over a date range,
+    approved-only by default, with CSV export.
+  - Full **audit logging** of entry changes, project/task changes, approvals, and exports.
+
 ## [1.0.3] - 2026-09-13
 
 ### Security

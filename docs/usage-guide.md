@@ -4,7 +4,7 @@ This guide explains how to use **Peoplevate** from the perspective of its users 
 employees, managers, HR staff, and administrators. It walks through each functional
 module, the common workflows, and the URL routes you will use in the web application.
 
-> **Role terms used below:** *Admin*, *HR Manager*, *Manager*, and *Employee*.
+> **Role terms used below:** _Admin_, _HR Manager_, _Manager_, and _Employee_.
 > See [Roles & Permissions](./roles-permissions.md) for the full capability matrix.
 
 ---
@@ -18,6 +18,7 @@ module, the common workflows, and the URL routes you will use in the web applica
 - [Employees](#employees)
 - [Recruitment & Onboarding](#recruitment--onboarding)
 - [Attendance & Leave](#attendance--leave)
+- [Timesheets](#timesheets)
 - [Performance](#performance)
 - [Offboarding](#offboarding)
 - [Documents](#documents)
@@ -55,13 +56,13 @@ module, the common workflows, and the URL routes you will use in the web applica
 
 ## Authentication & Account
 
-| Route | Purpose | Who |
-| ----- | ------- | --- |
-| `/login` | Sign in | All |
-| `/forgot-password` | Request a password reset | All |
-| `/setup` | Activate an invited account | Invited users |
-| `/app/profile` | View and edit your own profile | All |
-| `/app/settings` | Change password and account settings | All |
+| Route              | Purpose                              | Who           |
+| ------------------ | ------------------------------------ | ------------- |
+| `/login`           | Sign in                              | All           |
+| `/forgot-password` | Request a password reset             | All           |
+| `/setup`           | Activate an invited account          | Invited users |
+| `/app/profile`     | View and edit your own profile       | All           |
+| `/app/settings`    | Change password and account settings | All           |
 
 **Workflow — reset your password:**
 
@@ -188,6 +189,134 @@ session, and system access setup. These are tracked under `/app/recruitment/onbo
 
 ---
 
+## Timesheets
+
+- **Routes:**
+  - `/app/timesheets` — log your own hours for a week (all staff)
+  - `/app/timesheets/approvals` — review and decide on submitted weeks (Manager, HR Manager, Admin)
+  - `/app/timesheets/reports` — analyse worked hours and export them (Manager, HR Manager, Admin)
+  - `/app/admin/projects` — manage the project and task catalog (Admin, HR Manager)
+- **Who:**
+  - Log, save, submit, and view your own approval history: all staff with a linked employee record.
+  - Approve or reject: the employee's **manager**, HR Manager, or Admin.
+  - Run reports: Manager (their direct reports only), HR Manager and Admin (everyone).
+  - Manage projects and tasks: HR Manager, Admin.
+
+Timesheets record **how working time is distributed across projects and tasks**. Each employee
+fills in a Monday–Sunday week against a managed project catalog, submits it for approval, and —
+once approved — those hours feed the working-time reports.
+
+> **Related module:** timesheets complement [Attendance & Leave](#attendance--leave).
+> Attendance records _presence_ (clock in/out); timesheets record _effort allocation_.
+
+### The weekly timesheet
+
+- A timesheet always covers one **Monday–Sunday** week (Monday 00:00 to Sunday 23:59:59).
+- Only the **current and previous week** can be logged, viewed, or edited. The week navigator
+  stops at the previous week, and older weeks are not available.
+- A week is created automatically the first time you open it or log an hour, and starts as
+  **Draft**.
+
+**Status lifecycle:**
+
+`Draft → Submitted → Approved`, or `Submitted → Rejected → (edit and resubmit) → Submitted`
+
+- **Draft / Rejected** — you can add, change, and remove entries.
+- **Submitted / Approved** — entries are **locked** and the week is read-only.
+
+### Logging hours
+
+Open `/app/timesheets` and select a week. The page shows a **project × day grid**:
+
+1. Use **Add project row** to add a project, optionally narrowing it to one of its tasks.
+2. Type the hours for each day into the matching cell. You can log several projects on the same day.
+3. Totals update as you type: per project, per day, days logged, and the week total.
+4. Choose **Save week** to persist your changes, or **Discard** to revert them.
+
+**Entry rules:**
+
+- Hours are entered in **0.25-hour steps** (for example `7.5`), greater than `0`, and at most
+  **24 hours per entry**.
+- The **total for a single day cannot exceed 24 hours** across all projects.
+- You cannot log two entries for the **same project and task on the same day**.
+- Only **active** projects and tasks can be logged.
+- Clearing a cell deletes that entry when you save.
+
+On narrow screens the same week is edited one day at a time through a day switcher, so the hour
+inputs stay finger-sized.
+
+> The week grid logs **hours**. The API can also store an optional description (up to 500
+> characters) on each entry, but the web grid does not capture descriptions.
+
+### Submitting for approval
+
+1. Save all changed cells — **Submit week** stays disabled while there are unsaved changes.
+2. Select **Submit week**. The confirmation dialog shows the week total, a per-project recap, and
+   a non-blocking warning for any working day (Mon–Fri) with no hours.
+3. Confirm. The week moves to **Submitted**, its entries lock, and **your manager is notified by
+   email**.
+
+Submission requires at least one entry and an **assigned manager**. If you have no manager,
+submission is blocked with guidance to contact HR.
+
+### Reviewing and resubmitting
+
+If your manager rejects the week it returns to **Rejected**, the entries unlock, and a banner
+shows who rejected it and their comment. Adjust the hours and submit again — the same timesheet
+record is reused, so the full history is preserved.
+
+The **Approval history** panel below the week lists every submission and decision with the
+approver and comment.
+
+### Approving timesheets
+
+At `/app/timesheets/approvals`, managers and HR/Admin see the queue of **Submitted** weeks. For
+each row you can:
+
+- **Review** — expand the row to see the employee's week ledger in read-only form.
+- **Approve** — optionally add a comment; the week becomes **Approved** and locks.
+- **Reject** — a comment is **required** (1–500 characters); the week unlocks so the employee can
+  correct and resubmit it.
+- **Approve selected** — approve several reviewed weeks in one action.
+
+You cannot approve or reject your **own** timesheet. The employee is notified by email when the
+decision is made (rejections include the comment).
+
+### Working-time reports
+
+At `/app/timesheets/reports` you can aggregate worked hours over a date range:
+
+- **Group by:** employee, project, or department.
+- **Filters:** date range (required), employee, department, and project.
+- **Approval status:** reports include **approved** hours only by default; tick _Include pending &
+  rejected_ to widen the scope.
+- **Summary** tab — aggregated totals (the employee view also shows billable hours).
+- **Details** tab — the individual entries behind the totals, with pagination.
+- **Export CSV** — downloads every entry matching the current filters.
+
+Data is scoped by role: managers see their **direct reports**, HR Manager and Admin see everyone.
+Employees do not have access to the report pages.
+
+Every report run and CSV export is recorded in the [audit log](#audit-log).
+
+### Managing the project catalog
+
+At `/app/admin/projects` (Admin / HR Manager) you maintain the catalog employees log against:
+
+- **Create / edit projects** — a unique code, name, optional description and client, a billable
+  flag, and optional start/end dates.
+- **Activate / deactivate** — only active projects appear to employees. Deactivating hides a
+  project from new entries while preserving its history and reports.
+- **Manage tasks** — tasks belong to one project, are unique within it, and can be activated or
+  deactivated.
+- **Delete** — a project or task that has timesheet entries **cannot be deleted**; deactivate it
+  instead.
+
+The seeded sample data (`pnpm db:seed`) includes three example projects with tasks so you can try
+the flow immediately.
+
+---
+
 ## Performance
 
 - **Route:** `/app/performance`
@@ -297,25 +426,29 @@ policies determine how long different data categories are kept.
 
 ## Role Reference Summary
 
-| Capability area | Employee | Manager | HR Manager | Admin |
-| --------------- | :------: | :-----: | :--------: | :----: |
-| View own profile | ✅ | ✅ | ✅ | ✅ |
-| Submit leave request | ✅ | ✅ | ✅ | ✅ |
-| Clock attendance | ✅ | — | — | ✅ |
-| Self-evaluation | ✅ | ✅ | ✅ | ✅ |
-| Submit resignation | ✅ | ✅ | ✅ | ✅ |
-| View team attendance | — | ✅ | ✅ | ✅ |
-| Approve leave (level 1) | — | ✅ | ✅ | ✅ |
-| Schedule interviews | — | ✅ | ✅ | ✅ |
-| View job postings | — | ✅ | ✅ | ✅ |
-| Create/edit employees | — | — | ✅ | ✅ |
-| Manage organization | — | — | ✅ | ✅ |
-| Final leave approval | — | — | ✅ | ✅ |
-| Manage leave types | — | — | ✅ | ✅ |
-| View audit log | — | — | ✅ | ✅ |
-| GDPR compliance modules | — | — | ✅ | ✅ |
-| Manage users | — | — | — | ✅ |
-| Access salary | — | — | ✅ | ✅ |
+| Capability area            | Employee |       Manager       | HR Manager | Admin |
+| -------------------------- | :------: | :-----------------: | :--------: | :---: |
+| View own profile           |    ✅    |         ✅          |     ✅     |  ✅   |
+| Submit leave request       |    ✅    |         ✅          |     ✅     |  ✅   |
+| Clock attendance           |    ✅    |          —          |     —      |  ✅   |
+| Log & submit own timesheet |    ✅    |         ✅          |     ✅     |  ✅   |
+| View team attendance       |    —     |         ✅          |     ✅     |  ✅   |
+| Approve leave (level 1)    |    —     |         ✅          |     ✅     |  ✅   |
+| Approve team timesheets    |    —     |         ✅          |     ✅     |  ✅   |
+| View timesheet reports     |    —     | ✅ (direct reports) |     ✅     |  ✅   |
+| Manage projects & tasks    |    —     |          —          |     ✅     |  ✅   |
+| Self-evaluation            |    ✅    |         ✅          |     ✅     |  ✅   |
+| Submit resignation         |    ✅    |         ✅          |     ✅     |  ✅   |
+| Schedule interviews        |    —     |         ✅          |     ✅     |  ✅   |
+| View job postings          |    —     |         ✅          |     ✅     |  ✅   |
+| Create/edit employees      |    —     |          —          |     ✅     |  ✅   |
+| Manage organization        |    —     |          —          |     ✅     |  ✅   |
+| Final leave approval       |    —     |          —          |     ✅     |  ✅   |
+| Manage leave types         |    —     |          —          |     ✅     |  ✅   |
+| View audit log             |    —     |          —          |     ✅     |  ✅   |
+| GDPR compliance modules    |    —     |          —          |     ✅     |  ✅   |
+| Manage users               |    —     |          —          |     —      |  ✅   |
+| Access salary              |    —     |          —          |     ✅     |  ✅   |
 
-The authoritative mapping is enforced in the backend RBAC layer; see
-[Roles & Permissions](./roles-permissions.md).
+The authoritative mapping is enforced in the backend RBAC layer and per-record ownership
+checks; see [Roles & Permissions](./roles-permissions.md).
