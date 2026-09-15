@@ -11,6 +11,7 @@ function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {
         'placeholder:text-ink-400',
         'focus-visible:border-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500/20 focus-visible:outline-none',
         'disabled:cursor-not-allowed disabled:opacity-50',
+        'aria-[invalid=true]:border-danger-500 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger-500/20',
         className,
       )}
       {...props}

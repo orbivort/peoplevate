@@ -58,11 +58,15 @@ describe('SmtpTransport', () => {
     await transport.deliver({ to: 'a@example.com', subject: 'Hi', html: '<p>Body</p>' });
 
     expect(createTransportMock).toHaveBeenCalledTimes(1);
+    // Explicit timeouts keep an unreachable SMTP host from hanging the caller.
     expect(createTransportMock).toHaveBeenCalledWith({
       host: 'smtp.test',
       port: 587,
       secure: false,
       auth: { user: 'user', pass: 'pass' },
+      connectionTimeout: 5_000,
+      greetingTimeout: 5_000,
+      socketTimeout: 10_000,
     });
     expect(sendMailMock).toHaveBeenCalledWith({
       from: 'noreply@peoplevate.test',

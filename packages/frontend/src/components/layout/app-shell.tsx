@@ -3,9 +3,11 @@ import {
   Building2,
   CalendarClock,
   CalendarRange,
+  CheckCircle2,
   ClipboardList,
   FileClock,
   FileText,
+  FolderKanban,
   LayoutDashboard,
   LogOut,
   ScrollText,
@@ -114,6 +116,24 @@ const navSections: { title?: string; items: NavItem[] }[] = [
         alwaysVisible: true,
       },
       {
+        to: '/app/timesheets',
+        label: 'Timesheets',
+        icon: CalendarRange,
+        alwaysVisible: true,
+      },
+      {
+        to: '/app/timesheets/approvals',
+        label: 'Timesheet Approvals',
+        icon: CheckCircle2,
+        capability: 'viewDirectReports',
+      },
+      {
+        to: '/app/timesheets/reports',
+        label: 'Timesheet Reports',
+        icon: FileText,
+        capability: 'viewDirectReports',
+      },
+      {
         to: '/app/my-data',
         label: 'My Data & Privacy',
         icon: ShieldCheck,
@@ -187,6 +207,12 @@ const navSections: { title?: string; items: NavItem[] }[] = [
         label: 'Leave & Holidays',
         icon: CalendarRange,
         alwaysVisible: true,
+      },
+      {
+        to: '/app/admin/projects',
+        label: 'Projects',
+        icon: FolderKanban,
+        capability: 'manageOrg',
       },
       {
         to: '/app/users',
@@ -459,6 +485,9 @@ function headerTitle(): ReactNode {
   if (path.startsWith('/app/recruitment/interviews')) return 'Interviews';
   if (path.startsWith('/app/recruitment/offers')) return 'Offer Letters';
   if (path.startsWith('/app/recruitment/onboarding')) return 'Onboarding';
+  if (path.startsWith('/app/timesheets/approvals')) return 'Timesheet Approvals';
+  if (path.startsWith('/app/timesheets/reports')) return 'Timesheet Reports';
+  if (path.startsWith('/app/admin/projects')) return 'Projects';
   const seg = path.split('/app/')[1]?.split('/')[0];
   const map: Record<string, string> = {
     employees: 'Employees',
@@ -474,6 +503,7 @@ function headerTitle(): ReactNode {
     profile: 'My Profile',
     settings: 'Account Settings',
     'my-data': 'My Data & Privacy',
+    timesheets: 'Timesheets',
   };
   if (path.startsWith('/app/compliance/')) {
     const page = path.split('/app/compliance/')[1]?.split('/')[0];

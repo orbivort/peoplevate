@@ -39,6 +39,9 @@ import {
   holidays,
   attendanceSummaries,
   offboardingRecords,
+  timesheetProjects,
+  timesheetTasks,
+  timesheets,
 } from '../data/mock-data';
 
 export interface MockStore {
@@ -71,6 +74,9 @@ export interface MockStore {
   holidays: typeof holidays;
   attendanceSummaries: typeof attendanceSummaries;
   offboardingRecords: typeof offboardingRecords;
+  timesheetProjects: typeof timesheetProjects;
+  timesheetTasks: typeof timesheetTasks;
+  timesheets: typeof timesheets;
 }
 
 function seed(): MockStore {
@@ -104,6 +110,9 @@ function seed(): MockStore {
     holidays: [...holidays],
     attendanceSummaries: [...attendanceSummaries],
     offboardingRecords: [...offboardingRecords],
+    timesheetProjects: [...timesheetProjects],
+    timesheetTasks: [...timesheetTasks],
+    timesheets: [...timesheets],
   };
 }
 

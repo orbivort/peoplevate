@@ -4,7 +4,7 @@
 
 **An open-source Employee Lifecycle Management System**
 
-Recruitment & onboarding · Attendance & leave · Performance · Offboarding · Documents · RBAC · Audit logging
+Recruitment & onboarding · Attendance & leave · Timesheets · Performance · Offboarding · Documents · RBAC · Audit logging
 
 [![License](https://img.shields.io/github/license/orbivort/peoplevate?style=flat-square)](./LICENSE)
 
@@ -31,7 +31,7 @@ Recruitment & onboarding · Attendance & leave · Performance · Offboarding · 
 
 ## About
 
-Peoplevate is a self-hosted Employee Lifecycle Management System that walks an employee through their entire journey at a company — from a job requisition and offer, through onboarding, day-to-day attendance, leave, and performance reviews, to a structured offboarding and settlement.
+Peoplevate is a self-hosted Employee Lifecycle Management System that walks an employee through their entire journey at a company — from a job requisition and offer, through onboarding, day-to-day attendance, timesheets, leave, and performance reviews, to a structured offboarding and settlement.
 
 It is built with a clean layered architecture, strong security (encrypted PII at rest, JWT + refresh token rotation, RBAC enforced on both frontend and backend), and comprehensive audit logging of every mutation.
 
@@ -40,6 +40,7 @@ It is built with a clean layered architecture, strong security (encrypted PII at
 - **Recruitment** — job requisitions, postings, candidates (APPLIED → SCREENING → INTERVIEW → OFFER → HIRED), interviews, offer letters
 - **Onboarding** — tasks for document submission, equipment assignment, orientation, and system access setup
 - **Attendance & Leave** — attendance records, leave types & policies, entitlements & balances, multi-step leave approvals, holidays
+- **Timesheets** — a managed project & task catalog, weekly (Mon–Sun) hour logging, single-level manager approval with comments, and role-scoped working-time reports with CSV export
 - **Performance** — evaluation cycles (probation / mid-year / end-year), self → manager → HR review workflow, optional rebuttals
 - **Offboarding** — clearance items, exit interviews, settlements, and a full offboarding state machine
 - **Organization** — hierarchical departments, positions, employees, and managers

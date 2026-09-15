@@ -23,6 +23,10 @@ import { dsarRoutes } from './routes/dsar-routes.js';
 import { breachRoutes } from './routes/breach-routes.js';
 import { anomalyRoutes } from './routes/anomaly-routes.js';
 import { consentRoutes } from './routes/consent-routes.js';
+import { timesheetRoutes } from './routes/timesheet-routes.js';
+import { timesheetEntryRoutes } from './routes/timesheet-entry-routes.js';
+import { projectRoutes } from './routes/project-routes.js';
+import { timesheetReportRoutes } from './routes/timesheet-report-routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found-handler.js';
 import { apiRateLimiter } from './middleware/rate-limiter.js';
@@ -74,6 +78,10 @@ export function createApp(): express.Express {
   app.use('/api/breach', breachRoutes);
   app.use('/api/anomalies', anomalyRoutes);
   app.use('/api/consent', consentRoutes);
+  app.use('/api/timesheets', timesheetRoutes);
+  app.use('/api/timesheet-entries', timesheetEntryRoutes);
+  app.use('/api/projects', projectRoutes);
+  app.use('/api/reports/timesheets', timesheetReportRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
