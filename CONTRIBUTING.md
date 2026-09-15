@@ -20,7 +20,7 @@ This project adheres to a [Code of Conduct](./CODE_OF_CONDUCT.md). By participat
 
 ### Reporting Bugs
 
-- Search existing [issues](https://github.com/peoplevate/peoplevate/issues) before opening a new one.
+- Search existing [issues](https://github.com/orbivort/peoplevate/issues) before opening a new one.
 - Use the provided [issue templates](.github/ISSUE_TEMPLATE/).
 - Provide a clear, minimal reproduction, expected vs. actual behavior, and environment details (OS, Node/pnpm versions).
 

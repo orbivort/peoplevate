@@ -1,8 +1,8 @@
 # Peoplevate Documentation
 
-This directory holds the user-facing documentation for **Peoplevate**, an open-source
-Employee Lifecycle Management System. It is the primary reference for operators,
-administrators, HR staff, and API consumers who install and run the product.
+This directory holds the user-facing documentation for **Peoplevate**, the self-hosted employee
+lifecycle platform. It is the primary reference for operators, administrators, HR staff, and API
+consumers who install and run the product.
 
 ## Documentation Set
 

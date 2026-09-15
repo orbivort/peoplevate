@@ -79,7 +79,7 @@ export function LoginPage() {
         </div>
 
         <div className="relative z-10 text-xs text-ink-500">
-          Employee Lifecycle Management System · Self-hosted · v1.0
+          Self-hosted employee lifecycle platform
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export function LoginPage() {
           {/* Mobile logo */}
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <BrandLogo dark className="h-9 w-9" />
-            <span className="font-display text-lg tracking-tight text-ink-900">ELMS</span>
+            <span className="font-display text-lg tracking-tight text-ink-900">Peoplevate</span>
           </div>
 
           <div className="mb-8">
