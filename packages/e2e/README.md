@@ -50,12 +50,12 @@ pnpm test:e2e
 
 ### Configuration (`packages/e2e/.env`, all optional)
 
-| Variable            | Default                                                                    |
-| ------------------- | -------------------------------------------------------------------------- |
-| `E2E_BASE_URL`      | `http://localhost:5173`                                                    |
-| `E2E_API_URL`       | `http://localhost:4000`                                                    |
+| Variable            | Default                                                                          |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `E2E_BASE_URL`      | `http://localhost:5173`                                                          |
+| `E2E_API_URL`       | `http://localhost:4000`                                                          |
 | `E2E_DB_URL`        | `postgresql://peoplevate:peoplevate@localhost:5432/peoplevate_e2e?schema=public` |
-| `E2E_SKIP_DB_RESET` | `false` (set `true` to keep existing E2E DB state)                         |
+| `E2E_SKIP_DB_RESET` | `false` (set `true` to keep existing E2E DB state)                               |
 
 ### Manual / debugging
 
