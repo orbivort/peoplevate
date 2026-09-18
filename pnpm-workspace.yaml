@@ -72,7 +72,7 @@ catalog:
   typescript: ^6.0.0
   eslint: ^10.8.0
   '@eslint/js': ^10.0.1
-  '@types/node': ^24.13.3
+  '@types/node': ^26.2.0
   cross-env: ^10.1.0
   # Runtime dependencies shared by more than one workspace package.
   dotenv: ^17.4.2
