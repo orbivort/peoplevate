@@ -78,7 +78,7 @@ jobs:
       - name: Checkout the commit to tag (full history)
         # Merged-PR run: the PR's merge commit. Manual run: the ref picked in
         # the dispatch dialog (`main`, or the interrupted release commit).
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 

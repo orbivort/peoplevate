@@ -29,21 +29,21 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         # Keep in sync with the root package.json `packageManager`/`engines`
         # fields (pnpm ^11.21.0, node ^24.19.0).
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/pnpm/action-setup.git v5
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@v6
         with:
           version: 11.21.0
 
       - name: Setup Node.js
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/setup-node.git v5
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: 24.19.0
           cache: pnpm
@@ -109,7 +109,7 @@ jobs:
       - name: Upload Pages artifact
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/upload-pages-artifact.git v3
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: packages/frontend/dist
 
