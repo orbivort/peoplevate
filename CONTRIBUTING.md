@@ -10,6 +10,7 @@ Thanks for taking the time to contribute! Please read this document before openi
 - [Project Conventions](#project-conventions)
 - [Testing](#testing)
 - [Commit Conventions](#commit-conventions)
+- [Dependency Updates](#dependency-updates)
 - [Release Process](#release-process)
 
 ## Code of Conduct
@@ -102,6 +103,37 @@ Example: `feat(attendance): add clock-in/clock-out validation`
 Commit messages drive releases: the release tooling derives the next SemVer
 bump and the changelog from them. Mark breaking changes with `!` after the
 type (e.g. `feat(api)!:`) or a `BREAKING CHANGE:` footer in the commit body.
+
+## Dependency Updates
+
+[Dependabot](https://docs.github.com/en/code-security/dependabot) keeps
+dependencies current through [`.github/dependabot.yml`](./.github/dependabot.yml).
+It opens pull requests on a weekly schedule for four ecosystems:
+
+| Ecosystem        | Scope                                                                 |
+| ---------------- | --------------------------------------------------------------------- |
+| `npm` (pnpm)     | Root + all workspace packages, via the shared `pnpm-lock.yaml`        |
+| `github-actions` | Workflows in `.github/workflows/` and composite actions in `.github/actions/` |
+| `docker`         | Base images in `packages/backend/Dockerfile` and `packages/frontend/Dockerfile` |
+| `docker-compose` | Service images in `docker-compose.yml`                                |
+
+Conventions:
+
+- Routine minor/patch updates are grouped into a single PR per ecosystem; major
+  updates open individually so breaking changes get a dedicated review.
+- Commits use Conventional-Commit prefixes (`chore(deps)`, `chore(deps-dev)`,
+  `chore(ci)`, `chore(docker)`).
+- A cooldown delays version updates so a freshly published release has time to
+  be vetted — mirroring the `minimumReleaseAge` policy in
+  `pnpm-workspace.yaml`. Security updates bypass the cooldown.
+- Transitive fixes that Dependabot cannot express (e.g. a patched transitive
+  version) are pinned with `overrides` in `pnpm-workspace.yaml`; see the
+  comments there.
+
+Dependabot **alerts** and **security updates** must be enabled under
+_Settings → Code security_ for the security-update PRs to be created. Before
+merging a dependency PR, run `pnpm ci` and, when a container base image
+changes, rebuild the affected image with `docker compose build`.
 
 ## Release Process
 

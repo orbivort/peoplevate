@@ -1,0 +1,149 @@
+# Dependabot configuration.
+# Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Keeps every dependency surface in the repository current:
+#   * npm            — the pnpm workspace (root + packages/*), tracked through
+#                      the single root pnpm-lock.yaml and the shared `catalog:`
+#                      versions in pnpm-workspace.yaml.
+#   * github-actions — .github/workflows/** and .github/actions/**/action.yml.
+#   * docker         — the base images of the two service Dockerfiles.
+#   * docker-compose — the service images in docker-compose.yml.
+#
+# Conventions enforced here:
+#   * Weekly schedule, staggered per ecosystem, Monday morning (UTC).
+#   * Conventional-Commit prefixes so the release tooling and CHANGELOG stay
+#     consistent (see the "Commit Conventions" section in CONTRIBUTING.md).
+#     `include: scope` renders `chore(deps)` / `chore(deps-dev)` for npm.
+#   * A cooldown before a new version is adopted, mirroring the supply-chain
+#     `minimumReleaseAge` policy in pnpm-workspace.yaml. Security updates are
+#     exempt from the cooldown by design.
+#   * Routine minor/patch updates are grouped into a single PR per ecosystem;
+#     major updates open individually so breaking changes get a focused review.
+#
+# NOTE: The security-update groups below only produce PRs while
+# "Dependabot alerts" and "Dependabot security updates" are enabled in
+# Settings > Code security.
+
+version: 2
+
+updates:
+  # ------------------------------------------------------------------ npm -----
+  # A single entry covers the whole pnpm workspace: Dependabot reads
+  # pnpm-workspace.yaml from the root directory, resolves the shared
+  # pnpm-lock.yaml, and can update both package manifests and `catalog:`
+  # versions.
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'Etc/UTC'
+    # Plenty of headroom: routine upgrades are grouped, majors stay individual.
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 7
+    groups:
+      # Bundle every routine minor/patch bump into one reviewable PR.
+      npm-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Security fixes bypass the cooldown and the PR limit; grouping them keeps
+      # the alert queue actionable. Dependabot still splits the group when two
+      # fixes have incompatible version constraints.
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  # -------------------------------------------------------- github-actions ---
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:15'
+      timezone: 'Etc/UTC'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore(ci)'
+    cooldown:
+      default-days: 7
+    groups:
+      # Action updates move together: they share the vN-tag release model and
+      # are almost always safe to land in a single PR.
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - '*'
+      github-actions-security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  # --------------------------------------------------------------- docker ----
+  # Base images of the two service Dockerfiles. `node` is pinned to the
+  # toolchain declared in `engines` and .github/actions/setup, so major Node
+  # bumps are ignored (a node:25 base would break the pinned pnpm/Node setup);
+  # 24.x patch/minor updates are still proposed.
+  - package-ecosystem: 'docker'
+    directories:
+      - 'packages/backend'
+      - 'packages/frontend'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:30'
+      timezone: 'Etc/UTC'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore(docker)'
+    cooldown:
+      default-days: 7
+    groups:
+      docker-images:
+        applies-to: version-updates
+        patterns:
+          - '*'
+    ignore:
+      - dependency-name: 'node'
+        update-types:
+          - 'version-update:semver-major'
+
+  # ------------------------------------------------------- docker-compose ----
+  - package-ecosystem: 'docker-compose'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:30'
+      timezone: 'Etc/UTC'
+    open-pull-requests-limit: 3
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore(docker)'
+    cooldown:
+      default-days: 7
+    ignore:
+      # PostgreSQL major upgrades require a dump/restore migration (see
+      # docs/deployment.md); keep those manual.
+      - dependency-name: 'postgres'
+        update-types:
+          - 'version-update:semver-major'

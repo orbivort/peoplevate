@@ -13,7 +13,7 @@ with encrypted PII, four-tier RBAC and a full audit trail, on your own infrastru
 [![Live Demo](https://img.shields.io/badge/demo-live-2ea44f?style=flat-square)](https://orbivort.github.io/peoplevate/)
 [![Release](https://img.shields.io/github/v/release/orbivort/peoplevate?include_prereleases&sort=semver&style=flat-square)](https://github.com/orbivort/peoplevate/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/orbivort/peoplevate/ci.yml?branch=main&label=CI&logo=github&style=flat-square)](https://github.com/orbivort/peoplevate/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/github/orbivort/peoplevate/graph/badge.svg?token=9EBHXY249G)](https://codecov.io/github/orbivort/peoplevate)
+[![codecov](https://codecov.io/github/orbivort/peoplevate/graph/badge.svg)](https://codecov.io/github/orbivort/peoplevate)
 
 </div>
 
