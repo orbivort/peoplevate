@@ -53,7 +53,7 @@ jobs:
       - name: Checkout code (full history)
         # Full history is required to diff the current version against the
         # previous tag when deriving the bump and the changelog section.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 

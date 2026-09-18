@@ -37,7 +37,7 @@ jobs:
         #   git ls-remote https://github.com/actions/checkout.git v5
         # Must run before using the local composite action (the action no
         # longer checks out internally to avoid a recursive checkout loop).
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup project
         uses: ./.github/actions/setup
@@ -70,7 +70,7 @@ jobs:
       - name: Checkout code
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/checkout.git v5
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup project
         uses: ./.github/actions/setup
@@ -110,7 +110,7 @@ jobs:
       - name: Checkout code
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/checkout.git v5
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup project
         uses: ./.github/actions/setup
@@ -137,7 +137,7 @@ jobs:
         if: '!cancelled()'
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/upload-artifact.git v6
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.package }}
           path: ${{ matrix.coverage }}
@@ -183,7 +183,7 @@ jobs:
       - name: Checkout code
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/checkout.git v5
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup project
         uses: ./.github/actions/setup
@@ -244,7 +244,7 @@ jobs:
       - name: Checkout code
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/checkout.git v5
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup project
         uses: ./.github/actions/setup
@@ -261,7 +261,7 @@ jobs:
         if: '!cancelled()'
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/upload-artifact.git v6
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |

@@ -49,7 +49,7 @@ jobs:
       - name: Checkout code (full history)
         # `fetch-depth: 0` is required so the changelog generator can diff
         # the current tag against the previous one.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -93,7 +93,7 @@ jobs:
       - name: Checkout code
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/actions/checkout.git v5
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
