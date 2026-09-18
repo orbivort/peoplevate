@@ -10,7 +10,7 @@
 # Build context must be the monorepo root so pnpm can resolve the workspace.
 
 # ----------------------------------------------------------------- deps ------
-FROM node:24.19.0-alpine AS deps
+FROM node:24.20.0-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -39,7 +39,7 @@ ENV VITE_USE_MOCK=${VITE_USE_MOCK}
 RUN pnpm --filter @peoplevate/frontend build
 
 # ----------------------------------------------------------------- web -------
-FROM nginx:1.27-alpine AS web
+FROM nginx:1.29-alpine AS web
 # Default conf served by nginx:1.27-alpine; remove the demo page.
 RUN rm -f /etc/nginx/conf.d/default.conf
 # Build context is the monorepo root, so the nginx.conf path is fully qualified.
