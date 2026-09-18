@@ -70,19 +70,19 @@ overrides:
 # Shared dependency versions across all packages
 catalog:
   typescript: ^6.0.0
-  eslint: ^10.8.0
+  eslint: ^10.10.0
   '@eslint/js': ^10.0.1
   '@types/node': ^24.13.3
   cross-env: ^10.1.0
   # Runtime dependencies shared by more than one workspace package.
   dotenv: ^17.4.2
-  pg: ^8.22.0
+  pg: ^8.23.0
   # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
   # the @vitest/mocker redirect mock).
   vitest: ^4.1.11
   '@vitest/coverage-v8': ^4.1.11
-  typescript-eslint: ^8.66.0
-  globals: ^17.9.0
+  typescript-eslint: ^8.70.0
+  globals: ^17.12.0
 
 minimumReleaseAgeExclude:
   - nanoid@3.3.18
