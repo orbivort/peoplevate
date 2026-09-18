@@ -69,7 +69,7 @@ overrides:
 
 # Shared dependency versions across all packages
 catalog:
-  typescript: ^6.0.0
+  typescript: ^7.0.2
   eslint: ^10.8.0
   '@eslint/js': ^10.0.1
   '@types/node': ^24.13.3
