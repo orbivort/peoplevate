@@ -15,7 +15,7 @@
 # the monorepo root so `pnpm install --filter` can resolve the workspace.
 
 # ---------------------------------------------------------------- base -------
-FROM node:24.19.0-alpine AS base
+FROM node:24.20.0-alpine AS base
 # corepack enables pnpm without a global install (pin to the repo's packageManager).
 RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
 ENV PNPM_HOME=/pnpm
