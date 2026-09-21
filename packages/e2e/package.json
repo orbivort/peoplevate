@@ -14,7 +14,7 @@
     "clean:all": "rimraf --verbose test-results playwright-report node_modules"
   },
   "dependencies": {
-    "@playwright/test": "^1.49.0",
+    "@playwright/test": "^1.63.0",
     "dotenv": "catalog:",
     "pg": "catalog:"
   },
