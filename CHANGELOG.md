@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Security
+
+- Remediate **22** dependency vulnerabilities (**6 high**, **13 moderate**, **3 low**):
+  - `nodemailer` 9.1.1 → 10.0.12 — fixes a quadratic-time `addressparser` free-text
+    fallback that allows remote denial of service
+    ([GHSA-v53p-9fqp-m79j](https://github.com/advisories/GHSA-v53p-9fqp-m79j)), a
+    process-global DNS cache that reuses the TLS `servername` across transports and so
+    enables cross-tenant SMTP credential disclosure
+    ([GHSA-6vj9-mwq6-2f5v](https://github.com/advisories/GHSA-6vj9-mwq6-2f5v)), nested
+    structured recipient arrays that bypass the parser depth limit and exhaust the stack
+    ([GHSA-8vvx-rff5-p5rq](https://github.com/advisories/GHSA-8vvx-rff5-p5rq)), and a
+    quoted local-part that can produce a malformed envelope recipient through RFC 5322
+    comment parsing
+    ([GHSA-g57g-f23g-4646](https://github.com/advisories/GHSA-g57g-f23g-4646))
+  - `multer` 2.3.0 → 2.4.0 — fixes a denial of service via orphaned disk writes on
+    aborted uploads
+    ([GHSA-3pph-fpjx-jg34](https://github.com/advisories/GHSA-3pph-fpjx-jg34))
+  - `undici` 8.10.0 → 8.10.2 — fixes three high-severity issues: a denial of service via
+    an unrequested WebSocket subprotocol
+    ([GHSA-rfgv-xxqx-mfg5](https://github.com/advisories/GHSA-rfgv-xxqx-mfg5)), a TLS
+    certificate validation bypass via dropped connect options in `BalancedPool`
+    ([GHSA-w293-vg96-wgc3](https://github.com/advisories/GHSA-w293-vg96-wgc3)), and
+    cross-origin cache poisoning via missing origin isolation in interceptors
+    ([GHSA-vp8m-p9jh-q5pm](https://github.com/advisories/GHSA-vp8m-p9jh-q5pm)); five
+    moderate issues: denial of service via an unhandled error in WebSocket
+    `permessage-deflate` decompression
+    ([GHSA-3wwx-pv8p-q78v](https://github.com/advisories/GHSA-3wwx-pv8p-q78v)), via an
+    orphaned `RetryHandler` response body
+    ([GHSA-pmjh-fq2x-6v4x](https://github.com/advisories/GHSA-pmjh-fq2x-6v4x)), and via
+    unbounded decompression of compressed responses
+    ([GHSA-3xpg-4rpp-hhhm](https://github.com/advisories/GHSA-3xpg-4rpp-hhhm)),
+    cross-user cookie disclosure via `Set-Cookie` caching in shared caches
+    ([GHSA-2jfj-6hjv-fm6j](https://github.com/advisories/GHSA-2jfj-6hjv-fm6j)), and
+    denial of service via an unclean `WebSocketStream` close
+    ([GHSA-rx4f-c7p8-82vq](https://github.com/advisories/GHSA-rx4f-c7p8-82vq)); and three
+    low-severity issues: downstream response splitting via the retry interceptor
+    ([GHSA-r53p-7pc4-xj5r](https://github.com/advisories/GHSA-r53p-7pc4-xj5r)), response
+    truncation via oversized chunked responses in the dump interceptor
+    ([GHSA-2gqq-gqf2-x968](https://github.com/advisories/GHSA-2gqq-gqf2-x968)), and
+    caching/replay of unsafe HTTP method responses
+    ([GHSA-8436-99hf-9mmv](https://github.com/advisories/GHSA-8436-99hf-9mmv)). It is
+    pulled by `jsdom` (the vitest DOM environment), which declares `^8.9.0`, and is pinned
+    by a pnpm override
+  - `brace-expansion` 5.0.9 → 5.0.12 — fixes two stack-exhaustion denial-of-service issues
+    via uncontrolled recursion
+    ([GHSA-qhr7-859c-m2p7](https://github.com/advisories/GHSA-qhr7-859c-m2p7),
+    [GHSA-6j4f-fj2g-mc7p](https://github.com/advisories/GHSA-6j4f-fj2g-mc7p)) and a
+    quadratic-time CPU denial of service in the `{a},b}` rewrite
+    ([GHSA-q2hr-2g5m-vwhr](https://github.com/advisories/GHSA-q2hr-2g5m-vwhr)). It is
+    pulled by `minimatch` through the eslint and `rimraf > glob` toolchains and is pinned
+    by a pnpm override
+  - `fast-uri` 3.1.7 → 3.1.8 — fixes inconsistent host-case normalization via
+    percent-encoded octets
+    ([GHSA-hrr3-gc8f-f4qj](https://github.com/advisories/GHSA-hrr3-gc8f-f4qj)). It is
+    pulled by `ajv` through the Prisma CLI and stylelint toolchains and is pinned by a pnpm
+    override
+  - `ip-address` 10.7.0 → 10.7.2 — fixes an allow-list bypass where `isInSubnet()` /
+    `isHostInSubnet()` compare addresses of different families as if they shared an
+    address space
+    ([GHSA-j6r3-76f7-8jcv](https://github.com/advisories/GHSA-j6r3-76f7-8jcv)) and an
+    unbounded parse diagnostic that can stall or crash the process
+    ([GHSA-h3mg-xc3c-68pw](https://github.com/advisories/GHSA-h3mg-xc3c-68pw)). It is
+    pulled by `express-rate-limit`, which declares `^10.2.0`, and is pinned by a pnpm
+    override
+
 ## [1.1.0] - 2026-09-15
 
 ### Added
@@ -216,6 +283,8 @@ Key achievements of this release:
 - No source maps shipped in production unless explicitly enabled via `VITE_SOURCEMAP`.
 
 ---
+
+[Unreleased]: https://github.com/orbivort/peoplevate/compare/v1.1.0...HEAD
 
 [1.0.0]: https://github.com/orbivort/peoplevate/releases/tag/v1.0.0
 [1.0.1]: https://github.com/orbivort/peoplevate/compare/v1.0.0...v1.0.1

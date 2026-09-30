@@ -48,9 +48,11 @@ overrides:
   # @prisma/dev > @prisma/streams-local and by stylelint via table) to a patched
   # version to fix GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf
   # and GHSA-jqff-g426-hqxp (SSRF / host-confusion via URI normalization, all
-  # patched in >=3.1.6). 3.1.7 is the newest release in the 3.x range that ajv
-  # declares (^3.0.1), so a 4.x override would break the declared contract.
-  fast-uri: 3.1.7
+  # patched in >=3.1.6) and GHSA-hrr3-gc8f-f4qj (inconsistent host-case
+  # normalization via percent-encoded octets, patched >=3.1.8). 3.1.8 is the
+  # newest release in the 3.x range that ajv declares (^3.0.1), so a 4.x override
+  # would break the declared contract.
+  fast-uri: 3.1.8
   # Force `qs` (pulled by express, body-parser and supertest's superagent) to a
   # patched version to fix GHSA-x5fp-wj9c-mxmx (array-limit bypass via
   # bracket-key comma parsing, patched >=6.15.4) and GHSA-4mjr-xmp4-gh2g
@@ -66,6 +68,29 @@ overrides:
   # GHSA-2wm5-q62r-hmrv (slow rejection of oversized malformed color strings,
   # patched >=2.9.4). stylelint declares `^2.9.3`, so 2.10.0 stays in range.
   colord: 2.10.0
+  # Force `undici` (pulled by jsdom, which backs the vitest browser-like test
+  # environment) to a patched version to fix GHSA-rfgv-xxqx-mfg5 (DoS via an
+  # unrequested WebSocket subprotocol), GHSA-w293-vg96-wgc3 (TLS certificate
+  # validation bypass via dropped connect options in BalancedPool),
+  # GHSA-vp8m-p9jh-q5pm (cross-origin cache poisoning via missing origin
+  # isolation in interceptors), GHSA-3wwx-pv8p-q78v, GHSA-pmjh-fq2x-6v4x,
+  # GHSA-3xpg-4rpp-hhhm, GHSA-2jfj-6hjv-fm6j, GHSA-rx4f-c7p8-82vq,
+  # GHSA-r53p-7pc4-xj5r, GHSA-2gqq-gqf2-x968 and GHSA-8436-99hf-9mmv (all
+  # patched >=8.10.2). jsdom declares `^8.9.0`, so 8.10.2 (the minimal patched
+  # release) stays in range.
+  undici: 8.10.2
+  # Force `brace-expansion` (pulled by minimatch, which is used by the eslint and
+  # rimraf > glob toolchains) to a patched version to fix GHSA-qhr7-859c-m2p7 and
+  # GHSA-6j4f-fj2g-mc7p (stack exhaustion via uncontrolled recursion) and
+  # GHSA-q2hr-2g5m-vwhr (quadratic-time CPU DoS on the `{a},b}` rewrite), all
+  # patched >=5.0.12. minimatch declares `^5.0.8`, so 5.0.12 stays in range.
+  brace-expansion: 5.0.12
+  # Force `ip-address` (pulled by express-rate-limit) to a patched version to fix
+  # GHSA-j6r3-76f7-8jcv (isInSubnet() compares mixed address families and can
+  # admit an address outside its range) and GHSA-h3mg-xc3c-68pw (unbounded parse
+  # diagnostic string stalls the process), both patched >=10.7.1.
+  # express-rate-limit declares `^10.2.0`, so 10.7.2 stays in range.
+  ip-address: 10.7.2
 
 # Shared dependency versions across all packages
 catalog:
