@@ -124,7 +124,7 @@ jobs:
         if: '!cancelled()'
         # Pin to the commit SHA for supply-chain hardening. Resolve via:
         #   git ls-remote https://github.com/codecov/codecov-action.git v6
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ matrix.coverage }}/lcov.info
