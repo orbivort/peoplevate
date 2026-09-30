@@ -32,6 +32,10 @@ env:
   REGISTRY: ghcr.io
   # Image base name. Each service is published as <base>/<service>.
   IMAGE_BASE: ${{ github.repository }}
+  # Human-readable prefix for the GitHub Release title, so a release reads
+  # "Peoplevate v1.2.3" instead of the bare tag "v1.2.3". The tag (and every
+  # image tag) keeps the plain `vX.Y.Z` form; only the release title changes.
+  RELEASE_NAME_PREFIX: Peoplevate
 
 jobs:
   # Produce the GitHub Release body. The action prefers the version's section
@@ -156,8 +160,26 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
+          # Override the default title (the bare tag, e.g. "v1.1.1") with the
+          # product-prefixed name (e.g. "Peoplevate v1.1.1").
+          name: ${{ env.RELEASE_NAME_PREFIX }} ${{ github.ref_name }}
           body: ${{ needs.changelog.outputs.body }}
           # Published immediately: the review gate already happened at the
           # release PR (see release-publish.yml / release-prepare.yml).
           draft: false
           prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+
+      - name: Ensure the release title carries the product prefix
+        # Backfill for a release that already existed under the default title
+        # (e.g. created for the tag before this step ran). `gh release edit`
+        # only touches the title, so the tag, body and assets stay as-is, and
+        # it is idempotent: re-running the job is safe. `--repo` is explicit
+        # because this job never checks out the repository, so `gh` cannot
+        # infer the remote from a working tree.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TITLE: ${{ env.RELEASE_NAME_PREFIX }} ${{ github.ref_name }}
+        run: |
+          gh release edit "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --title "$RELEASE_TITLE"
