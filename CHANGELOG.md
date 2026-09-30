@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.1.1] - 2026-09-30
 
 ### Security
 
@@ -293,3 +293,5 @@ Key achievements of this release:
 [1.0.3]: https://github.com/orbivort/peoplevate/compare/v1.0.2...v1.0.3
 
 [1.1.0]: https://github.com/orbivort/peoplevate/compare/v1.0.3...v1.1.0
+
+[1.1.1]: https://github.com/orbivort/peoplevate/compare/v1.1.0...v1.1.1
