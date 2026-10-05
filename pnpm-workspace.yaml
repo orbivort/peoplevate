@@ -104,7 +104,7 @@ catalog:
   pg: ^8.23.0
   # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
   # the @vitest/mocker redirect mock).
-  vitest: ^4.1.11
+  vitest: ^5.0.0
   '@vitest/coverage-v8': ^4.1.11
   typescript-eslint: ^8.70.0
   globals: ^17.12.0
