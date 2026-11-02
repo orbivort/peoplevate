@@ -106,7 +106,7 @@ catalog:
   # the @vitest/mocker redirect mock).
   vitest: ^4.1.11
   '@vitest/coverage-v8': ^4.1.11
-  typescript-eslint: ^8.71.2
+  typescript-eslint: ^8.72.0
   globals: ^17.13.0
 
 minimumReleaseAgeExclude:
