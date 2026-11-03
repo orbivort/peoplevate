@@ -48,16 +48,26 @@ overrides:
   # @prisma/dev > @prisma/streams-local and by stylelint via table) to a patched
   # version to fix GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf
   # and GHSA-jqff-g426-hqxp (SSRF / host-confusion via URI normalization, all
-  # patched in >=3.1.6) and GHSA-hrr3-gc8f-f4qj (inconsistent host-case
-  # normalization via percent-encoded octets, patched >=3.1.8). 3.1.8 is the
-  # newest release in the 3.x range that ajv declares (^3.0.1), so a 4.x override
-  # would break the declared contract.
-  fast-uri: 3.1.8
+  # patched in >=3.1.6), GHSA-hrr3-gc8f-f4qj (inconsistent host-case normalization
+  # via percent-encoded octets, patched >=3.1.8) and GHSA-w74x-v6f9-j3xg,
+  # GHSA-wjr9-j795-jxcr, GHSA-xhq7-xmqj-769h and GHSA-333x-w4r6-6crp (scheme
+  # spoofing / host confusion / path-equivalence / scheme-injection issues, all
+  # patched >=3.1.9). 3.1.9 is the newest release in the 3.x range that ajv
+  # declares (^3.0.1), so a 4.x override would break the declared contract.
+  fast-uri: 3.1.9
   # Force `qs` (pulled by express, body-parser and supertest's superagent) to a
   # patched version to fix GHSA-x5fp-wj9c-mxmx (array-limit bypass via
-  # bracket-key comma parsing, patched >=6.15.4) and GHSA-4mjr-xmp4-gh2g
-  # (Denial of Service via an attacker-controlled isBuffer, patched >=6.16.0).
-  qs: 6.16.0
+  # bracket-key comma parsing, patched >=6.15.4), GHSA-4mjr-xmp4-gh2g
+  # (Denial of Service via an attacker-controlled isBuffer, patched >=6.16.0) and
+  # GHSA-6pq8-jhm2-2vcw (uncaught TypeError / DoS in qs.stringify with
+  # arrayFormat 'comma', patched >=6.16.1). express declares `^6.16.0` and
+  # body-parser declares `^6.16.1`, so 6.17.1 stays in range.
+  qs: 6.17.1
+  # Force `body-parser` (pulled by express and express-rate-limit, which pulls its
+  # own copy of express) to a patched version to fix GHSA-27r3-jxmh-p828 (Denial
+  # of Service via trailing bytes after a compressed request body, patched
+  # >=2.4.0). express declares `^2.3.0`, so 2.4.0 stays in range.
+  body-parser: 2.4.0
   # Force `js-yaml` (pulled by stylelint > cosmiconfig) to a patched version to
   # fix GHSA-2883-xcg3-v3hh (maxTotalMergeKeys does not bound CPU consumption for
   # empty merge sources, patched >=4.3.2). cosmiconfig declares `^4.1.0`, so 4.3.2
@@ -68,7 +78,7 @@ overrides:
   # GHSA-2wm5-q62r-hmrv (slow rejection of oversized malformed color strings,
   # patched >=2.9.4). stylelint declares `^2.9.3`, so 2.10.0 stays in range.
   colord: 2.10.0
-  # Force `undici` (pulled by jsdom, which backs the vitest browser-like test
+  # Force `undici` (pulled by jsdom via vitest, and by jsdom in the frontend test
   # environment) to a patched version to fix GHSA-rfgv-xxqx-mfg5 (DoS via an
   # unrequested WebSocket subprotocol), GHSA-w293-vg96-wgc3 (TLS certificate
   # validation bypass via dropped connect options in BalancedPool),
@@ -76,9 +86,17 @@ overrides:
   # isolation in interceptors), GHSA-3wwx-pv8p-q78v, GHSA-pmjh-fq2x-6v4x,
   # GHSA-3xpg-4rpp-hhhm, GHSA-2jfj-6hjv-fm6j, GHSA-rx4f-c7p8-82vq,
   # GHSA-r53p-7pc4-xj5r, GHSA-2gqq-gqf2-x968 and GHSA-8436-99hf-9mmv (all
-  # patched >=8.10.2). jsdom declares `^8.9.0`, so 8.10.2 (the minimal patched
-  # release) stays in range.
-  undici: 8.10.2
+  # patched >=8.10.2), plus GHSA-xjj6-f33q-929c (DoS via excessive
+  # content-encodings), GHSA-4w7w-5xrc-9h26 (cross-origin redirect cache
+  # poisoning), GHSA-2m5v-pch6-74hx (TLS certificate validation bypass via
+  # dropped tls options in Agent), GHSA-qrxm-fqhp-jwvm (DoS via TLS 1.2
+  # certificate-changing renegotiation), GHSA-4qv8-2p9j-2685 (unbounded memory in
+  # the EventSource parser), GHSA-f72v-6w45-q472 (Subresource Integrity bypass via
+  # non-lowercase algorithm tokens), GHSA-9fm3-97px-rjf6 (unbounded automatic PONG
+  # buffering) and GHSA-55wc-3pg8-jfw6 (unhandled exception in the decompress
+  # interceptor), all patched >=8.12.2. jsdom declares `^8.12.1`, so 8.12.3 stays
+  # in range.
+  undici: 8.12.3
   # Force `brace-expansion` (pulled by minimatch, which is used by the eslint and
   # rimraf > glob toolchains) to a patched version to fix GHSA-qhr7-859c-m2p7 and
   # GHSA-6j4f-fj2g-mc7p (stack exhaustion via uncontrolled recursion) and
@@ -88,9 +106,27 @@ overrides:
   # Force `ip-address` (pulled by express-rate-limit) to a patched version to fix
   # GHSA-j6r3-76f7-8jcv (isInSubnet() compares mixed address families and can
   # admit an address outside its range) and GHSA-h3mg-xc3c-68pw (unbounded parse
-  # diagnostic string stalls the process), both patched >=10.7.1.
-  # express-rate-limit declares `^10.2.0`, so 10.7.2 stays in range.
-  ip-address: 10.7.2
+  # diagnostic string stalls the process), both patched >=10.7.1, plus
+  # GHSA-rxp7-6hxx-x8q5 (Address6 matches a zone identifier in quadratic time
+  # ahead of its length limit, patched >=10.7.4).
+  # express-rate-limit declares `^10.2.0`, so 10.7.5 stays in range.
+  ip-address: 10.7.5
+  # Force `minimatch` (pulled by eslint, @eslint/config-array,
+  # @typescript-eslint/typescript-estree and rimraf > glob) to a patched version
+  # to fix GHSA-g3hv-75wg-m249 (denial of service via globparts amplification).
+  # The advisory has no backport: every release below 11.0.1 is affected, so the
+  # override has to cross the 10.x -> 11.x boundary even though eslint declares
+  # `^10.2.5`. v11 keeps the same public API (`Minimatch` class, `minimatch()`,
+  # options such as `dot`/`matchBase`) and only adds
+  # `@isaacs/nonrecursive-glob-match` as a dependency, so the toolchain keeps
+  # working; lint and the test suite are the validation for this assumption.
+  minimatch: 11.0.4
+  # Force `glob` (pulled by rimraf, which powers the `clean` scripts) to a patched
+  # version to fix GHSA-3g3m-2fjr-6pw4 (AbortSignal cancellation bypass allows
+  # post-timeout filesystem traversal in glob >=9.0.0 <=14.0.1, patched >=14.0.2).
+  # rimraf declares `^13.0.3` and no 13.x patch exists, so 14.0.3 is forced;
+  # rimraf only uses the `glob`/`globSync` exports, which are unchanged in v14.
+  glob: 14.0.3
 
 # Shared dependency versions across all packages
 catalog:
@@ -103,9 +139,13 @@ catalog:
   dotenv: ^17.4.2
   pg: ^8.23.1
   # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
-  # the @vitest/mocker redirect mock).
-  vitest: ^4.1.11
-  '@vitest/coverage-v8': ^4.1.11
+  # the @vitest/mocker redirect mock). 4.1.12 patches GHSA-qxg6-89mg-rqv8 (code
+  # injection via unauthenticated manual mock registration) and
+  # GHSA-xp26-3454-mjgp (Windows backslash traversal bypassing the @vitest/mocker
+  # redirect allowlist), both patched in @vitest/mocker >=4.1.12, which vitest
+  # pins to its own version.
+  vitest: ^4.1.12
+  '@vitest/coverage-v8': ^4.1.12
   typescript-eslint: ^8.71.2
   globals: ^17.13.0
 

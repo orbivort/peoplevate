@@ -7,6 +7,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Security
+
+- Remediate **20** dependency vulnerabilities (**6 high**, **12 moderate**, **2 low**):
+  - `multer` 2.4.0 → 2.5.0 — fixes a denial of service via a pending asynchronous
+    `fileFilter` that outlives request teardown
+    ([GHSA-q7qp-rjg7-q26m](https://github.com/advisories/GHSA-q7qp-rjg7-q26m))
+  - `body-parser` 2.3.0 → 2.4.0 — fixes a denial of service via trailing bytes after a
+    compressed request body
+    ([GHSA-27r3-jxmh-p828](https://github.com/advisories/GHSA-27r3-jxmh-p828)). It is
+    pulled by `express` and by `express-rate-limit` through its own `express` copy, both
+    of which declare `^2.3.0`, so the fix stays inside the declared range and is pinned by
+    a pnpm override
+  - `undici` 8.10.2 → 8.12.3 — fixes four high-severity issues: denial of service via an
+    unhandled error on excessive `Content-Encoding` headers
+    ([GHSA-xjj6-f33q-929c](https://github.com/advisories/GHSA-xjj6-f33q-929c)),
+    cache poisoning and cross-user disclosure via cross-origin redirects
+    ([GHSA-4w7w-5xrc-9h26](https://github.com/advisories/GHSA-4w7w-5xrc-9h26)), a TLS
+    certificate validation bypass via dropped `tls` options in `Agent`
+    ([GHSA-2m5v-pch6-74hx](https://github.com/advisories/GHSA-2m5v-pch6-74hx)), and
+    denial of service via TLS 1.2 certificate-changing renegotiation
+    ([GHSA-qrxm-fqhp-jwvm](https://github.com/advisories/GHSA-qrxm-fqhp-jwvm)); and four
+    moderate issues: unbounded memory in the `EventSource` parser
+    ([GHSA-4qv8-2p9j-2685](https://github.com/advisories/GHSA-4qv8-2p9j-2685)), a
+    Subresource Integrity bypass via non-lowercase algorithm tokens
+    ([GHSA-f72v-6w45-q472](https://github.com/advisories/GHSA-f72v-6w45-q472)), unbounded
+    automatic PONG buffering in the WebSocket client
+    ([GHSA-9fm3-97px-rjf6](https://github.com/advisories/GHSA-9fm3-97px-rjf6)), and an
+    unhandled exception in the decompressor interceptor
+    ([GHSA-55wc-3pg8-jfw6](https://github.com/advisories/GHSA-55wc-3pg8-jfw6)). It is
+    pulled by `jsdom` (the vitest DOM environment), which declares `^8.12.1`, and is
+    pinned by a pnpm override
+  - `qs` 6.16.0 → 6.17.1 — fixes an uncaught `TypeError` that can crash the process when
+    `qs.stringify()` is used with `arrayFormat: 'comma'` and an array element carries a
+    non-callable own `toString`
+    ([GHSA-6pq8-jhm2-2vcw](https://github.com/advisories/GHSA-6pq8-jhm2-2vcw)). It is
+    pulled by `express`, `body-parser` and supertest's `superagent`; `express` declares
+    `^6.16.0` and `body-parser` declares `^6.16.1`, so the fix stays inside both declared
+    ranges and is pinned by a pnpm override
+  - `fast-uri` 3.1.8 → 3.1.9 — fixes URI scheme spoofing via percent-encoded scheme
+    decoding ([GHSA-w74x-v6f9-j3xg](https://github.com/advisories/GHSA-w74x-v6f9-j3xg)),
+    host confusion via unchecked WHATWG host canonicalization
+    ([GHSA-wjr9-j795-jxcr](https://github.com/advisories/GHSA-wjr9-j795-jxcr)), improper
+    path equivalence in relative reference normalization
+    ([GHSA-xhq7-xmqj-769h](https://github.com/advisories/GHSA-xhq7-xmqj-769h)), and scheme
+    injection via an unescaped first-segment colon in suffix references
+    ([GHSA-333x-w4r6-6crp](https://github.com/advisories/GHSA-333x-w4r6-6crp)). It is
+    pulled by `ajv` through the Prisma CLI and stylelint toolchains, and 3.1.9 is the
+    newest release inside `ajv`'s declared `^3.0.1` range
+  - `ip-address` 10.7.2 → 10.7.5 — fixes an `Address6` zone-identifier match that runs in
+    quadratic time ahead of its length limit, allowing a single long string to stall the
+    process ([GHSA-rxp7-6hxx-x8q5](https://github.com/advisories/GHSA-rxp7-6hxx-x8q5)). It
+    is pulled by `express-rate-limit`, which declares `^10.2.0`, and is pinned by a pnpm
+    override
+  - `vitest` / `@vitest/coverage-v8` 4.1.11 → 4.1.12 — fixes code injection via
+    unauthenticated manual mock registration
+    ([GHSA-qxg6-89mg-rqv8](https://github.com/advisories/GHSA-qxg6-89mg-rqv8)) and a
+    Windows backslash traversal that bypasses the `@vitest/mocker` redirect allowlist
+    ([GHSA-xp26-3454-mjgp](https://github.com/advisories/GHSA-xp26-3454-mjgp)). `vitest`
+    pins `@vitest/mocker` to its own version, so the catalog bump covers both
+  - `minimatch` 10.2.6 → 11.0.4 — fixes a denial of service via `globparts`
+    amplification
+    ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)). No
+    backport exists below 11.0.1, so the pnpm override crosses the 10.x → 11.x boundary
+    even though eslint declares `^10.2.5`; v11 keeps the `Minimatch` class and options API
+    used by the eslint, `@typescript-eslint/typescript-estree` and `rimraf > glob`
+    toolchains
+  - `glob` 13.0.6 → 14.0.3 — fixes an `AbortSignal` cancellation bypass that allows
+    filesystem traversal to continue after a timeout
+    ([GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4)). No 13.x
+    patch exists, so `rimraf`'s `^13.0.3` range is overridden; `rimraf` only uses the
+    stable `glob` / `globSync` exports
+
 ## [1.1.1] - 2026-09-30
 
 ### Security
@@ -284,7 +358,7 @@ Key achievements of this release:
 
 ---
 
-[Unreleased]: https://github.com/orbivort/peoplevate/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/orbivort/peoplevate/compare/v1.1.1...HEAD
 
 [1.0.0]: https://github.com/orbivort/peoplevate/releases/tag/v1.0.0
 [1.0.1]: https://github.com/orbivort/peoplevate/compare/v1.0.0...v1.0.1
