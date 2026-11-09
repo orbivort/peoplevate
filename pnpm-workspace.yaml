@@ -131,7 +131,7 @@ overrides:
 # Shared dependency versions across all packages
 catalog:
   typescript: ^6.0.0
-  eslint: ^10.13.0
+  eslint: ^10.14.0
   '@eslint/js': ^10.0.1
   '@types/node': ^24.13.3
   cross-env: ^10.1.0
@@ -146,8 +146,8 @@ catalog:
   # pins to its own version.
   vitest: ^4.1.12
   '@vitest/coverage-v8': ^4.1.12
-  typescript-eslint: ^8.71.2
-  globals: ^17.13.0
+  typescript-eslint: ^8.72.1
+  globals: ^17.14.0
 
 minimumReleaseAgeExclude:
   - nanoid@3.3.18
