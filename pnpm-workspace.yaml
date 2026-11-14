@@ -144,7 +144,7 @@ catalog:
   # GHSA-xp26-3454-mjgp (Windows backslash traversal bypassing the @vitest/mocker
   # redirect allowlist), both patched in @vitest/mocker >=4.1.12, which vitest
   # pins to its own version.
-  vitest: ^4.1.12
+  vitest: ^5.0.5
   '@vitest/coverage-v8': ^4.1.12
   typescript-eslint: ^8.72.1
   globals: ^17.14.0
