@@ -53,6 +53,11 @@ const mocked = {
   logAuditEvent: vi.mocked(auditService.logAuditEvent),
 };
 
+// `requireRoles(...)` is called once while the router module loads. Vitest 5
+// clears mock call history before every test (`clearMocks` defaults to true), so
+// the registration call has to be snapshotted here to be assertable at all.
+const requireRolesCallsAtLoad = mocked.requireRoles.mock.calls.slice();
+
 function buildApp(): express.Express {
   const app = express();
   app.use(express.json());
@@ -71,8 +76,8 @@ const sampleAlert = {
 describe('anomaly-routes', () => {
   beforeEach(() => {
     // Reset only data-layer mocks. The `requireRoles(UserRole.ADMIN)` call
-    // happens once at router module-load time, so it is deliberately NOT
-    // cleared here (clearAllMocks would wipe that import-time invocation).
+    // happens once at router module-load time and is captured in
+    // `requireRolesCallsAtLoad`, so it does not need to survive in the mock.
     mocked.findMany.mockReset();
     mocked.update.mockReset();
     mocked.logAuditEvent.mockReset();
@@ -85,7 +90,7 @@ describe('anomaly-routes', () => {
     it('guards the router with authenticate and admin-only requireRoles', () => {
       // The router registers these guards at module-load time.
       expect(mocked.authenticate).toBeDefined();
-      expect(mocked.requireRoles).toHaveBeenCalledWith(UserRole.ADMIN);
+      expect(requireRolesCallsAtLoad).toContainEqual([UserRole.ADMIN]);
     });
   });
 

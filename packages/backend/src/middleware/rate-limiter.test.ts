@@ -3,9 +3,10 @@ import type { Request } from 'express';
 
 // Share the mock instance via vi.hoisted so the factory and the test body both
 // reference the exact same `vi.fn()`. The module under test is imported once,
-// so its two `rateLimit(...)` calls populate `rateLimitMock.mock.calls` at
-// import time — we capture them once and assert against them. We must NOT call
-// vi.clearAllMocks() in beforeEach, as that would wipe the import-time calls.
+// so its three `rateLimit(...)` calls populate `rateLimitMock.mock.calls` at
+// import time — we capture them once and assert against them. Vitest 5 clears
+// mock call history before every test (`clearMocks` now defaults to true), so
+// import-time calls can only be asserted through a module-scope snapshot.
 const { rateLimitMock } = vi.hoisted(() => {
   const fn = vi.fn();
   return { rateLimitMock: fn };
@@ -41,16 +42,23 @@ const apiOptions = rateLimitMock.mock.calls[0][0] as RateLimitOptions;
 const loginOptions = rateLimitMock.mock.calls[1][0] as RateLimitOptions;
 const passwordOptions = rateLimitMock.mock.calls[2][0] as RateLimitOptions;
 
+// Snapshot the import-time call count: `rateLimitMock.mock.calls` is emptied
+// before each test, so this is the only way to assert on module-load wiring.
+const importTimeConstructionCount = rateLimitMock.mock.calls.length;
+
 /** Build a minimal Express Request with optional user/IP. */
 function buildReq(overrides: Partial<Request> = {}): Request {
   return { ip: '127.0.0.1', ...overrides } as unknown as Request;
 }
 
 describe('rate-limiter module', () => {
+  it('constructs all three limiters once at import time', () => {
+    expect(importTimeConstructionCount).toBe(3);
+  });
+
   describe('apiRateLimiter', () => {
     it('is constructed as an express-rate-limit middleware', () => {
-      expect(apiRateLimiter).toBeDefined();
-      expect(rateLimitMock).toHaveBeenCalledTimes(3);
+      expect(apiRateLimiter).toBeTypeOf('function');
     });
 
     it('uses a 1-minute window with an env-driven per-IP max', () => {
@@ -74,8 +82,7 @@ describe('rate-limiter module', () => {
 
   describe('loginRateLimiter', () => {
     it('is constructed as an express-rate-limit middleware', () => {
-      expect(loginRateLimiter).toBeDefined();
-      expect(rateLimitMock).toHaveBeenCalledTimes(3);
+      expect(loginRateLimiter).toBeTypeOf('function');
     });
 
     it('uses a 1-minute window', () => {
@@ -103,8 +110,7 @@ describe('rate-limiter module', () => {
 
   describe('passwordChangeRateLimiter', () => {
     it('is constructed as an express-rate-limit middleware', () => {
-      expect(passwordChangeRateLimiter).toBeDefined();
-      expect(rateLimitMock).toHaveBeenCalledTimes(3);
+      expect(passwordChangeRateLimiter).toBeTypeOf('function');
     });
 
     it('uses a 15-minute window with a per-user max of 5', () => {

@@ -138,14 +138,15 @@ catalog:
   # Runtime dependencies shared by more than one workspace package.
   dotenv: ^18.0.9
   pg: ^8.23.1
-  # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
-  # the @vitest/mocker redirect mock). 4.1.12 patches GHSA-qxg6-89mg-rqv8 (code
-  # injection via unauthenticated manual mock registration) and
-  # GHSA-xp26-3454-mjgp (Windows backslash traversal bypassing the @vitest/mocker
-  # redirect allowlist), both patched in @vitest/mocker >=4.1.12, which vitest
-  # pins to its own version.
-  vitest: ^4.1.12
-  '@vitest/coverage-v8': ^4.1.12
+  # 5.x is the current major (needs Vite >=6.4 and Node >=22.12). The two
+  # advisories that previously forced this catalog onto 4.1.12 —
+  # GHSA-qxg6-89mg-rqv8 (code injection via unauthenticated manual mock
+  # registration) and GHSA-xp26-3454-mjgp (Windows backslash traversal past the
+  # @vitest/mocker redirect allowlist) — are fixed upstream in @vitest/mocker
+  # >=4.1.12 / >=5.0.3, so 5.0.5 is already patched. `vitest` pins
+  # `@vitest/mocker` to its own version, so both entries move together.
+  vitest: ^5.0.5
+  '@vitest/coverage-v8': ^5.0.5
   typescript-eslint: ^8.72.1
   globals: ^17.14.0
 
