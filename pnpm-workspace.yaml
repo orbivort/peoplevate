@@ -136,7 +136,7 @@ catalog:
   '@types/node': ^24.19.2
   cross-env: ^10.1.0
   # Runtime dependencies shared by more than one workspace package.
-  dotenv: ^17.4.2
+  dotenv: ^18.0.9
   pg: ^8.23.1
   # 4.1.11 patches GHSA-82fw-gwwq-j7x9 (path traversal / arbitrary file read via
   # the @vitest/mocker redirect mock). 4.1.12 patches GHSA-qxg6-89mg-rqv8 (code
