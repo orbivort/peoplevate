@@ -12,6 +12,8 @@ out/
 # ---- Test / coverage --------------------------------------------------------
 coverage/
 .coverage/
+# Vitest 5 artifact root (attachments, blob reports, html/json/junit output).
+.vitest/
 *.lcov
 .nyc_output/
 *.ts.tmp
