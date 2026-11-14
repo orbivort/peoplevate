@@ -121,6 +121,11 @@ Conventions:
 
 - Routine minor/patch updates are grouped into a single PR per ecosystem; major
   updates open individually so breaking changes get a dedicated review.
+- The Node.js runtime (`node`/`node.js`, `typescript`, `npm`) is excluded from
+  automated version updates because it must stay aligned with `engines.node`,
+  `packageManager` and the `node:<version>-alpine` base images; `@types/node` is
+  updated within the pinned major (`24.x`) only. Security updates for these
+  packages still arrive on their own.
 - Commits use Conventional-Commit prefixes (`chore(deps)`, `chore(deps-dev)`,
   `chore(ci)`, `chore(docker)`).
 - A cooldown delays version updates so a freshly published release has time to
