@@ -136,7 +136,7 @@ catalog:
   '@types/node': ^24.19.2
   cross-env: ^10.1.0
   # Runtime dependencies shared by more than one workspace package.
-  dotenv: ^18.0.9
+  dotenv: ^18.0.10
   pg: ^8.23.1
   # 5.x is the current major (needs Vite >=6.4 and Node >=22.12). The two
   # advisories that previously forced this catalog onto 4.1.12 —
