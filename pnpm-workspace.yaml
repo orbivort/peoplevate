@@ -131,7 +131,7 @@ overrides:
 # Shared dependency versions across all packages
 catalog:
   typescript: ^6.0.0
-  eslint: ^10.14.0
+  eslint: ^10.15.0
   '@eslint/js': ^10.0.1
   '@types/node': ^24.19.2
   cross-env: ^10.1.0
@@ -147,7 +147,7 @@ catalog:
   # `@vitest/mocker` to its own version, so both entries move together.
   vitest: ^5.0.5
   '@vitest/coverage-v8': ^5.0.5
-  typescript-eslint: ^8.72.1
+  typescript-eslint: ^8.72.2
   globals: ^17.14.0
 
 minimumReleaseAgeExclude:
