@@ -35,7 +35,6 @@ vi.mock('../config/env.js', () => ({
   env: {
     DSAR_SLA_DAYS: 30,
     DSAR_REMINDER_DAYS: 25,
-    DPO_CONTACT_EMAIL: 'dpo@peoplevate.local',
   },
 }));
 
@@ -45,7 +44,6 @@ vi.mock('../services/audit-service.js', () => ({
 
 import { authenticate, getAuthUser } from '../middleware/auth.js';
 import { requireRoles } from '../middleware/rbac.js';
-import { env } from '../config/env.js';
 import { logAuditEvent } from '../services/audit-service.js';
 import { prisma } from '../config/prisma.js';
 import { dsarRoutes, checkDsarSla } from './dsar-routes.js';
@@ -452,9 +450,7 @@ describe('dsar-routes', () => {
 
       await checkDsarSla();
 
-      expect(logSpy).toHaveBeenCalledWith(
-        `[DSAR SLA] 2 DSAR(s) overdue - escalating to DPO: ${env.DPO_CONTACT_EMAIL}`,
-      );
+      expect(logSpy).toHaveBeenCalledWith('[DSAR SLA] 2 DSAR(s) overdue - escalating to DPO');
       logSpy.mockRestore();
     });
   });

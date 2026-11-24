@@ -30,7 +30,6 @@ vi.mock('./audit-service.js', () => ({
 
 vi.mock('../config/env.js', () => ({
   env: {
-    DPO_CONTACT_EMAIL: 'dpo@example.com',
     ANOMALY_FAILED_LOGIN_WINDOW_MINUTES: 15,
     ANOMALY_FAILED_LOGIN_THRESHOLD: 10,
     ANOMALY_BULK_DOWNLOAD_WINDOW_MINUTES: 60,
@@ -314,9 +313,10 @@ describe('breach-service', () => {
       await checkBreachEscalations();
 
       const calls = spy.mock.calls.map((c) => String(c[0]));
-      expect(calls.some((c) => c.includes('BREACH ESCALATION'))).toBe(true);
-      expect(calls.some((c) => c.includes('BREACH OVERDUE'))).toBe(true);
-      expect(calls.every((c) => c.includes('dpo@example.com'))).toBe(true);
+      expect(calls.some((c) => c.includes('BREACH ESCALATION') && c.includes('br-1'))).toBe(true);
+      expect(calls.some((c) => c.includes('BREACH OVERDUE') && c.includes('br-2'))).toBe(true);
+      // Breach titles are free-text incident details: they must not be logged.
+      expect(calls.some((c) => c.includes('Approaching') || c.includes('Overdue'))).toBe(false);
       spy.mockRestore();
     });
 
@@ -337,6 +337,7 @@ describe('breach-service', () => {
       m.auditCount.mockResolvedValue(25);
       m.anomalyFindFirst.mockResolvedValue(null);
       m.anomalyCreate.mockResolvedValue({ id: 'an-1' } as never);
+      const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
       await checkFailedLoginSpike('203.0.113.10');
 
@@ -347,6 +348,11 @@ describe('breach-service', () => {
           severity: 'HIGH',
         }),
       });
+      // The log references the alert, never the raw IP address.
+      const logged = spy.mock.calls.map((c) => String(c[0])).join('\n');
+      expect(logged).toContain('an-1');
+      expect(logged).not.toContain('203.0.113.10');
+      spy.mockRestore();
     });
 
     it('does not create a duplicate open alert', async () => {
@@ -367,12 +373,18 @@ describe('breach-service', () => {
       m.auditCount.mockResolvedValue(80);
       m.anomalyFindFirst.mockResolvedValue(null);
       m.anomalyCreate.mockResolvedValue({ id: 'an-2' } as never);
+      const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
       await checkBulkDownloadSpike('u-1');
 
       expect(m.anomalyCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({ alert_type: 'BULK_DOWNLOAD_SPIKE', entity_id: 'u-1' }),
       });
+      // The log references the alert, never the user id.
+      const logged = spy.mock.calls.map((c) => String(c[0])).join('\n');
+      expect(logged).toContain('an-2');
+      expect(logged).not.toContain('u-1');
+      spy.mockRestore();
     });
 
     it('does not create a duplicate bulk-download alert', async () => {

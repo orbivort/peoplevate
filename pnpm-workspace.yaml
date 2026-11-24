@@ -36,6 +36,13 @@ overrides:
   # only merges plain object/array config files (no Maps, no deepmergeInto, no
   # deepmergeCustom with a MetaDataUpdater).
   deepmerge-ts: 8.0.2
+  # Force `effect` (pulled by prisma CLI via @prisma/config) to a patched version
+  # to fix GHSA-7589-6fvf-x4pw (ReDoS in the compiled regex of
+  # Schema.TemplateLiteral, patched >=3.22.1). @prisma/config pins 3.20.0 exactly,
+  # so the override is the only way to pick up the fix; 3.22.5 is the newest
+  # release in the 3.x line that @prisma/config targets. The prisma CLI only uses
+  # effect for config-file parsing, which is validated by `prisma validate`.
+  effect: 3.22.5
   # Force `mysql2` (pulled by the prisma CLI, which still pins 3.15.3 exactly)
   # to a patched version to fix GHSA-3f6p-5ww8-9rcr (auth plugin downgrade to
   # mysql_clear_password leaks plaintext credentials, patched >=3.22.0) and

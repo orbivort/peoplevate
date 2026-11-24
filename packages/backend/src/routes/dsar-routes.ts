@@ -184,8 +184,8 @@ export async function checkDsarSla(): Promise<void> {
     },
   });
   if (overdue.length > 0) {
-    console.log(
-      `[DSAR SLA] ${overdue.length} DSAR(s) overdue - escalating to DPO: ${env.DPO_CONTACT_EMAIL}`,
-    );
+    // The DPO address is personal data and is not logged; the count is enough
+    // for the operator to act, and the address lives in config.
+    console.log(`[DSAR SLA] ${overdue.length} DSAR(s) overdue - escalating to DPO`);
   }
 }
