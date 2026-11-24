@@ -10,9 +10,9 @@ import { prisma } from '../src/config/prisma.js';
 import { encrypt, decrypt, encryptWithKeyVersion, KeyStatus } from '../src/crypto-reexport.js';
 import { getActiveKeyVersion } from '../src/services/key-management-service.js';
 
-/** Extracts a log-safe message: never serialises the error object itself. */
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : 'unknown error';
+/** Returns a fixed safe marker; never includes raw error content. */
+function errorMessage(_err: unknown): string {
+  return 'details redacted';
 }
 
 async function main(): Promise<void> {
@@ -87,8 +87,7 @@ async function main(): Promise<void> {
       });
       fileCount++;
     } catch (err) {
-      // Log the message, not the raw error: errors raised on this path can
-      // carry driver details or query fragments holding encrypted values.
+      // Do not log raw error content from crypto/env/file paths.
       console.error(`  Failed to re-encrypt file for document ${doc.id}: ${errorMessage(err)}`);
     }
   }
