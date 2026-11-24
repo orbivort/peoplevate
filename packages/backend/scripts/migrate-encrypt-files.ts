@@ -11,6 +11,11 @@ import { prisma } from '../src/config/prisma.js';
 import { encryptWithKeyVersion } from '../src/utils/crypto.js';
 import { getActiveKeyVersion } from '../src/services/key-management-service.js';
 
+/** Extracts a log-safe message: never serialises the error object itself. */
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : 'unknown error';
+}
+
 async function main(): Promise<void> {
   console.log('Starting file encryption migration...');
 
@@ -57,7 +62,9 @@ async function main(): Promise<void> {
         console.log(`  Encrypted ${encrypted}/${docs.length}...`);
       }
     } catch (err) {
-      console.error(`  Failed to encrypt document ${doc.id} (${doc.file_path}):`, err);
+      // Report the document id only — the storage path and the raw error can
+      // both disclose where unencrypted content lives and how it failed.
+      console.error(`  Failed to encrypt document ${doc.id}: ${errorMessage(err)}`);
       failed++;
     }
   }
@@ -67,6 +74,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error('Migration failed:', err);
+  console.error(`Migration failed: ${errorMessage(err)}`);
   process.exit(1);
 });

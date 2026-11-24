@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Security
+
+- `effect` 3.20.0 → 3.22.5 — fixes a regular expression denial of service in the
+  compiled regex of `Schema.TemplateLiteral`
+  ([GHSA-7589-6fvf-x4pw](https://github.com/advisories/GHSA-7589-6fvf-x4pw)). It is
+  pulled by the Prisma CLI through `@prisma/config`, which pins `3.20.0` exactly, so
+  the override is the only way to pick up the patch; the dependency is only used to
+  parse the Prisma config file and is never loaded by the API at runtime
+- Remove personal data and incident details from application logs (8 of 9 CodeQL
+  `js/clear-text-logging` alerts). Breach escalation notices now cite the breach id
+  instead of the free-text title, and DPO escalation notices no longer echo
+  `DPO_CONTACT_EMAIL`; failed-login and bulk-download anomaly notices cite the persisted
+  alert id instead of the raw IP address / user id, which remain available on the alert
+  record for triage. The `re-encrypt-data` and `migrate-encrypt-files` scripts log the
+  document id plus an error message rather than the raw error object (which can carry
+  connection strings or query fragments) and the storage path. The ninth alert
+  (`src/index.ts`, startup notice exposing only `PORT` and `NODE_ENV`) contains no
+  sensitive data and is dismissed as a false positive
+
 ## [1.1.2] - 2026-11-03
 
 ### Security
@@ -358,7 +379,7 @@ Key achievements of this release:
 
 ---
 
-[Unreleased]: https://github.com/orbivort/peoplevate/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/orbivort/peoplevate/compare/v1.1.2...HEAD
 
 [1.0.0]: https://github.com/orbivort/peoplevate/releases/tag/v1.0.0
 [1.0.1]: https://github.com/orbivort/peoplevate/compare/v1.0.0...v1.0.1

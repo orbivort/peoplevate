@@ -206,10 +206,13 @@ export async function checkBreachEscalations(): Promise<void> {
       sa_notification_deadline: { lte: twentyFourHoursFromNow, gt: now },
     },
   });
+  // Log the breach id only. The title is free text describing the incident and
+  // routinely names the affected system/data subject, so it must not be copied
+  // into log files; the DPO address is personal data and stays in config/DB.
   for (const breach of approaching) {
     console.log(
-      `[BREACH ESCALATION] Breach "${breach.title}" - less than 24h to SA notification deadline. ` +
-        `Escalating to DPO: ${env.DPO_CONTACT_EMAIL}`,
+      `[BREACH ESCALATION] Breach ${breach.id} - less than 24h to SA notification deadline. ` +
+        `Escalating to DPO.`,
     );
   }
 
@@ -222,8 +225,8 @@ export async function checkBreachEscalations(): Promise<void> {
   });
   for (const breach of overdue) {
     console.log(
-      `[BREACH OVERDUE] Breach "${breach.title}" - SA notification deadline PASSED. ` +
-        `Escalating to DPO: ${env.DPO_CONTACT_EMAIL}`,
+      `[BREACH OVERDUE] Breach ${breach.id} - SA notification deadline PASSED. ` +
+        `Escalating to DPO.`,
     );
   }
 }
@@ -255,7 +258,7 @@ export async function checkFailedLoginSpike(ipAddress: string): Promise<void> {
       },
     });
     if (!existing) {
-      await prisma.anomalyAlert.create({
+      const alert = await prisma.anomalyAlert.create({
         data: {
           alert_type: 'FAILED_LOGIN_SPIKE',
           entity_type: 'auth',
@@ -264,8 +267,11 @@ export async function checkFailedLoginSpike(ipAddress: string): Promise<void> {
           details: { failedAttempts: recentFailures, windowMinutes, threshold },
         },
       });
+      // Reference the persisted alert instead of the raw IP: the IP is
+      // personal data (see IP_RETENTION_DAYS minimisation) and is already
+      // available on the alert record for anyone triaging it.
       console.log(
-        `[ANOMALY] Failed-login spike detected for IP ${ipAddress}: ${recentFailures} attempts in ${windowMinutes}min`,
+        `[ANOMALY] Failed-login spike detected (alert ${alert.id}): ${recentFailures} attempts`,
       );
     }
   }
@@ -294,7 +300,7 @@ export async function checkBulkDownloadSpike(userId: string): Promise<void> {
       },
     });
     if (!existing) {
-      await prisma.anomalyAlert.create({
+      const alert = await prisma.anomalyAlert.create({
         data: {
           alert_type: 'BULK_DOWNLOAD_SPIKE',
           entity_type: 'documents',
@@ -303,8 +309,9 @@ export async function checkBulkDownloadSpike(userId: string): Promise<void> {
           details: { downloadCount: recentDownloads, windowMinutes, threshold },
         },
       });
+      // Same rationale as above: log the alert id, not the user id.
       console.log(
-        `[ANOMALY] Bulk-download spike detected for user ${userId}: ${recentDownloads} downloads in ${windowMinutes}min`,
+        `[ANOMALY] Bulk-download spike detected (alert ${alert.id}): ${recentDownloads} downloads`,
       );
     }
   }
