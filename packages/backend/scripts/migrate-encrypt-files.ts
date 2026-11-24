@@ -11,9 +11,9 @@ import { prisma } from '../src/config/prisma.js';
 import { encryptWithKeyVersion } from '../src/utils/crypto.js';
 import { getActiveKeyVersion } from '../src/services/key-management-service.js';
 
-/** Extracts a log-safe message: never serialises the error object itself. */
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : 'unknown error';
+/** Extracts a log-safe message without exposing exception details. */
+function errorMessage(_err: unknown): string {
+  return 'redacted error details';
 }
 
 async function main(): Promise<void> {
